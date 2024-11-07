@@ -127,6 +127,38 @@ procedure Load_Qoi is
       end loop;
    end Convert_To_Grayscale;
 
+   -- Add this procedure after Convert_To_Grayscale
+   procedure Convert_To_Black_And_White 
+   (Data : in out Storage_Array; 
+      Desc : QOI.QOI_Desc; 
+      Threshold : Storage_Element := 128) 
+   is
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+      BW_Value : Storage_Element;
+   begin
+      for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
+         if I mod Pixel_Size = 1 then
+            -- Check if the pixel is above or below threshold
+            -- Since image is already grayscale, we can just check one channel
+            if Data (I) >= Threshold then
+               BW_Value := 255; -- White
+            else
+               BW_Value := 0;   -- Black
+            end if;
+            
+            -- Set RGB channels to either black or white
+            Data (I) := BW_Value;     -- R
+            Data (I + 1) := BW_Value; -- G
+            Data (I + 2) := BW_Value; -- B
+            
+            -- Preserve alpha channel if it exists
+            if Pixel_Size = 4 then
+               Data (I + 3) := Data (I + 3);
+            end if;
+         end if;
+      end loop;
+   end Convert_To_Black_And_White;
+
    -- Add blur functionality
    procedure Blur_Image (Data : in out Storage_Array; Width, Height, Channels : Storage_Count) is
       Temp : Storage_Array := Data;
@@ -167,7 +199,7 @@ begin
    Input := Load_QOI ("input.qoi");
    
    -- Convert the image to grayscale
-   Convert_To_Grayscale (Input.Data.all, Input.Desc);
+   Convert_To_Black_And_White (Input.Data.all, Input.Desc);
 
    -- Apply blur to the decoded image data
    Blur_Image (Input.Data.all, 
