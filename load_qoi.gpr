@@ -1,0 +1,25 @@
+with "config/load_qoi_config.gpr";
+project Load_Qoi is
+
+   for Languages use ("Ada", "C");
+   for Source_Dirs use ("src/", "config/", "reference-qoi/", "stb/");
+   for Object_Dir use "obj/" & Load_Qoi_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Exec_Dir use "bin";
+   for Main use ("load_qoi.adb");
+
+   for Excluded_Source_Files use ("qoibench.c", "qoiconv.c", "qoifuzz.c");
+
+   package Compiler is
+      for Default_Switches ("Ada") use Load_Qoi_Config.Ada_Compiler_Switches & ("-gnat2022");
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+   package Install is
+      for Artifacts (".") use ("share");
+   end Install;
+
+end Load_Qoi;
