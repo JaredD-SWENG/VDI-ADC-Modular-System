@@ -6,6 +6,9 @@ with Reference_QOI;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 
+with Img;
+with Img.Alg; 
+
 procedure Load_Qoi is
    type Storage_Array_Access is access all Storage_Array;
 
@@ -301,41 +304,7 @@ procedure Load_Qoi is
 
 
 
-   ------------------------------------------------------------------------------
-   -- Get_Pixel
-   --
-   -- Retrieves the pixel data from an image at specified (X, Y) coordinates.
-   -- Returns zero if coordinates are out of bounds.
-   --
-   -- Parameters:
-   --   Data     - Image data array
-   --   X, Y     - Pixel coordinates (1-based indexing)
-   --   Width    - Width of the image in pixels
-   --   Height   - Height of the image in pixels
-   --   Channels - Number of channels per pixel (e.g., 3 for RGB, 4 for RGBA)
-   --
-   -- Returns:
-   --   Storage_Element - Pixel value at (X, Y) for the first channel, or zero
-   --                     if out of bounds.
-   ------------------------------------------------------------------------------
-   function Get_Pixel
-     (Data                    : Storage_Array;
-      X, Y                    : Storage_Count;
-      Width, Height, Channels : Storage_Count) return Storage_Element
-   is
-      Index : Storage_Count;
-   begin
-      -- Return zero if coordinates are out of bounds
-      if X < 1 or X > Width or Y < 1 or Y > Height then
-         return 0;
-      end if;
 
-      -- Calculate index of the pixel in the Data array
-      Index := ((Y - 1) * Width + (X - 1)) * Channels + 1;
-
-      -- Return pixel data at calculated index
-      return Data (Index);
-   end Get_Pixel;
 
 
    ------------------------------------------------------------------------------
@@ -352,7 +321,7 @@ procedure Load_Qoi is
    --   Channels - Number of color channels per pixel (typically 1 for grayscale)
    ------------------------------------------------------------------------------
    procedure Sobel_Edge_Detection
-     (Data : in out Storage_Array; Width, Height, Channels : Storage_Count)
+     (Data : in out Storage_Array; Width, Height, Channels : Natural)
    is
       -- Temporary copy of image data for gradient calculations
       Temp : Storage_Array := Data;
@@ -380,10 +349,10 @@ procedure Load_Qoi is
                      declare
                         Pixel_Value : constant Integer :=
                           Integer
-                            (Get_Pixel
+                            (Img.Get_Pixel
                                (Temp,
-                                X + Storage_Count (J) - 2,
-                                Y + Storage_Count (I) - 2,
+                                X + J - 2,
+                                Y + I - 2,
                                 Width,
                                 Height,
                                 Channels));
@@ -419,10 +388,10 @@ procedure Load_Qoi is
                -- Store gradient magnitude in each channel of the pixel
                for C in 0 .. Channels - 1 loop
                   declare
-                     Pixel_Index : constant Storage_Count :=
+                     Pixel_Index : constant Natural :=
                        ((Y - 1) * Width + (X - 1)) * Channels + C + 1;
                   begin
-                     Data (Pixel_Index) :=
+                     Data (Storage_Offset (Pixel_Index)) :=
                        Storage_Element (Natural'Min (Gradient_Magnitude, 255));
                   end;
                end loop;
@@ -461,80 +430,7 @@ procedure Load_Qoi is
    type Accumulator_Access is access Accumulator_Array;
 
 
-   ------------------------------------------------------------------------------
-   -- Draw_Line
-   --
-   -- Draws a line between two specified points (X1, Y1) and (X2, Y2) in an image,
-   -- using Bresenham's line algorithm. Sets each pixel along the line to a given
-   -- color for all channels.
-   --
-   -- Parameters:
-   --   Data     - Image data array (modified in-place)
-   --   X1, Y1   - Starting coordinates of the line
-   --   X2, Y2   - Ending coordinates of the line
-   --   Width    - Width of the image in pixels
-   --   Height   - Height of the image in pixels
-   --   Channels - Number of channels per pixel (e.g., 3 for RGB, 4 for RGBA)
-   --   Color    - Line color for all channels (default is 255)
-   ------------------------------------------------------------------------------
-   procedure Draw_Line
-     (Data                    : in out Storage_Array;
-      X1, Y1, X2, Y2          : Integer;
-      Width, Height, Channels : Storage_Count;
-      Color                   : Storage_Element := 255)
-   is
-      -- Calculate differences and steps for line drawing
-      DX     : constant Integer := abs (X2 - X1);
-      DY     : constant Integer := abs (Y2 - Y1);
-      Step_X : constant Integer := (if X1 < X2 then 1 else -1);
-      Step_Y : constant Integer := (if Y1 < Y2 then 1 else -1);
 
-      -- Error term used for line steepness
-      Error : Integer := (if DX > DY then DX else -DY) / 2;
-
-      -- Current position
-      X : Integer := X1;
-      Y : Integer := Y1;
-   begin
-      -- Draw line by iterating from start point to end point
-      loop
-         -- Draw pixel only if within bounds
-         if X > 0 and X <= Integer (Width) and Y > 0 and Y <= Integer (Height)
-         then
-            -- Set the pixel color for each channel
-            for C in 0 .. Integer (Channels) - 1 loop
-               declare
-                  -- Calculate index for each channel in the Data array
-                  Index : constant Storage_Offset :=
-                    Storage_Offset
-                      (((Y - 1) * Integer (Width) + (X - 1))
-                       * Integer (Channels)
-                       + C
-                       + 1);
-               begin
-                  Data (Index) := Color;
-               end;
-            end loop;
-         end if;
-
-         -- Exit loop once endpoint is reached
-         exit when X = X2 and Y = Y2;
-
-         -- Update error and position
-         declare
-            Error2 : constant Integer := Error;
-         begin
-            if Error2 > -DX then
-               Error := Error - DY;
-               X := X + Step_X;
-            end if;
-            if Error2 < DY then
-               Error := Error + DX;
-               Y := Y + Step_Y;
-            end if;
-         end;
-      end loop;
-   end Draw_Line;
 
 
    ------------------------------------------------------------------------------
@@ -556,7 +452,7 @@ procedure Load_Qoi is
    ------------------------------------------------------------------------------
    procedure Hough_Transform
      (Data                    : in out Storage_Array;
-      Width, Height, Channels : Storage_Count;
+      Width, Height, Channels : Natural;
       Theta_Resolution        : Positive := 180;
       Rho_Resolution          : Positive := 180)
    is
@@ -588,7 +484,7 @@ procedure Load_Qoi is
       -- Voting process: for each pixel, vote in the accumulator if it's part of a line
       for Y in 1 .. Height loop
          for X in 1 .. Width loop
-            if Get_Pixel (Data, X, Y, Width, Height, Channels) > 0 then
+            if Img.Get_Pixel (Data, X, Y, Width, Height, Channels) > 0 then
                -- Loop through theta values and compute corresponding rho
                for T in 0 .. Theta_Resolution - 1 loop
                   declare
@@ -687,7 +583,7 @@ procedure Load_Qoi is
                end if;
 
                -- Draw line on the image
-               Draw_Line (Data, X1, Y1, X2, Y2, Width, Height, Channels);
+               Img.Alg.Draw_Line (Data, X1, Y1, X2, Y2, Width, Height, Channels);
             end;
          end loop;
       end;
@@ -720,7 +616,7 @@ procedure Load_Qoi is
    ------------------------------------------------------------------------------
    procedure Gaussian_Blur
      (Data                    : in out Storage_Array;
-      Width, Height, Channels : Storage_Count;
+      Width, Height, Channels : Natural;
       Sigma                   : Float := 1.4)
    is
 
@@ -759,22 +655,19 @@ procedure Load_Qoi is
          end loop;
 
          -- Apply convolution for each pixel within the image bounds
-         for Y in Half_Size + 1 .. Integer (Height) - Half_Size loop
-            for X in Half_Size + 1 .. Integer (Width) - Half_Size loop
-               for C in 0 .. Integer (Channels) - 1 loop
+         for Y in Half_Size + 1 .. Height - Half_Size loop
+            for X in Half_Size + 1 .. Width - Half_Size loop
+               for C in 0 .. Channels - 1 loop
                   declare
                      Sum : Float := 0.0;
+                     Val : Storage_Element;
                   begin
                      -- Convolve kernel with pixel neighborhood
                      for KY in Kernel'Range(1) loop
                         for KX in Kernel'Range(2) loop
                            declare
                               Idx : constant Storage_Count :=
-                                ((Storage_Count (Y + KY - 1) * Width
-                                  + Storage_Count (X + KX - 1))
-                                 * Channels
-                                 + Storage_Count (C)
-                                 + 1);
+                                Storage_count ((Y + KY - 1 * Width + X + KX - 1) * Channels + C + 1);
                            begin
                               -- Accumulate weighted sum for the current channel
                               Sum :=
@@ -782,13 +675,9 @@ procedure Load_Qoi is
                            end;
                         end loop;
                      end loop;
+                     Val := Img.Get_Pixel (Data, X, Y, Width, Height, Channels, C);
                      -- Update the pixel data in the original array
-                     Data
-                       (((Storage_Count (Y - 1) * Width
-                          + Storage_Count (X - 1))
-                         * Channels
-                         + Storage_Count (C)
-                         + 1)) :=
+                     Data (Storage_Offset (Val)) :=
                        Storage_Element (Float'Rounding (Sum));
                   end;
                end loop;
@@ -814,7 +703,7 @@ procedure Load_Qoi is
    ------------------------------------------------------------------------------
    procedure Canny_Edge_Detection
      (Data                    : in out Storage_Array;
-      Width, Height, Channels : Storage_Count;
+      Width, Height, Channels : Natural;
       Low_Threshold           : Float := 0.1;
       High_Threshold          : Float := 0.3)
    is
@@ -823,6 +712,7 @@ procedure Load_Qoi is
       Temp               : Storage_Array := Data;
       Gradient_Magnitude : Storage_Array (Data'Range);
       Gradient_Direction : array (1 .. Width * Height) of Float;
+
    begin
       -- Step 1: Apply Gaussian blur to reduce noise in the image
       Gaussian_Blur (Data, Width, Height, Channels);
@@ -834,16 +724,12 @@ procedure Load_Qoi is
       for Y in 2 .. Height - 1 loop
          for X in 2 .. Width - 1 loop
             declare
-               Idx       : constant Storage_Count :=
-                 ((Y - 1) * Width + (X - 1)) * Channels + 1;
+               Idx       : constant Natural := Natural (Img.Get_Pixel (Data, X, Y, Width, Height, Channels));
                -- Retrieve gradient angle for edge direction quantization
                Angle     : constant Float :=
                  Gradient_Direction
-                   (Storage_Count'Pos
-                      ((Storage_Count (Y) - 1) * Width
-                       + (Storage_Count (X) - 1))
-                    + 1);
-               Magnitude : constant Storage_Element := Data (Idx);
+                   (Storage_Count'Pos (Storage_Offset ((Y - 1) * Width + (X - 1))) + 1);
+               Magnitude : constant Storage_Element := Data (Storage_Count (Idx));
             begin
                -- Quantize angle to nearest 0, 45, 90, or 135 degrees
                if ((Angle >= -22.5 and Angle <= 22.5)
@@ -851,23 +737,22 @@ procedure Load_Qoi is
                    or (Angle >= 157.5))
                then
                   -- Horizontal edge: suppress if not local max
-                  if Magnitude <= Data (Idx - Channels)
-                    or Magnitude <= Data (Idx + Channels)
+                  if Magnitude <= Data (Storage_Offset (Idx - Channels)) or Magnitude <= Data (Storage_Offset (Idx + Channels))
                   then
-                     Gradient_Magnitude (Idx) := 0;
+                     Gradient_Magnitude (Storage_Offset (Idx)) := 0;
                   else
-                     Gradient_Magnitude (Idx) := Magnitude;
+                     Gradient_Magnitude (Storage_Offset (Idx)) := Magnitude;
                   end if;
                elsif ((Angle >= 22.5 and Angle <= 67.5)
                       or (Angle <= -112.5 and Angle >= -157.5))
                then
                   -- 45-degree edge: suppress if not local max
-                  if Magnitude <= Data (Idx - Channels - Width * Channels)
-                    or Magnitude <= Data (Idx + Channels + Width * Channels)
+                  if Magnitude <= Data (Storage_Offset (Idx - Channels - Width * Channels))
+                    or Magnitude <= Data (Storage_Offset (Idx + Channels + Width * Channels))
                   then
-                     Gradient_Magnitude (Idx) := 0;
+                     Gradient_Magnitude (Storage_Offset (Idx)) := 0;
                   else
-                     Gradient_Magnitude (Idx) := Magnitude;
+                     Gradient_Magnitude (Storage_Offset (Idx)) := Magnitude;
                   end if;
                   -- Add similar checks for 90 and 135 degrees
                end if;
@@ -897,31 +782,24 @@ procedure Load_Qoi is
       for Y in 2 .. Height - 1 loop
          for X in 2 .. Width - 1 loop
             declare
-               Idx : constant Storage_Count :=
-                 ((Y - 1) * Width + (X - 1)) * Channels + 1;
+               Idx : constant Storage_Count := Storage_Count (Img.Get_Pixel (Data, X, Y, Width, Height, Channels));
             begin
                if Data (Idx) = 128 then
                   -- For weak edges, check 8-connected neighbors for strong edges
                   declare
                      Has_Strong_Neighbor : Boolean := False;
-                     Neighbor_Idx        : Storage_Count;
+                     Neighbor_Idx        : Natural;
                   begin
                      for DY in -1 .. 1 loop
                         for DX in -1 .. 1 loop
                            -- Calculate neighbor index, ensuring bounds
-                           if (Storage_Count (Integer (X) + DX)) >= 1
-                             and (Storage_Count (Integer (X) + DX)) <= Width
-                             and (Storage_Count (Integer (Y) + DY)) >= 1
-                             and (Storage_Count (Integer (Y) + DY)) <= Height
+                           if X + DX >= 1
+                             and X + DX <= Width
+                             and Y + DY >= 1
+                             and Y + DY <= Height
                            then
-
-                              Neighbor_Idx :=
-                                ((Storage_Count (Integer (Y) + DY) - 1) * Width
-                                 + (Storage_Count (Integer (X) + DX) - 1))
-                                * Channels
-                                + 1;
-
-                              if Data (Neighbor_Idx) = 255 then
+                              Neighbor_Idx := Natural (Img.Get_Pixel (Data, X + DX - 1, Y + DY - 1, Width, Height, Channels));
+                              if Data (Storage_Count (Neighbor_Idx)) = 255 then
                                  Has_Strong_Neighbor := True;
                                  exit;
                               end if;
@@ -944,33 +822,21 @@ procedure Load_Qoi is
    end Canny_Edge_Detection;
 
 
-   -- Add these type declarations after the existing ones
-   type Circle_Parameters is record
-      X, Y  : Storage_Count;  -- Center coordinates
-      R     : Storage_Count;  -- Radius
-      Votes : Natural;       -- Number of votes
-   end record;
-
-   type Circle_Array is array (Positive range <>) of Circle_Parameters;
-   type Circle_Array_Access is access Circle_Array;
+   
 
    procedure Hough_Circle_Transform
      (Data        : in out Storage_Array;
-      Width       : Storage_Count;
-      Height      : Storage_Count;
-      Channels    : Storage_Count;
-      Min_Radius  : Storage_Count;
-      Max_Radius  : Storage_Count;
+      Width       : Natural;
+      Height      : Natural;
+      Channels    : Natural;
+      Min_Radius  : Natural;
+      Max_Radius  : Natural;
       Threshold   : Natural;
       Max_Circles : Positive := 10)
    is
 
       -- 3D accumulator array (x, y, r)
-      type Accumulator_Array is
-        array (Storage_Count range <>,
-               Storage_Count range <>,
-               Storage_Count range <>)
-        of Natural;
+      type Accumulator_Array is array (Natural range <>, Natural range <>, Natural range <>) of Natural;
       type Accumulator_Access is access Accumulator_Array;
 
       Acc :
@@ -978,43 +844,37 @@ procedure Load_Qoi is
           (1 .. Width, 1 .. Height, Min_Radius .. Max_Radius) :=
           (others => (others => (others => 0)));
 
-      Circles      : Circle_Array_Access :=
-        new Circle_Array (1 .. Max_Circles);
+      Circles      : Img.Circle_Array_Access := new Img.Circle_Array (1 .. Max_Circles);
       Circle_Count : Natural := 0;
 
       Angle_Steps : constant := 360;
       Deg_To_Rad : constant := Ada.Numerics.Pi / 180.0;
 
+      function To_Rad (Degrees : Integer) return Float is
+         (Float (Degrees) * Deg_To_Rad);
+
+      Pixel : Storage_Element;
    begin
-
-
 
       -- Voting process
       for Y in 1 .. Height loop
          for X in 1 .. Width loop
-            if Data (((Y - 1) * Width * Channels + (X - 1)) * Channels + 1) > 0
-            then
-               for R in Min_Radius .. Max_Radius loop
-                  for Theta in 0 .. Angle_Steps - 1 loop
-                     declare
-                        Angle : constant Float := Float (Theta) * Deg_To_Rad;
-                        A     : constant Integer :=
-                          Integer (Float (X) - Float (R) * Cos (Angle));
-                        B     : constant Integer :=
-                          Integer (Float (Y) - Float (R) * Sin (Angle));
-                     begin
-                        if A > 0
-                          and A <= Integer (Width)
-                          and B > 0
-                          and B <= Integer (Height)
-                        then
-                           Acc (Storage_Count (A), Storage_Count (B), R) :=
-                             Acc (Storage_Count (A), Storage_Count (B), R) + 1;
-                        end if;
-                     end;
+               Pixel := Img.Get_Pixel (Data, X, Y, Width, Height, Channels);
+               if Pixel > 0 then
+                  for R in Min_Radius .. Max_Radius loop
+                     for Theta in 0 .. Angle_Steps - 1 loop
+                        declare
+                           Angle : constant Float := To_Rad (Theta);
+                           A     : constant Integer := Integer (Float (X) - Float (R) * Cos (Angle));
+                           B     : constant Integer := Integer (Float (Y) - Float (R) * Sin (Angle));
+                        begin
+                           if A > 0 and A <= Width and B > 0 and B <= Height then
+                              Acc (A, B, R) := Acc (A, B, R) + 1;
+                           end if;
+                        end;
+                     end loop;
                   end loop;
-               end loop;
-            end if;
+               end if;
          end loop;
       end loop;
 
@@ -1051,9 +911,9 @@ procedure Load_Qoi is
                                             and Current_Y <= Integer (Height)
                                           then
                                              if Acc
-                                                  (Storage_Count (Current_X),
-                                                   Storage_Count (Current_Y),
-                                                   Storage_Count (Current_R))
+                                                  (Current_X,
+                                                   Current_Y,
+                                                   Current_R)
                                                > Center_Value
                                              then
                                                 Is_Maximum := False;
@@ -1083,34 +943,16 @@ procedure Load_Qoi is
       -- Draw detected circles
       for I in 1 .. Circle_Count loop
          declare
-            Circle : Circle_Parameters renames Circles (I);
-
-            -- Function to safely convert coordinates
-            function Safe_Convert (X, Y : Integer) return Storage_Count is
-            begin
-               if X > 0
-                 and X <= Integer (Width)
-                 and Y > 0
-                 and Y <= Integer (Height)
-               then
-                  return
-                    ((Storage_Count (Y) - 1) * Width + (Storage_Count (X) - 1))
-                    * Channels
-                    + 1;
-               else
-                  return 1; -- Return safe default if out of bounds
-               end if;
-            end Safe_Convert;
-
+            Circle : Img.Circle_Parameters renames Circles (I);
          begin
             -- Draw circle using Bresenham's circle algorithm
             for Theta in 0 .. Angle_Steps - 1 loop
                declare
                   Angle    : constant Float := Float (Theta) * Deg_To_Rad;
                   -- Use Integer for intermediate calculations
-                  Center_X : constant Integer := Integer (Circle.X);
-                  Center_Y : constant Integer := Integer (Circle.Y);
-                  Radius   : constant Integer := Integer (Circle.R);
+                  Center_X : constant Integer := Circle.X;
+                  Center_Y : constant Integer := Circle.Y;
+                  Radius   : constant Integer := Circle.R;
                   -- Calculate point coordinates
                   X        : constant Integer :=
                     Center_X + Integer (Float (Radius) * Cos (Angle));
@@ -1119,16 +961,13 @@ procedure Load_Qoi is
                begin
                   -- Only draw if point is within image bounds
                   if X > 0
-                    and X <= Integer (Width)
+                    and X <= Width
                     and Y > 0
-                    and Y <= Integer (Height)
+                    and Y <= Height
                   then
                      -- Calculate array index safely
                      declare
-                        Base_Index : constant Storage_Count :=
-                          ((Storage_Count (Y) - 1) * Width
-                           + (Storage_Count (X) - 1))
-                          * Channels;
+                        Base_Index : constant Storage_Count := Storage_Count ((Y - 1) * Width + (X - 1) * Channels);
                      begin
                         Data (Base_Index + 1) := 0;    -- Red channel
                         Data (Base_Index + 2) := 100;    -- Green channel
@@ -1153,10 +992,10 @@ procedure Load_Qoi is
               Name   => Accumulator_Access);
          procedure Free is new
            Ada.Unchecked_Deallocation
-             (Object => Circle_Array,
-              Name   => Circle_Array_Access);
+             (Object => Img.Circle_Array,
+              Name   => Img.Circle_Array_Access);
          --Temp_Acc     : Accumulator_Access := Acc;
-         Temp_Circles : Circle_Array_Access := Circles;
+         Temp_Circles : Img.Circle_Array_Access := Circles;
       begin
          --Free (Temp_Acc);
          Free (Temp_Circles);
@@ -1274,16 +1113,16 @@ begin
    -- Apply Sobel edge detection
    Sobel_Edge_Detection
      (Input.Data.all,
-      Input.Desc.Width,
-      Input.Desc.Height,
-      Input.Desc.Channels);
+      Natural (Input.Desc.Width),
+      Natural (Input.Desc.Height),
+      Natural (Input.Desc.Channels));
 
    -- Apply Canny edge detection
    Canny_Edge_Detection
      (Input.Data.all,
-      Input.Desc.Width,
-      Input.Desc.Height,
-      Input.Desc.Channels,
+      Natural (Input.Desc.Width),
+      Natural (Input.Desc.Height),
+      Natural (Input.Desc.Channels),
       Low_Threshold  => 0.1,
       High_Threshold => 0.3);
 
@@ -1297,9 +1136,9 @@ begin
    -- After edge detection and before encoding
    Hough_Circle_Transform
      (Data        => Input.Data.all,
-      Width       => Input.Desc.Width,
-      Height      => Input.Desc.Height,
-      Channels    => Input.Desc.Channels,
+      Width       => Natural (Input.Desc.Width),
+      Height      => Natural (Input.Desc.Height),
+      Channels    => Natural (Input.Desc.Channels),
       Min_Radius  => 10  -- Minimum circle radius to detect
       ,
       Max_Radius  => 100  -- Maximum circle radius to detect
