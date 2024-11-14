@@ -1088,6 +1088,25 @@ procedure Load_Qoi is
    end Region_Of_Interest;
 
    Input : Input_Data;
+
+
+
+   ---------------------
+
+   --  type Color is mod 2 ** 8 with size => 8;
+   --  type Pixel is record
+   --     R, G, B, A: Color;
+   --  end record;
+   --  type Image is array (Natural range <>, Natural range <>) of Pixel;
+
+   --  Input : Input_Data := Load_QOI ("traffic_images\light4.qoi");
+   --  Img : Image (0 .. Input.Desc.Width - 1, 0 .. Input.Desc.Height - 1) with Address => Input.Data.all'Address;
+
+
+   --  Red : Color := Img (X, Y).R;
+
+   -----------------------------------
+
 begin
    Input := Load_QOI ("traffic_images\light4.qoi");
 
