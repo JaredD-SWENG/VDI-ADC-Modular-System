@@ -14,5 +14,8 @@ executables = ["tests"]
 [build-switches]
 "*".style_checks = "No" # I swear to god I cannot stand this on
 
+[[depends-on]]
+aaa = "*"
+
 [[pins]]
 opencv_ada = { path='..' }
