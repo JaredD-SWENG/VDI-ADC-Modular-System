@@ -42,7 +42,7 @@ package body OpenCV_Ada.Hough_Transform is
       -- Voting process (unchanged)
       for Y in 1 .. Height loop
          for X in 1 .. Width loop
-            if Graphics.Pixel.Get_Pixel (Data, X, Y, Width, Height, Channels)
+            if Get_Pixel (Data, X, Y, Width, Height, Channels)
               > 0
             then
                for T in 0 .. Theta_Resolution - 1 loop

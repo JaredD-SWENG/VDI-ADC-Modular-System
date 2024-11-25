@@ -32,7 +32,7 @@ package body OpenCV_Ada.Edge_Detection is
                      declare
                         Pixel_Value : constant Integer :=
                           Integer
-                            (OpenCV_Ada.Graphics.Pixel.Get_Pixel
+                            (Graphics.Get_Pixel
                                (Temp,
                                 X + Storage_Count (J) - 2,
                                 Y + Storage_Count (I) - 2,

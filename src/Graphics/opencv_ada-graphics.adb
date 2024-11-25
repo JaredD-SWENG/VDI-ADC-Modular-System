@@ -48,4 +48,20 @@ package body OpenCV_Ada.Graphics is
          end;
       end loop;
    end Draw_Line;
+
+   -- Helper function to get pixel value safely with bounds checking
+   function Get_Pixel
+     (Data                    : Storage_Array;
+      X, Y                    : Storage_Count;
+      Width, Height, Channels : Storage_Count) return Storage_Element
+   is
+      Index : Storage_Count;
+   begin
+      if X < 1 or X > Width or Y < 1 or Y > Height then
+         return 0;
+      end if;
+
+      Index := ((Y - 1) * Width + (X - 1)) * Channels + 1;
+      return Data (Index);
+   end Get_Pixel;
 end OpenCV_Ada.Graphics;
