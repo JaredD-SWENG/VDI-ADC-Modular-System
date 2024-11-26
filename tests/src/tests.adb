@@ -55,7 +55,7 @@ begin
             Input1.Data (Index + 2) := 0;
             Difference_Found := 1;
             Put_Line
-              ("Difference: " 
+              ("Difference [" & Index'Image & " ]: " 
                & "[" & Input1.Data (Index)'Image & ", " & Input1.Data (Index + 1)'Image & ", " & Input1.Data (Index + 2)'Image & "]" 
                & " != "
                & "[" & Input2.Data (Index)'Image & ", " & Input2.Data (Index + 1)'Image & ", " & Input2.Data (Index + 2)'Image & "]");
