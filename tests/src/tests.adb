@@ -4,6 +4,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with QOI;
 with AAA.Strings;
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with System.Storage_Elements; use System.Storage_Elements;
 
 with Load_QOI; use Load_QOI;
@@ -50,15 +51,15 @@ begin
             Input1.Data (Index + 1) := 0;
             Input1.Data (Index + 2) := 0;
          else
+            Put_Line ("Difference [" & Index'Image & " ]: " 
+               & "[ " & Tail(Input1.Data (Index)'Image, 3, ' ') & ", " & Tail(Input1.Data (Index + 1)'Image, 3, ' ') & ", " & Tail(Input1.Data (Index + 2)'Image, 3, ' ') & " ]" 
+               & " != "
+               & "[ " & Tail(Input2.Data (Index)'Image, 3, ' ') & ", " & Tail(Input2.Data (Index + 1)'Image, 3, ' ') & ", " & Tail(Input2.Data (Index + 2)'Image, 3, ' ') & " ]");
+
             Input1.Data (Index) := 255;
             Input1.Data (Index + 1) := 0;
             Input1.Data (Index + 2) := 0;
             Difference_Found := 1;
-            Put_Line
-              ("Difference [" & Index'Image & " ]: " 
-               & "[" & Input1.Data (Index)'Image & ", " & Input1.Data (Index + 1)'Image & ", " & Input1.Data (Index + 2)'Image & "]" 
-               & " != "
-               & "[" & Input2.Data (Index)'Image & ", " & Input2.Data (Index + 1)'Image & ", " & Input2.Data (Index + 2)'Image & "]");
          end if;
          Index := Index + 3;
       end loop;
