@@ -1,10 +1,10 @@
 with Ada.Command_Line;
 with GNAT.OS_Lib;
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;             use Ada.Text_IO;
 
 with QOI;
 with AAA.Strings;
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+with Ada.Strings.Fixed;       use Ada.Strings.Fixed;
 with System.Storage_Elements; use System.Storage_Elements;
 
 with Load_QOI; use Load_QOI;
@@ -32,7 +32,10 @@ begin
 
    if Input1.Desc.Width * Input1.Desc.Height /= Input2.Desc.Width * Input2.Desc.Height
    then
-      Put_Line ("Image sizes are different!");
+      Put ("Image sizes are different! [");
+      Put (Input1.Desc.Width'Image & "x" & Trim(Input1.Desc.Height'Image, Ada.Strings.Left));
+      Put (" !=");
+      Put (Input2.Desc.Width'Image & "x" & Trim(Input2.Desc.Height'Image, Ada.Strings.Left) & " ]");
       GNAT.OS_Lib.OS_Exit (1);
    end if;
 
@@ -65,7 +68,7 @@ begin
       end loop;
 
       if Difference_Found = 0 then
-         Put_Line ("Image are the same.");
+         Put_Line ("Images are the same.");
       end if;
 
       QOI.Encode (Input1.Data.all, Input1.Desc, Output, Output_Size);
