@@ -58,7 +58,7 @@ begin
             Input1.Data (Index + 1) := 0;
             Input1.Data (Index + 2) := 0;
          else
-            Put_Line ("Difference [" & Pixel_Index'Image & " ]: " 
+            Put_Line ("Difference [" & Tail(Pixel_Index'Image, 3, ' ') & " ]: " 
                & "[ " & Tail(Input1.Data (Index)'Image, 3, ' ') & ", " & Tail(Input1.Data (Index + 1)'Image, 3, ' ') & ", " & Tail(Input1.Data (Index + 2)'Image, 3, ' ') & " ]" 
                & " != "
                & "[ " & Tail(Input2.Data (Index)'Image, 3, ' ') & ", " & Tail(Input2.Data (Index + 1)'Image, 3, ' ') & ", " & Tail(Input2.Data (Index + 2)'Image, 3, ' ') & " ]");
