@@ -42,13 +42,12 @@ begin
    declare
       Output           : Storage_Array (1 .. QOI.Encode_Worst_Case (Input1.Desc));
       Output_Size      : Storage_Count;
-      Difference_Found : Integer := 0;
+      Difference_Found : Integer        := 0;
       Index            : Storage_Offset := 1;
       Pixel_Index      : Storage_Offset;
    begin
       while Index <= Input1.Desc.Width * Input1.Desc.Height * Input1.Desc.Channels loop
-         if (Index mod 3 = 0) then Pixel_Index := Index / 3;
-         else Pixel_Index := Index / 3 + 1; end if;
+         Pixel_Index := (Index - 1) / 3 + 1;
 
          if Input1.Data (Index) = Input2.Data (Index)
            and Input1.Data (Index + 1) = Input2.Data (Index + 1)
@@ -58,7 +57,7 @@ begin
             Input1.Data (Index + 1) := 0;
             Input1.Data (Index + 2) := 0;
          else
-            Put_Line ("Difference [" & Tail(Pixel_Index'Image, 3, ' ') & " ]: " 
+            Put_Line ("Difference [" & Pixel_Index'Image & " ]: " 
                & "[ " & Tail(Input1.Data (Index)'Image, 3, ' ') & ", " & Tail(Input1.Data (Index + 1)'Image, 3, ' ') & ", " & Tail(Input1.Data (Index + 2)'Image, 3, ' ') & " ]" 
                & " != "
                & "[ " & Tail(Input2.Data (Index)'Image, 3, ' ') & ", " & Tail(Input2.Data (Index + 1)'Image, 3, ' ') & ", " & Tail(Input2.Data (Index + 2)'Image, 3, ' ') & " ]");
