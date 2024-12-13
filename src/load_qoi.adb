@@ -165,21 +165,23 @@ procedure Load_Qoi is
 
       -- Calculated grayscale value for current pixel
       Gray_Value : Storage_Element;
+
    begin
       -- Process each pixel (skipping to start of each pixel using mod)
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
-         if I mod Pixel_Size = 1 then
+         if (I - Data'First) mod Pixel_Size = 0 then
             -- Convert RGB to grayscale using luminosity method
-            -- Multiply by 1000 to maintain precision with integer math
+            -- Add 500 to numerator to ensure proper rounding (integer math)
             Gray_Value :=
               Storage_Element
                 ((Integer (Data (I)) * 299 + Integer (Data (I + 1)) * 587
-                  + Integer (Data (I + 2)) * 114)
+                  + Integer (Data (I + 2)) * 114
+                  + 500)
                  / 1000);
 
             -- Apply gray value to RGB channels
-            Data (I) := Gray_Value;     -- Red channel
-            Data (I + 1) := Gray_Value; -- Green channel 
+            Data (I) := Gray_Value; -- Red channel
+            Data (I + 1) := Gray_Value; -- Green channel
             Data (I + 2) := Gray_Value; -- Blue channel
 
             -- Keep alpha channel unchanged if present (RGBA)
@@ -189,6 +191,7 @@ procedure Load_Qoi is
          end if;
       end loop;
    end Convert_To_Grayscale;
+
 
    --------------------------------------------------------------------------------
    -- Convert_To_Black_And_White
@@ -983,7 +986,7 @@ procedure Load_Qoi is
       Circle_Count : Natural := 0;
 
       Angle_Steps : constant := 360;
-      Deg_To_Rad : constant := Ada.Numerics.Pi / 180.0;
+      Deg_To_Rad  : constant := Ada.Numerics.Pi / 180.0;
 
    begin
 
@@ -1250,16 +1253,16 @@ procedure Load_Qoi is
 
    Input : Input_Data;
 begin
-   Input := Load_QOI ("traffic_images\light4.qoi");
+   Input := Load_QOI ("lanes_images\lane1.qoi");
 
    -- Apply region of interest to focus on the lower half of the image
-   Region_Of_Interest
-     (Input.Data.all,
-      Input.Desc,
-      Input.Desc.Width / 4,
-      Input.Desc.Height / 4,
-      3 * (Input.Desc.Width / 4),
-      3 * (Input.Desc.Height / 4));
+   --  Region_Of_Interest
+   --    (Input.Data.all,
+   --     Input.Desc,
+   --     1,
+   --     Input.Desc.Height / 3,
+   --     Input.Desc.Width,
+   --     Input.Desc.Height);
 
    -- Convert to grayscale first
    Convert_To_Grayscale (Input.Data.all, Input.Desc);
@@ -1272,20 +1275,20 @@ begin
    --     Input.Desc.Channels);
 
    -- Apply Sobel edge detection
-   Sobel_Edge_Detection
-     (Input.Data.all,
-      Input.Desc.Width,
-      Input.Desc.Height,
-      Input.Desc.Channels);
+   --  Sobel_Edge_Detection
+   --    (Input.Data.all,
+   --     Input.Desc.Width,
+   --     Input.Desc.Height,
+   --     Input.Desc.Channels);
 
    -- Apply Canny edge detection
-   Canny_Edge_Detection
-     (Input.Data.all,
-      Input.Desc.Width,
-      Input.Desc.Height,
-      Input.Desc.Channels,
-      Low_Threshold  => 0.1,
-      High_Threshold => 0.3);
+   --  Canny_Edge_Detection
+   --    (Input.Data.all,
+   --     Input.Desc.Width,
+   --     Input.Desc.Height,
+   --     Input.Desc.Channels,
+   --     Low_Threshold  => 0.1,
+   --     High_Threshold => 0.3);
 
    -- Apply Hough Transform to detect lines
    --  Hough_Transform
@@ -1295,19 +1298,19 @@ begin
    --     Input.Desc.Channels);
 
    -- After edge detection and before encoding
-   Hough_Circle_Transform
-     (Data        => Input.Data.all,
-      Width       => Input.Desc.Width,
-      Height      => Input.Desc.Height,
-      Channels    => Input.Desc.Channels,
-      Min_Radius  => 10  -- Minimum circle radius to detect
-      ,
-      Max_Radius  => 100  -- Maximum circle radius to detect
-      ,
-      Threshold   => 10 -- Minimum votes needed to detect a circle
-      ,
-      Max_Circles => 50   -- Maximum number of circles to detect
-     );
+   --  Hough_Circle_Transform
+   --    (Data        => Input.Data.all,
+   --     Width       => Input.Desc.Width,
+   --     Height      => Input.Desc.Height,
+   --     Channels    => Input.Desc.Channels,
+   --     Min_Radius  => 10  -- Minimum circle radius to detect
+   --     ,
+   --     Max_Radius  => 20  -- Maximum circle radius to detect
+   --     ,
+   --     Threshold   => 20 -- Minimum votes needed to detect a circle
+   --     ,
+   --     Max_Circles => 600   -- Maximum number of circles to detect
+   --    );
 
    declare
       Output      : Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
