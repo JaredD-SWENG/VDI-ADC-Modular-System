@@ -1,0 +1,28 @@
+[GENERATED OBJECT FILE]
+b__load_qoi.o
+[PROJECT FILES]
+C:\Users\Jared\Downloads\VDI-ADC-Modular-System\load_qoi.gpr
+20241108025350 999d146cf406f2e21c60df61efb8ca1e
+C:\Users\Jared\AppData\Local\alire\cache\builds\qoi_0.1.0_25d61809\fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146\config\qoi_config.gpr
+20241106235040 0a431ce897f2ac50bedb547d82fadc3b
+C:\Users\Jared\AppData\Local\alire\cache\builds\qoi_0.1.0_25d61809\fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146\qoi.gpr
+20241023214316 7ecf949c85cb684acf49e0b5223aa59f
+C:\Users\Jared\Downloads\VDI-ADC-Modular-System\config\load_qoi_config.gpr
+20241108025636 c80b20f9695157c06b5f4846ce990afa
+[BOUND OBJECT FILES]
+C:\Users\Jared\Downloads\VDI-ADC-Modular-System\obj\development\reference_qoi.o
+C:\Users\Jared\Downloads\VDI-ADC-Modular-System\obj\development\load_qoi.o
+[GENERATED SOURCE FILES]
+b__load_qoi.ads
+b__load_qoi.adb
+b__load_qoi.ali
+[RESULTING OPTIONS]
+-LC:\Users\Jared\Downloads\VDI-ADC-Modular-System\obj\development\
+-LC:\Users\Jared\Downloads\VDI-ADC-Modular-System\obj\development\
+-LC:\Users\Jared\AppData\Local\alire\cache\builds\qoi_0.1.0_25d61809\fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146\lib\
+-LC:/users/jared/appdata/local/alire/cache/toolchains/gnat_native_13.2.2_88799c95/lib/gcc/x86_64-w64-mingw32/13.2.0/adalib/
+-static
+-static-libgcc
+C:/users/jared/appdata/local/alire/cache/toolchains/gnat_native_13.2.2_88799c95/lib/gcc/x86_64-w64-mingw32/13.2.0/adalib/libgnat.a
+-lm
+-Wl,--stack=0x2000000

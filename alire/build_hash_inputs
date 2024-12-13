@@ -1,0 +1,5 @@
+dependency:qoi=0.1.0=fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146
+external:LIBRARY_TYPE=default
+external:LOAD_QOI_LIBRARY_TYPE=default
+profile:load_qoi=DEVELOPMENT
+switches:load_qoi=-Og,-fdata-sections,-ffunction-sections,-g,-gnatVa,-gnatW8,-gnatw.X,-gnatwa
