@@ -110,7 +110,7 @@ procedure Load_Qoi is
 
          declare
             -- Calculate output buffer size based on image dimensions
-            Out_Len     : constant Storage_Count :=
+            Out_Len     : constant Storage_Count        :=
               Result.Desc.Width * Result.Desc.Height * Result.Desc.Channels;
             Out_Data    : constant Storage_Array_Access :=
               new Storage_Array (1 .. Out_Len);
@@ -118,19 +118,16 @@ procedure Load_Qoi is
          begin
             -- Decode QOI data into raw pixel data
             QOI.Decode
-              (Data        => In_Data.all,
-               Desc        => Result.Desc,
-               Output      => Out_Data.all,
-               Output_Size => Output_Size);
+              (Data   => In_Data.all, Desc => Result.Desc,
+               Output => Out_Data.all, Output_Size => Output_Size);
 
             Result.Data := Out_Data;
 
             -- Verify decoded data matches reference implementation
             if Reference_QOI.Check_Decode
-                 (In_Data.all,
-                  Result.Desc,
-                  Out_Data.all
-                    (Out_Data'First .. Out_Data'First + Output_Size - 1))
+                (In_Data.all, Result.Desc,
+                 Out_Data.all
+                   (Out_Data'First .. Out_Data'First + Output_Size - 1))
             then
                Put_Line ("Compare with reference decoder: OK");
             else
@@ -142,6 +139,259 @@ procedure Load_Qoi is
          end;
       end;
    end Load_QOI;
+
+   ------------------------------------------------------------------------------
+   -- Rotate_Image
+   --
+   -- Rotates an image by a specified angle (in degrees).
+   --
+   -- Parameters:
+   --   Data      - Image data array to be rotated (modified in-place)
+   --   Desc      - QOI descriptor containing image metadata
+   --   Angle     - Rotation angle in degrees (positive for clockwise rotation)
+   --
+   -- Effects:
+   --   Produces a rotated version of the input image. The original image is
+   --   overwritten with the rotated result. Pixels outside the bounds of the
+   --   original image are set to black (0).
+   ------------------------------------------------------------------------------
+   procedure Rotate_Image
+     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Angle : Float)
+   is
+      -- Import Pi from Ada.Numerics
+      use Ada.Numerics;
+
+      -- Number of channels per pixel (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Integer := Integer (Desc.Channels);
+
+      -- Image dimensions
+      Width  : constant Integer := Integer (Desc.Width);
+      Height : constant Integer := Integer (Desc.Height);
+
+      -- Angle in radians for trigonometric calculations
+      Radians : constant Float := Angle * Pi / 180.0;
+
+      -- Trigonometric values for rotation matrix
+      Cos_Theta : constant Float := Cos (Radians);
+      Sin_Theta : constant Float := Sin (Radians);
+
+      -- Temporary array to store rotated image data
+      Temp : Storage_Array := Data;
+
+      -- Center of the image
+      Center_X : constant Float := Float (Width) / 2.0;
+      Center_Y : constant Float := Float (Height) / 2.0;
+
+   begin
+      -- Iterate over each pixel in the destination image
+      for Y in 0 .. Height - 1 loop
+         for X in 0 .. Width - 1 loop
+            -- Translate pixel position to origin, apply rotation, and translate back
+            declare
+               Src_X_Float : constant Float :=
+                 Cos_Theta * (Float (X) - Center_X) +
+                 Sin_Theta * (Float (Y) - Center_Y) + Center_X;
+               Src_Y_Float : constant Float :=
+                 -Sin_Theta * (Float (X) - Center_X) +
+                 Cos_Theta * (Float (Y) - Center_Y) + Center_Y;
+
+               -- Convert source coordinates to integers for indexing
+               Src_X : Integer := Integer (Src_X_Float);
+               Src_Y : Integer := Integer (Src_Y_Float);
+
+               -- Destination pixel position in 1D array
+               Dest_Pos : constant Storage_Count :=
+                 Storage_Count ((Y * Width + X) * Pixel_Size + 1);
+
+               Src_Pos : Storage_Count;
+            begin
+               -- Check if source coordinates are within bounds of the original image
+               if Src_X >= 0 and Src_X < Width and Src_Y >= 0 and
+                 Src_Y < Height
+               then
+                  -- Source pixel position in 1D array
+                  Src_Pos :=
+                    Storage_Count (((Src_Y * Width) + Src_X) * Pixel_Size + 1);
+
+                  -- Copy pixel data from source to destination
+                  for C in 0 .. Pixel_Size - 1 loop
+                     Data (Dest_Pos + Storage_Count (C)) :=
+                       Temp (Src_Pos + Storage_Count (C));
+                  end loop;
+               else
+                  -- Set pixel to black if source is out of bounds
+                  for C in 0 .. Pixel_Size - 1 loop
+                     Data (Dest_Pos + Storage_Count (C)) := 0;
+                  end loop;
+               end if;
+            end;
+         end loop;
+      end loop;
+   end Rotate_Image;
+
+   ------------------------------------------------------------------------------
+   -- Flip_Image
+   --
+   -- Flips an image horizontally or vertically.
+   --
+   -- Parameters:
+   --   Data       - Image data array to be flipped (modified in-place)
+   --   Desc       - QOI descriptor containing image metadata
+   --   Direction  - Direction of the flip: "Horizontal" or "Vertical"
+   --
+   -- Effects:
+   --   Modifies the input Data array in-place by rearranging pixel values.
+   ------------------------------------------------------------------------------
+   procedure Flip_Image
+     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Direction : String)
+   is
+      -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+
+      -- Total number of pixels in one row of the image
+      Row_Size : constant Storage_Count := Desc.Width * Pixel_Size;
+
+      -- Temporary buffer to hold a single row during processing
+      Temp_Row : Storage_Array (1 .. Row_Size);
+   begin
+      if Direction = "Horizontal" then
+         -- Flip the image horizontally
+         for Y in 0 .. Desc.Height - 1 loop
+            -- Process each row of the image
+            declare
+               Row_Start : constant Storage_Count := Y * Row_Size + 1;
+            begin
+               -- Copy the row into a temporary buffer
+               Temp_Row := Data (Row_Start .. Row_Start + Row_Size - 1);
+
+               -- Reverse the order of pixels within the row
+               for X in 0 .. Desc.Width - 1 loop
+                  for C in 0 .. Pixel_Size - 1 loop
+                     Data (Row_Start + X * Pixel_Size + C) :=
+                       Temp_Row
+                         (Row_Size - X * Pixel_Size - Pixel_Size + C + 1);
+                  end loop;
+               end loop;
+            end;
+         end loop;
+
+      elsif Direction = "Vertical" then
+         -- Flip the image vertically
+         for Y in 0 .. (Desc.Height / 2) - 1 loop
+            declare
+               Top_Row_Start    : constant Storage_Count := Y * Row_Size + 1;
+               Bottom_Row_Start : constant Storage_Count :=
+                 (Desc.Height - Y - 1) * Row_Size + 1;
+            begin
+               -- Swap top and bottom rows
+               Temp_Row                                                   :=
+                 Data (Top_Row_Start .. Top_Row_Start + Row_Size - 1);
+               Data (Top_Row_Start .. Top_Row_Start + Row_Size - 1)       :=
+                 Data (Bottom_Row_Start .. Bottom_Row_Start + Row_Size - 1);
+               Data (Bottom_Row_Start .. Bottom_Row_Start + Row_Size - 1) :=
+                 Temp_Row;
+            end;
+         end loop;
+
+      else
+         -- Invalid direction, raise an error
+         raise Program_Error
+           with "Invalid flip direction. Use 'Horizontal' or 'Vertical'.";
+      end if;
+   end Flip_Image;
+
+   --------------------------------------------------------------------------------
+   -- Adjust_Brightness
+   --
+   -- Adjusts the brightness of an image by adding a specified value to each
+   -- color channel of every pixel.
+   --
+   -- Parameters:
+   --    Data        - Image data array to be adjusted (modified in-place)
+   --    Desc        - QOI descriptor containing image metadata
+   --    Brightness  - Integer value to adjust brightness (-255 to 255)
+   --
+   -- Effects:
+   --    Modifies the input Data array in-place by increasing or decreasing
+   --    the brightness of each pixel. Values are clamped between 0 and 255.
+   --------------------------------------------------------------------------------
+   procedure Adjust_Brightness
+     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Brightness : Integer)
+   is
+      -- Number of channels per pixel (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+
+      -- Temporary variable for adjusted channel value
+      Adjusted_Value : Integer;
+
+   begin
+      -- Iterate through each pixel in the image data
+      for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
+         -- Process only color channels (skip alpha channel if present)
+         if (I - Data'First) mod Pixel_Size < Pixel_Size - 1 then
+            -- Adjust brightness and clamp value between 0 and 255
+            Adjusted_Value := Integer (Data (I)) + Brightness;
+
+            if Adjusted_Value < 0 then
+               Data (I) := 0;
+            elsif Adjusted_Value > 255 then
+               Data (I) := 255;
+            else
+               Data (I) := Storage_Element (Adjusted_Value);
+            end if;
+         end if;
+      end loop;
+   end Adjust_Brightness;
+
+   ------------------------------------------------------------------------------
+   -- Adjust_Contrast
+   --
+   -- Adjusts the contrast of an image by modifying pixel intensity values.
+   --
+   -- Parameters:
+   --   Data   - Image data array to be modified (modified in-place)
+   --   Desc   - QOI descriptor containing image metadata
+   --   Factor - Contrast adjustment factor (e.g., 1.0 = no change,
+   --            >1.0 increases contrast, <1.0 decreases contrast)
+   --
+   -- Effects:
+   --   Modifies the input Data array in-place, scaling pixel intensity values
+   --   based on the specified contrast factor.
+   ------------------------------------------------------------------------------
+   procedure Adjust_Contrast
+     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Factor : Float)
+   is
+      -- Number of channels per pixel (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+
+      -- Midpoint value for pixel intensity (128 for 8-bit color depth)
+      Midpoint : constant Integer := 128;
+
+      -- Temporary variable for adjusted pixel value
+      Adjusted_Value : Integer;
+
+   begin
+      -- Iterate through each pixel in the image data
+      for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
+         -- Process only the color channels (skip alpha if present)
+         if (I - Data'First) mod Pixel_Size < 3 then
+            -- Adjust pixel intensity based on contrast formula:
+            -- New_Value = Midpoint + Factor * (Old_Value - Midpoint)
+            Adjusted_Value :=
+              Integer (Midpoint) +
+              Integer (Factor * Float (Integer (Data (I)) - Midpoint));
+
+            -- Clamp adjusted value to valid range [0, 255]
+            if Adjusted_Value < 0 then
+               Data (I) := 0;
+            elsif Adjusted_Value > 255 then
+               Data (I) := 255;
+            else
+               Data (I) := Storage_Element (Adjusted_Value);
+            end if;
+         end if;
+      end loop;
+   end Adjust_Contrast;
 
    ------------------------------------------------------------------------------
    -- Convert_To_Grayscale
@@ -174,13 +424,12 @@ procedure Load_Qoi is
             -- Add 500 to numerator to ensure proper rounding (integer math)
             Gray_Value :=
               Storage_Element
-                ((Integer (Data (I)) * 299 + Integer (Data (I + 1)) * 587
-                  + Integer (Data (I + 2)) * 114
-                  + 500)
-                 / 1000);
+                ((Integer (Data (I)) * 299 + Integer (Data (I + 1)) * 587 +
+                  Integer (Data (I + 2)) * 114 + 500) /
+                 1_000);
 
             -- Apply gray value to RGB channels
-            Data (I) := Gray_Value; -- Red channel
+            Data (I)     := Gray_Value; -- Red channel
             Data (I + 1) := Gray_Value; -- Green channel
             Data (I + 2) := Gray_Value; -- Blue channel
 
@@ -191,7 +440,6 @@ procedure Load_Qoi is
          end if;
       end loop;
    end Convert_To_Grayscale;
-
 
    --------------------------------------------------------------------------------
    -- Convert_To_Black_And_White
@@ -210,9 +458,8 @@ procedure Load_Qoi is
    --    Alpha channel values are preserved if present.
    --------------------------------------------------------------------------------
    procedure Convert_To_Black_And_White
-     (Data      : in out Storage_Array;
-      Desc      : QOI.QOI_Desc;
-      Threshold : Storage_Element := 128)
+     (Data      : in out Storage_Array; Desc : QOI.QOI_Desc;
+      Threshold :        Storage_Element := 128)
    is
       -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
       Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
@@ -232,7 +479,7 @@ procedure Load_Qoi is
             end if;
 
             -- Apply the black/white value to all color channels
-            Data (I) := BW_Value;  -- Red channel
+            Data (I)     := BW_Value;  -- Red channel
             Data (I + 1) := BW_Value;  -- Green channel
             Data (I + 2) := BW_Value;  -- Blue channel
 
@@ -244,6 +491,309 @@ procedure Load_Qoi is
       end loop;
    end Convert_To_Black_And_White;
 
+   --------------------------------------------------------------------------------
+   -- Morphological_Operation
+   --
+   -- Performs morphological operations (erosion, dilation, opening, closing) on
+   -- binary images using specified structuring elements.
+   --
+   -- Parameters:
+   --    Data      - Binary image data array (modified in-place)
+   --    Desc      - QOI image descriptor containing format information
+   --    Operation - String specifying operation ("Erosion", "Dilation",
+   --                "Opening", "Closing")
+   --    SE_Type   - Structuring element type ("Square" or "Circle")
+   --    SE_Size   - Size of structuring element (1 to 30)
+   --
+   -- Effects:
+   --    Modifies the input Data array in-place according to the specified
+   --    morphological operation.
+   --------------------------------------------------------------------------------
+   procedure Morphological_Operation
+     (Data    : in out Storage_Array; Desc : QOI.QOI_Desc; Operation : String;
+      SE_Type :        String; SE_Size : Integer)
+   is
+      -- Define an enumeration type for operations
+      type Morph_Operation is (Erosion, Dilation, Opening, Closing);
+
+      -- Map input string to enumeration
+      function To_Morph_Operation (Op : String) return Morph_Operation is
+      begin
+         if Op = "Erosion" then
+            return Erosion;
+         elsif Op = "Dilation" then
+            return Dilation;
+         elsif Op = "Opening" then
+            return Opening;
+         elsif Op = "Closing" then
+            return Closing;
+         else
+            raise Program_Error with "Invalid operation";
+         end if;
+      end To_Morph_Operation;
+
+      -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+      Width      : constant Integer       := Integer (Desc.Width);
+      Height     : constant Integer       := Integer (Desc.Height);
+
+      -- Temporary array for processing
+      Temp : Storage_Array := Data;
+
+      -- Function to check if a pixel is white (255)
+      function Is_White (X, Y : Integer) return Boolean is
+         Idx : constant Storage_Count :=
+           Storage_Count ((Y * Width + X) * Integer (Pixel_Size) + 1);
+      begin
+         return Data (Idx) = 255;
+      end Is_White;
+
+      -- Function to create structuring element
+      function In_Structuring_Element (X, Y : Integer) return Boolean is
+         Center : constant Integer := SE_Size / 2;
+         Dist_X : constant Integer := abs (X - Center);
+         Dist_Y : constant Integer := abs (Y - Center);
+      begin
+         if SE_Type = "Square" then
+            return Dist_X <= Center and Dist_Y <= Center;
+         else -- Circle
+            return
+              Float'Floor (Sqrt (Float (Dist_X * Dist_X + Dist_Y * Dist_Y))) <=
+              Float (Center);
+         end if;
+      end In_Structuring_Element;
+
+      -- Procedures for basic operations
+      procedure Erode is
+      begin
+         for Y in 0 .. Height - 1 loop
+            for X in 0 .. Width - 1 loop
+               declare
+                  Result : Boolean                := True;
+                  Idx    : constant Storage_Count :=
+                    Storage_Count ((Y * Width + X) * Integer (Pixel_Size) + 1);
+               begin
+                  -- Check neighborhood
+                  for SY in 0 .. SE_Size - 1 loop
+                     for SX in 0 .. SE_Size - 1 loop
+                        if In_Structuring_Element (SX, SY) then
+                           declare
+                              NX : constant Integer := X + SX - (SE_Size / 2);
+                              NY : constant Integer := Y + SY - (SE_Size / 2);
+                           begin
+                              if NX >= 0 and NX < Width and NY >= 0 and
+                                NY < Height
+                              then
+                                 Result := Result and Is_White (NX, NY);
+                              end if;
+                           end;
+                        end if;
+                     end loop;
+                  end loop;
+
+                  -- Set pixel value based on erosion result
+                  if Result then
+                     Temp (Idx)     := 255;
+                     Temp (Idx + 1) := 255;
+                     Temp (Idx + 2) := 255;
+                  else
+                     Temp (Idx)     := 0;
+                     Temp (Idx + 1) := 0;
+                     Temp (Idx + 2) := 0;
+                  end if;
+               end;
+            end loop;
+         end loop;
+      end Erode;
+
+      procedure Dilate is
+      begin
+         for Y in 0 .. Height - 1 loop
+            for X in 0 .. Width - 1 loop
+               declare
+                  Result : Boolean                := False;
+                  Idx    : constant Storage_Count :=
+                    Storage_Count ((Y * Width + X) * Integer (Pixel_Size) + 1);
+               begin
+                  -- Check neighborhood for dilation condition
+                  for SY in 0 .. SE_Size - 1 loop
+                     for SX in 0 .. SE_Size - 1 loop
+                        if In_Structuring_Element (SX, SY) then
+                           declare
+                              NX : constant Integer := X + SX - (SE_Size / 2);
+                              NY : constant Integer := Y + SY - (SE_Size / 2);
+                           begin
+                              if NX >= 0 and NX < Width and NY >= 0 and
+                                NY < Height
+                              then
+                                 Result := Result or Is_White (NX, NY);
+                              end if;
+                           end;
+                        end if;
+                     end loop;
+                  end loop;
+
+                  -- Set pixel value based on dilation result
+                  if Result then
+                     Temp (Idx)     := 255;
+                     Temp (Idx + 1) := 255;
+                     Temp (Idx + 2) := 255;
+                  else
+                     Temp (Idx)     := 0;
+                     Temp (Idx + 1) := 0;
+                     Temp (Idx + 2) := 0;
+                  end if;
+               end;
+            end loop;
+         end loop;
+      end Dilate;
+
+   begin
+      -- Input validation for structuring element size and type checks.
+      if SE_Size < 1 or SE_Size > 30 then
+         raise Constraint_Error
+           with "Structuring element size must be between 1 and 30";
+      elsif not (SE_Type = "Square" or SE_Type = "Circle") then
+         raise Program_Error with "Invalid structuring element type";
+      end if;
+
+      -- Perform requested operation using enumeration-based case statement.
+      case To_Morph_Operation (Operation) is
+         when Erosion =>
+            Erode;
+
+         when Dilation =>
+            Dilate;
+
+         when Opening =>
+            Erode;
+            Data := Temp;
+            Dilate;
+
+         when Closing =>
+            Dilate;
+            Data := Temp;
+            Erode;
+
+         when others =>
+            raise Program_Error with "Unsupported operation";
+      end case;
+
+      -- Copy result back to input array.
+      Data := Temp;
+
+   end Morphological_Operation;
+
+   ------------------------------------------------------------------------------
+   -- Invert_Colors
+   --
+   -- Inverts the colors of an image by subtracting each color channel value
+   -- from 255. For RGBA images, the alpha channel remains unchanged.
+   --
+   -- Parameters:
+   --   Data - Image data array to be inverted (modified in-place)
+   --   Desc - QOI descriptor containing image metadata
+   ------------------------------------------------------------------------------
+   procedure Invert_Colors (Data : in out Storage_Array; Desc : QOI.QOI_Desc)
+   is
+      -- Number of channels per pixel (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+   begin
+      -- Iterate through each pixel in the image data
+      for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
+         -- Process only the first three channels (R, G, B)
+         if (I - Data'First) mod Pixel_Size = 0 then
+            Data (I)     := 255 - Data (I);     -- Red channel
+            Data (I + 1) := 255 - Data (I + 1); -- Green channel
+            Data (I + 2) := 255 - Data (I + 2); -- Blue channel
+
+            -- Preserve alpha channel if present (RGBA)
+            if Pixel_Size = 4 then
+               Data (I + 3) := Data (I + 3);
+            end if;
+         end if;
+      end loop;
+   end Invert_Colors;
+
+   ------------------------------------------------------------------------------
+   -- Sharpen_Image
+   --
+   -- Sharpens an image by applying a Laplacian filter.
+   --
+   -- Parameters:
+   --   Data - Image data array to be sharpened (modified in-place)
+   --   Desc - QOI descriptor containing image metadata
+   --
+   -- Effects:
+   --   Enhances edges in the image by applying a convolution with a Laplacian
+   --   kernel. The resulting image is written back to the input Data array.
+   ------------------------------------------------------------------------------
+   procedure Sharpen_Image (Data : in out Storage_Array; Desc : QOI.QOI_Desc)
+   is
+      -- Number of channels per pixel (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Integer := Integer (Desc.Channels);
+
+      -- Image dimensions
+      Width  : constant Integer := Integer (Desc.Width);
+      Height : constant Integer := Integer (Desc.Height);
+
+      -- Temporary array to store the processed image data
+      Temp : Storage_Array := Data;
+
+      -- Laplacian kernel for edge detection
+      Kernel : constant array (-1 .. 1, -1 .. 1) of Integer :=
+        ((0, -1, 0), (-1, 4, -1), (0, -1, 0));
+
+   begin
+      -- Iterate over each pixel in the image (excluding borders)
+      for Y in 1 .. Height - 2 loop
+         for X in 1 .. Width - 2 loop
+            -- Process each color channel separately
+            for C in 0 .. Pixel_Size - 2 loop
+               declare
+                  -- Accumulator for convolution result
+                  Sum : Integer := 0;
+
+                  -- Destination pixel position in the output array
+                  Dest_Pos : constant Storage_Count :=
+                    Storage_Count (((Y * Width) + X) * Pixel_Size + C + 1);
+               begin
+                  -- Apply the Laplacian kernel to the current pixel neighborhood
+                  for Ky in -1 .. 1 loop
+                     for Kx in -1 .. 1 loop
+                        declare
+                           -- Source pixel position in the input array
+                           Src_X : constant Integer := X + Kx;
+                           Src_Y : constant Integer := Y + Ky;
+
+                           Src_Pos : constant Storage_Count :=
+                             Storage_Count
+                               (((Src_Y * Width) + Src_X) * Pixel_Size + C +
+                                1);
+                        begin
+                           Sum :=
+                             Sum + Integer (Data (Src_Pos)) * Kernel (Ky, Kx);
+                        end;
+                     end loop;
+                  end loop;
+
+                  -- Clamp the resulting value to [0, 255]
+                  if Sum < 0 then
+                     Temp (Dest_Pos) := 0;
+                  elsif Sum > 255 then
+                     Temp (Dest_Pos) := 255;
+                  else
+                     Temp (Dest_Pos) := Storage_Element (Sum);
+                  end if;
+               end;
+            end loop;
+         end loop;
+      end loop;
+
+      -- Copy the processed data back to the original Data array
+      Data := Temp;
+   end Sharpen_Image;
+
    ------------------------------------------------------------------------------
    -- Procedure: Blur_Image
    -- Purpose: Applies a box blur filter to an image using a sliding kernel
@@ -251,7 +801,7 @@ procedure Load_Qoi is
    -- Parameters:
    --   Data      - Image data array to be blurred (modified in-place)
    --   Width     - Width of the image in pixels
-   --   Height    - Height of the image in pixels 
+   --   Height    - Height of the image in pixels
    --   Channels  - Number of color channels per pixel (e.g. 3 for RGB)
    --
    -- The procedure uses a box blur kernel of size Kernel_Size x Kernel_Size
@@ -287,7 +837,7 @@ procedure Load_Qoi is
                            Pos : constant Storage_Count :=
                              ((Y + KY) * Width + (X + KX)) * Channels + C + 1;
                         begin
-                           Sum := Sum + Integer (Temp (Pos));
+                           Sum   := Sum + Integer (Temp (Pos));
                            Count := Count + 1;
                         end;
                      end loop;
@@ -301,8 +851,6 @@ procedure Load_Qoi is
          end loop;
       end loop;
    end Blur_Image;
-
-
 
    ------------------------------------------------------------------------------
    -- Get_Pixel
@@ -322,8 +870,7 @@ procedure Load_Qoi is
    --                     if out of bounds.
    ------------------------------------------------------------------------------
    function Get_Pixel
-     (Data                    : Storage_Array;
-      X, Y                    : Storage_Count;
+     (Data                    : Storage_Array; X, Y : Storage_Count;
       Width, Height, Channels : Storage_Count) return Storage_Element
    is
       Index : Storage_Count;
@@ -339,7 +886,6 @@ procedure Load_Qoi is
       -- Return pixel data at calculated index
       return Data (Index);
    end Get_Pixel;
-
 
    ------------------------------------------------------------------------------
    -- Sobel_Edge_Detection
@@ -384,11 +930,8 @@ procedure Load_Qoi is
                         Pixel_Value : constant Integer :=
                           Integer
                             (Get_Pixel
-                               (Temp,
-                                X + Storage_Count (J) - 2,
-                                Y + Storage_Count (I) - 2,
-                                Width,
-                                Height,
+                               (Temp, X + Storage_Count (J) - 2,
+                                Y + Storage_Count (I) - 2, Width, Height,
                                 Channels));
                      begin
                         Gradient_X := Gradient_X + (Pixel_Value * Gx (I, J));
@@ -403,8 +946,7 @@ procedure Load_Qoi is
                     Float (Gradient_X * Gradient_X);
                   Gy_Squared : constant Float :=
                     Float (Gradient_Y * Gradient_Y);
-                  Magnitude  : constant Float :=
-                    Sqrt (Gx_Squared + Gy_Squared);
+                  Magnitude : constant Float := Sqrt (Gx_Squared + Gy_Squared);
                begin
                   -- Convert magnitude to Natural with bounds checking
                   if Magnitude > Float (Natural'Last) then
@@ -447,7 +989,6 @@ procedure Load_Qoi is
       end if;
    end Sobel_Edge_Detection;
 
-
    -- Accumulator_Cell represents a single cell in the Hough Transform accumulator,
    -- with parameters for the line (Rho and Theta) and its corresponding vote count.
    type Accumulator_Cell is record
@@ -462,7 +1003,6 @@ procedure Load_Qoi is
 
    -- Accumulator_Access is an access type for dynamically allocated Accumulator_Array.
    type Accumulator_Access is access Accumulator_Array;
-
 
    ------------------------------------------------------------------------------
    -- Draw_Line
@@ -481,10 +1021,8 @@ procedure Load_Qoi is
    --   Color    - Line color for all channels (default is 255)
    ------------------------------------------------------------------------------
    procedure Draw_Line
-     (Data                    : in out Storage_Array;
-      X1, Y1, X2, Y2          : Integer;
-      Width, Height, Channels : Storage_Count;
-      Color                   : Storage_Element := 255)
+     (Data                    : in out Storage_Array; X1, Y1, X2, Y2 : Integer;
+      Width, Height, Channels : Storage_Count; Color : Storage_Element := 255)
    is
       -- Calculate differences and steps for line drawing
       DX     : constant Integer := abs (X2 - X1);
@@ -510,10 +1048,9 @@ procedure Load_Qoi is
                   -- Calculate index for each channel in the Data array
                   Index : constant Storage_Offset :=
                     Storage_Offset
-                      (((Y - 1) * Integer (Width) + (X - 1))
-                       * Integer (Channels)
-                       + C
-                       + 1);
+                      (((Y - 1) * Integer (Width) + (X - 1)) *
+                       Integer (Channels) +
+                       C + 1);
                begin
                   Data (Index) := Color;
                end;
@@ -529,16 +1066,15 @@ procedure Load_Qoi is
          begin
             if Error2 > -DX then
                Error := Error - DY;
-               X := X + Step_X;
+               X     := X + Step_X;
             end if;
             if Error2 < DY then
                Error := Error + DX;
-               Y := Y + Step_Y;
+               Y     := Y + Step_Y;
             end if;
          end;
       end loop;
    end Draw_Line;
-
 
    ------------------------------------------------------------------------------
    -- Hough_Transform
@@ -558,10 +1094,8 @@ procedure Load_Qoi is
    --   in the accumulator, with non-maximal suppression to refine results.
    ------------------------------------------------------------------------------
    procedure Hough_Transform
-     (Data                    : in out Storage_Array;
-      Width, Height, Channels : Storage_Count;
-      Theta_Resolution        : Positive := 180;
-      Rho_Resolution          : Positive := 180)
+     (Data : in out Storage_Array; Width, Height, Channels : Storage_Count;
+      Theta_Resolution :    Positive := 180; Rho_Resolution : Positive := 180)
    is
       -- Calculate maximum possible rho value (image diagonal length)
       Max_Rho : constant Float :=
@@ -577,13 +1111,13 @@ procedure Load_Qoi is
 
       -- Parameters for line filtering
       Max_Lines       : constant Positive := 10; -- Max lines to detect
-      Min_Line_Length : constant Float := Float (Width + Height) / 8.0;
-      Max_Line_Gap    : constant Float := Float (Width + Height) / 16.0;
-      Angle_Threshold : constant Float := 10.0 * Deg_To_Rad;
+      Min_Line_Length : constant Float    := Float (Width + Height) / 8.0;
+      Max_Line_Gap    : constant Float    := Float (Width + Height) / 16.0;
+      Angle_Threshold : constant Float    := 10.0 * Deg_To_Rad;
    begin
       -- Initialize accumulator to zero
-      for R in Acc'Range(1) loop
-         for T in Acc'Range(2) loop
+      for R in Acc'Range (1) loop
+         for T in Acc'Range (2) loop
             Acc (R, T) := 0;
          end loop;
       end loop;
@@ -595,8 +1129,8 @@ procedure Load_Qoi is
                -- Loop through theta values and compute corresponding rho
                for T in 0 .. Theta_Resolution - 1 loop
                   declare
-                     Theta   : constant Float := Float (T) * Deg_To_Rad;
-                     Rho     : constant Float :=
+                     Theta   : constant Float   := Float (T) * Deg_To_Rad;
+                     Rho     : constant Float   :=
                        Float (X) * Cos (Theta) + Float (Y) * Sin (Theta);
                      Rho_Idx : constant Integer :=
                        Integer ((Rho + Max_Rho) * Rho_Scale);
@@ -614,7 +1148,9 @@ procedure Load_Qoi is
       -- Detect peaks in accumulator using non-maximal suppression
       declare
          Threshold : constant Natural :=
-           Natural (0.85 * Float (Width + Height) / 2.0); -- Dynamic threshold
+           Natural
+             (0.85 * Float (Width + Height) /
+              2.0); -- Dynamic threshold
 
          type Line_Info is record
             Rho, Theta : Float;
@@ -651,7 +1187,7 @@ procedure Load_Qoi is
 
                      -- Store line if it's a local maximum and within max line limit
                      if Is_Maximum and Line_Count < Max_Lines then
-                        Line_Count := Line_Count + 1;
+                        Line_Count         := Line_Count + 1;
                         Lines (Line_Count) :=
                           (Rho   => (Float (R) / Rho_Scale) - Max_Rho,
                            Theta => Float (T - 1) * Deg_To_Rad,
@@ -697,16 +1233,13 @@ procedure Load_Qoi is
 
       -- Free accumulator memory to prevent leaks
       declare
-         procedure Free is new
-           Ada.Unchecked_Deallocation
-             (Object => Accumulator_Array,
-              Name   => Accumulator_Access);
+         procedure Free is new Ada.Unchecked_Deallocation
+           (Object => Accumulator_Array, Name => Accumulator_Access);
          Temp : Accumulator_Access := Acc;
       begin
          Free (Temp);
       end;
    end Hough_Transform;
-
 
    ------------------------------------------------------------------------------
    -- Gaussian_Blur
@@ -722,15 +1255,14 @@ procedure Load_Qoi is
    --   Sigma    - Standard deviation for the Gaussian kernel, controls blur radius
    ------------------------------------------------------------------------------
    procedure Gaussian_Blur
-     (Data                    : in out Storage_Array;
-      Width, Height, Channels : Storage_Count;
-      Sigma                   : Float := 1.4)
+     (Data  : in out Storage_Array; Width, Height, Channels : Storage_Count;
+      Sigma :        Float := 1.4)
    is
 
       -- Calculate kernel size based on sigma (usually 6 * sigma)
       Kernel_Size : constant Positive :=
         Positive (Float'Ceiling (6.0 * Sigma));
-      Half_Size   : constant Integer := Kernel_Size / 2;
+      Half_Size   : constant Integer  := Kernel_Size / 2;
 
       -- Create a temporary copy of the image data for processing
       Temp : Storage_Array := Data;
@@ -744,19 +1276,19 @@ procedure Load_Qoi is
          Sum    : Float := 0.0;
       begin
          -- Generate Gaussian kernel values
-         for Y in Kernel'Range(1) loop
-            for X in Kernel'Range(2) loop
+         for Y in Kernel'Range (1) loop
+            for X in Kernel'Range (2) loop
                Kernel (Y, X) :=
-                 (1.0 / (2.0 * Ada.Numerics.Pi * Sigma * Sigma))
-                 * Float
-                     (Exp (-(Float (X * X + Y * Y) / (2.0 * Sigma * Sigma))));
-               Sum := Sum + Kernel (Y, X);
+                 (1.0 / (2.0 * Ada.Numerics.Pi * Sigma * Sigma)) *
+                 Float
+                   (Exp (-(Float (X * X + Y * Y) / (2.0 * Sigma * Sigma))));
+               Sum           := Sum + Kernel (Y, X);
             end loop;
          end loop;
 
          -- Normalize kernel values so that their sum equals 1
-         for Y in Kernel'Range(1) loop
-            for X in Kernel'Range(2) loop
+         for Y in Kernel'Range (1) loop
+            for X in Kernel'Range (2) loop
                Kernel (Y, X) := Kernel (Y, X) / Sum;
             end loop;
          end loop;
@@ -769,15 +1301,14 @@ procedure Load_Qoi is
                      Sum : Float := 0.0;
                   begin
                      -- Convolve kernel with pixel neighborhood
-                     for KY in Kernel'Range(1) loop
-                        for KX in Kernel'Range(2) loop
+                     for KY in Kernel'Range (1) loop
+                        for KX in Kernel'Range (2) loop
                            declare
                               Idx : constant Storage_Count :=
-                                ((Storage_Count (Y + KY - 1) * Width
-                                  + Storage_Count (X + KX - 1))
-                                 * Channels
-                                 + Storage_Count (C)
-                                 + 1);
+                                ((Storage_Count (Y + KY - 1) * Width +
+                                  Storage_Count (X + KX - 1)) *
+                                 Channels +
+                                 Storage_Count (C) + 1);
                            begin
                               -- Accumulate weighted sum for the current channel
                               Sum :=
@@ -787,11 +1318,11 @@ procedure Load_Qoi is
                      end loop;
                      -- Update the pixel data in the original array
                      Data
-                       (((Storage_Count (Y - 1) * Width
-                          + Storage_Count (X - 1))
-                         * Channels
-                         + Storage_Count (C)
-                         + 1)) :=
+                       ((
+                         (Storage_Count (Y - 1) * Width +
+                          Storage_Count (X - 1)) *
+                         Channels +
+                         Storage_Count (C) + 1)) :=
                        Storage_Element (Float'Rounding (Sum));
                   end;
                end loop;
@@ -804,7 +1335,7 @@ procedure Load_Qoi is
    -- Canny_Edge_Detection
    --
    -- Applies Canny edge detection to an image. This includes Gaussian blurring,
-   -- gradient computation, non-maximum suppression, double thresholding, and 
+   -- gradient computation, non-maximum suppression, double thresholding, and
    -- edge tracking by hysteresis.
    --
    -- Parameters:
@@ -816,10 +1347,8 @@ procedure Load_Qoi is
    --   High_Threshold - Upper bound for edge detection (default is 0.3)
    ------------------------------------------------------------------------------
    procedure Canny_Edge_Detection
-     (Data                    : in out Storage_Array;
-      Width, Height, Channels : Storage_Count;
-      Low_Threshold           : Float := 0.1;
-      High_Threshold          : Float := 0.3)
+     (Data : in out Storage_Array; Width, Height, Channels : Storage_Count;
+      Low_Threshold :        Float := 0.1; High_Threshold : Float := 0.3)
    is
 
       -- Temporary storage for intermediate image states
@@ -837,36 +1366,37 @@ procedure Load_Qoi is
       for Y in 2 .. Height - 1 loop
          for X in 2 .. Width - 1 loop
             declare
-               Idx       : constant Storage_Count :=
+               Idx       : constant Storage_Count   :=
                  ((Y - 1) * Width + (X - 1)) * Channels + 1;
                -- Retrieve gradient angle for edge direction quantization
-               Angle     : constant Float :=
+               Angle     : constant Float           :=
                  Gradient_Direction
                    (Storage_Count'Pos
-                      ((Storage_Count (Y) - 1) * Width
-                       + (Storage_Count (X) - 1))
-                    + 1);
+                      ((Storage_Count (Y) - 1) * Width +
+                       (Storage_Count (X) - 1)) +
+                    1);
                Magnitude : constant Storage_Element := Data (Idx);
             begin
                -- Quantize angle to nearest 0, 45, 90, or 135 degrees
-               if ((Angle >= -22.5 and Angle <= 22.5)
-                   or (Angle <= -157.5)
-                   or (Angle >= 157.5))
+               if
+                 ((Angle >= -22.5 and Angle <= 22.5) or (Angle <= -157.5) or
+                  (Angle >= 157.5))
                then
                   -- Horizontal edge: suppress if not local max
-                  if Magnitude <= Data (Idx - Channels)
-                    or Magnitude <= Data (Idx + Channels)
+                  if Magnitude <= Data (Idx - Channels) or
+                    Magnitude <= Data (Idx + Channels)
                   then
                      Gradient_Magnitude (Idx) := 0;
                   else
                      Gradient_Magnitude (Idx) := Magnitude;
                   end if;
-               elsif ((Angle >= 22.5 and Angle <= 67.5)
-                      or (Angle <= -112.5 and Angle >= -157.5))
+               elsif
+                 ((Angle >= 22.5 and Angle <= 67.5) or
+                  (Angle <= -112.5 and Angle >= -157.5))
                then
                   -- 45-degree edge: suppress if not local max
-                  if Magnitude <= Data (Idx - Channels - Width * Channels)
-                    or Magnitude <= Data (Idx + Channels + Width * Channels)
+                  if Magnitude <= Data (Idx - Channels - Width * Channels) or
+                    Magnitude <= Data (Idx + Channels + Width * Channels)
                   then
                      Gradient_Magnitude (Idx) := 0;
                   else
@@ -912,17 +1442,18 @@ procedure Load_Qoi is
                      for DY in -1 .. 1 loop
                         for DX in -1 .. 1 loop
                            -- Calculate neighbor index, ensuring bounds
-                           if (Storage_Count (Integer (X) + DX)) >= 1
-                             and (Storage_Count (Integer (X) + DX)) <= Width
-                             and (Storage_Count (Integer (Y) + DY)) >= 1
-                             and (Storage_Count (Integer (Y) + DY)) <= Height
+                           if (Storage_Count (Integer (X) + DX)) >= 1 and
+                             (Storage_Count (Integer (X) + DX)) <= Width and
+                             (Storage_Count (Integer (Y) + DY)) >= 1 and
+                             (Storage_Count (Integer (Y) + DY)) <= Height
                            then
 
                               Neighbor_Idx :=
-                                ((Storage_Count (Integer (Y) + DY) - 1) * Width
-                                 + (Storage_Count (Integer (X) + DX) - 1))
-                                * Channels
-                                + 1;
+                                ((Storage_Count (Integer (Y) + DY) - 1) *
+                                 Width +
+                                 (Storage_Count (Integer (X) + DX) - 1)) *
+                                Channels +
+                                1;
 
                               if Data (Neighbor_Idx) = 255 then
                                  Has_Strong_Neighbor := True;
@@ -946,7 +1477,6 @@ procedure Load_Qoi is
       end loop;
    end Canny_Edge_Detection;
 
-
    -- Add these type declarations after the existing ones
    type Circle_Parameters is record
       X, Y  : Storage_Count;  -- Center coordinates
@@ -958,39 +1488,31 @@ procedure Load_Qoi is
    type Circle_Array_Access is access Circle_Array;
 
    procedure Hough_Circle_Transform
-     (Data        : in out Storage_Array;
-      Width       : Storage_Count;
-      Height      : Storage_Count;
-      Channels    : Storage_Count;
-      Min_Radius  : Storage_Count;
-      Max_Radius  : Storage_Count;
-      Threshold   : Natural;
-      Max_Circles : Positive := 10)
+     (Data       : in out Storage_Array; Width : Storage_Count;
+      Height     :        Storage_Count; Channels : Storage_Count;
+      Min_Radius :        Storage_Count; Max_Radius : Storage_Count;
+      Threshold  :        Natural; Max_Circles : Positive := 10)
    is
 
       -- 3D accumulator array (x, y, r)
       type Accumulator_Array is
-        array (Storage_Count range <>,
-               Storage_Count range <>,
-               Storage_Count range <>)
-        of Natural;
+        array
+          (Storage_Count range <>, Storage_Count range <>,
+           Storage_Count range <>) of Natural;
       type Accumulator_Access is access Accumulator_Array;
 
       Acc :
         Accumulator_Array
           (1 .. Width, 1 .. Height, Min_Radius .. Max_Radius) :=
-          (others => (others => (others => 0)));
+        (others => (others => (others => 0)));
 
-      Circles      : Circle_Array_Access :=
-        new Circle_Array (1 .. Max_Circles);
-      Circle_Count : Natural := 0;
+      Circles : Circle_Array_Access := new Circle_Array (1 .. Max_Circles);
+      Circle_Count : Natural             := 0;
 
       Angle_Steps : constant := 360;
       Deg_To_Rad  : constant := Ada.Numerics.Pi / 180.0;
 
    begin
-
-
 
       -- Voting process
       for Y in 1 .. Height loop
@@ -1000,16 +1522,14 @@ procedure Load_Qoi is
                for R in Min_Radius .. Max_Radius loop
                   for Theta in 0 .. Angle_Steps - 1 loop
                      declare
-                        Angle : constant Float := Float (Theta) * Deg_To_Rad;
+                        Angle : constant Float   := Float (Theta) * Deg_To_Rad;
                         A     : constant Integer :=
                           Integer (Float (X) - Float (R) * Cos (Angle));
                         B     : constant Integer :=
                           Integer (Float (Y) - Float (R) * Sin (Angle));
                      begin
-                        if A > 0
-                          and A <= Integer (Width)
-                          and B > 0
-                          and B <= Integer (Height)
+                        if A > 0 and A <= Integer (Width) and B > 0 and
+                          B <= Integer (Height)
                         then
                            Acc (Storage_Count (A), Storage_Count (B), R) :=
                              Acc (Storage_Count (A), Storage_Count (B), R) + 1;
@@ -1037,8 +1557,8 @@ procedure Load_Qoi is
                            declare
                               Current_R : constant Integer := Integer (R) + DZ;
                            begin
-                              if Current_R >= Integer (Min_Radius)
-                                and Current_R <= Integer (Max_Radius)
+                              if Current_R >= Integer (Min_Radius) and
+                                Current_R <= Integer (Max_Radius)
                               then
                                  for DY in -1 .. 1 loop
                                     for DX in -1 .. 1 loop
@@ -1048,16 +1568,16 @@ procedure Load_Qoi is
                                           Current_Y : constant Integer :=
                                             Integer (Y) + DY;
                                        begin
-                                          if Current_X > 0
-                                            and Current_X <= Integer (Width)
-                                            and Current_Y > 0
-                                            and Current_Y <= Integer (Height)
+                                          if Current_X > 0 and
+                                            Current_X <= Integer (Width) and
+                                            Current_Y > 0 and
+                                            Current_Y <= Integer (Height)
                                           then
                                              if Acc
-                                                  (Storage_Count (Current_X),
-                                                   Storage_Count (Current_Y),
-                                                   Storage_Count (Current_R))
-                                               > Center_Value
+                                                 (Storage_Count (Current_X),
+                                                  Storage_Count (Current_Y),
+                                                  Storage_Count (Current_R)) >
+                                               Center_Value
                                              then
                                                 Is_Maximum := False;
                                                 exit;
@@ -1073,7 +1593,7 @@ procedure Load_Qoi is
                         end loop;
 
                         if Is_Maximum and Circle_Count < Max_Circles then
-                           Circle_Count := Circle_Count + 1;
+                           Circle_Count           := Circle_Count + 1;
                            Circles (Circle_Count) := (X, Y, R, Center_Value);
                         end if;
                      end;
@@ -1091,15 +1611,14 @@ procedure Load_Qoi is
             -- Function to safely convert coordinates
             function Safe_Convert (X, Y : Integer) return Storage_Count is
             begin
-               if X > 0
-                 and X <= Integer (Width)
-                 and Y > 0
-                 and Y <= Integer (Height)
+               if X > 0 and X <= Integer (Width) and Y > 0 and
+                 Y <= Integer (Height)
                then
                   return
-                    ((Storage_Count (Y) - 1) * Width + (Storage_Count (X) - 1))
-                    * Channels
-                    + 1;
+                    ((Storage_Count (Y) - 1) * Width +
+                     (Storage_Count (X) - 1)) *
+                    Channels +
+                    1;
                else
                   return 1; -- Return safe default if out of bounds
                end if;
@@ -1109,7 +1628,7 @@ procedure Load_Qoi is
             -- Draw circle using Bresenham's circle algorithm
             for Theta in 0 .. Angle_Steps - 1 loop
                declare
-                  Angle    : constant Float := Float (Theta) * Deg_To_Rad;
+                  Angle    : constant Float   := Float (Theta) * Deg_To_Rad;
                   -- Use Integer for intermediate calculations
                   Center_X : constant Integer := Integer (Circle.X);
                   Center_Y : constant Integer := Integer (Circle.Y);
@@ -1121,17 +1640,15 @@ procedure Load_Qoi is
                     Center_Y + Integer (Float (Radius) * Sin (Angle));
                begin
                   -- Only draw if point is within image bounds
-                  if X > 0
-                    and X <= Integer (Width)
-                    and Y > 0
-                    and Y <= Integer (Height)
+                  if X > 0 and X <= Integer (Width) and Y > 0 and
+                    Y <= Integer (Height)
                   then
                      -- Calculate array index safely
                      declare
                         Base_Index : constant Storage_Count :=
-                          ((Storage_Count (Y) - 1) * Width
-                           + (Storage_Count (X) - 1))
-                          * Channels;
+                          ((Storage_Count (Y) - 1) * Width +
+                           (Storage_Count (X) - 1)) *
+                          Channels;
                      begin
                         Data (Base_Index + 1) := 0;    -- Red channel
                         Data (Base_Index + 2) := 100;    -- Green channel
@@ -1147,17 +1664,12 @@ procedure Load_Qoi is
          end;
       end loop;
 
-
       -- Free memory
       declare
-         procedure Free is new
-           Ada.Unchecked_Deallocation
-             (Object => Accumulator_Array,
-              Name   => Accumulator_Access);
-         procedure Free is new
-           Ada.Unchecked_Deallocation
-             (Object => Circle_Array,
-              Name   => Circle_Array_Access);
+         procedure Free is new Ada.Unchecked_Deallocation
+           (Object => Accumulator_Array, Name => Accumulator_Access);
+         procedure Free is new Ada.Unchecked_Deallocation
+           (Object => Circle_Array, Name => Circle_Array_Access);
          --Temp_Acc     : Accumulator_Access := Acc;
          Temp_Circles : Circle_Array_Access := Circles;
       begin
@@ -1167,25 +1679,18 @@ procedure Load_Qoi is
    end Hough_Circle_Transform;
 
    procedure Region_Of_Interest
-     (Data   : in out Storage_Array;
-      Desc   : in out QOI.QOI_Desc;
-      X1, Y1 : in Storage_Count;
-      -- Top-left corner of ROI
-      X2,
-      Y2     : in Storage_Count)  -- Bottom-right corner of ROI
+     (Data   : in out Storage_Array; Desc : in out QOI.QOI_Desc;
+      X1, Y1 : in     Storage_Count;
+                                -- Top-left corner of ROI
+                                X2,
+      Y2     : in     Storage_Count)  -- Bottom-right corner of ROI
    is
       Width  : constant Storage_Count := X2 - X1 + 1;
       Height : constant Storage_Count := Y2 - Y1 + 1;
    begin
       -- Check if ROI is within image bounds
-      if X1 < 1
-        or X1 > Desc.Width
-        or X2 < 1
-        or X2 > Desc.Width
-        or Y1 < 1
-        or Y1 > Desc.Height
-        or Y2 < 1
-        or Y2 > Desc.Height
+      if X1 < 1 or X1 > Desc.Width or X2 < 1 or X2 > Desc.Width or Y1 < 1 or
+        Y1 > Desc.Height or Y2 < 1 or Y2 > Desc.Height
       then
          raise Constraint_Error with "ROI is out of image bounds";
       end if;
@@ -1200,13 +1705,13 @@ procedure Load_Qoi is
             for X in X1 .. X2 loop
                declare
                   Base_Index : constant Storage_Count :=
-                    ((Storage_Count (Y) - 1) * Desc.Width
-                     + (Storage_Count (X) - 1))
-                    * Desc.Channels;
+                    ((Storage_Count (Y) - 1) * Desc.Width +
+                     (Storage_Count (X) - 1)) *
+                    Desc.Channels;
                begin
                   for C in 1 .. Desc.Channels loop
                      Temp (Index) := Data (Base_Index + C);
-                     Index := Index + 1;
+                     Index        := Index + 1;
                   end loop;
                end;
             end loop;
@@ -1217,9 +1722,9 @@ procedure Load_Qoi is
             for X in 1 .. Desc.Width loop
                declare
                   Base_Index : constant Storage_Count :=
-                    ((Storage_Count (Y) - 1) * Desc.Width
-                     + (Storage_Count (X) - 1))
-                    * Desc.Channels;
+                    ((Storage_Count (Y) - 1) * Desc.Width +
+                     (Storage_Count (X) - 1)) *
+                    Desc.Channels;
                begin
                   for C in 1 .. Desc.Channels loop
                      Data (Base_Index + C) := 0;  -- Clear the original image
@@ -1234,19 +1739,20 @@ procedure Load_Qoi is
             for X in 1 .. Width loop
                declare
                   Base_Index : constant Storage_Count :=
-                    ((Storage_Count (Y) - 1) * Width + (Storage_Count (X) - 1))
-                    * Desc.Channels;
+                    ((Storage_Count (Y) - 1) * Width +
+                     (Storage_Count (X) - 1)) *
+                    Desc.Channels;
                begin
                   for C in 1 .. Desc.Channels loop
                      Data (Base_Index + C) := Temp (Index);
-                     Index := Index + 1;
+                     Index                 := Index + 1;
                   end loop;
                end;
             end loop;
          end loop;
 
          -- Update the image description
-         Desc.Width := Width;
+         Desc.Width  := Width;
          Desc.Height := Height;
       end;
    end Region_Of_Interest;
@@ -1264,8 +1770,33 @@ begin
    --     Input.Desc.Width,
    --     Input.Desc.Height);
 
+   -- Rotate the image (optional)
+   -- Rotate_Image (Data => Input.Data.all, Desc => Input.Desc, Angle => -10.0);
+
+   -- Flip the image horizontally (optional)
+   -- Flip_Image (Data => Input.Data.all, Desc => Input.Desc, Direction => "Horizontal");
+
+   -- Sharpen the image (optional)
+   -- Sharpen_Image (Data => Input.Data.all, Desc => Input.Desc);
+
+   -- Convert to black and white (optional)
+   Convert_To_Black_And_White (Input.Data.all, Input.Desc);
+
+   -- Apply morphological operations (optional)
+   Morphological_Operation
+     (Input.Data.all, Input.Desc, "Erosion", "Square", 3);
+
    -- Convert to grayscale first
-   Convert_To_Grayscale (Input.Data.all, Input.Desc);
+   --Convert_To_Grayscale (Input.Data.all, Input.Desc);
+
+   -- Invert colors of the loaded image (optional)
+   -- Invert_Colors (Input.Data.all, Input.Desc);
+
+   -- Increase brightness by 50 (optional)
+   --  Adjust_Brightness (Input.Data.all, Input.Desc, 50);
+
+   -- Increase contrast by a factor of 1.2 (optional)
+   -- Adjust_Contrast (Input.Data.all, Input.Desc, Factor => 3.0);
 
    -- Blur the image
    --  Blur_Image
