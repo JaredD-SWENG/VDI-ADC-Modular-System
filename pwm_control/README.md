@@ -11,8 +11,6 @@ Here’s the updated Markdown table with only the two pins, leaving the function
 |          | Timer_2 | PA5      | Channel_1     | GPIO_AF_TIM2_1     |
 
 
-This format keeps it flexible until you finalize which pin will be used for which function. Let me know if you need further adjustments!
-
 ## Hardware Architecture
 
 ```mermaid
@@ -50,9 +48,32 @@ class GPIO {
     +GPIO_Point
 }
 
+class Motor_Base {
+    <<abstract>>
+    +Set_Frequency(Frequency: PWM.Hertz)
+    +Set_Duty_Cycle_Us(Time_Us: PWM.Microseconds)
+    +Set_Duty_Cycle_Percentage(Percentage: PWM.Percentage)
+    +Enable()
+    +Disable()
+}
+
+class Motor_Driver {
+    +Initialize(Timer: Timers.Timer, Pin: GPIO.GPIO_Point, Channel: Timers.Timer_Channel, GPIO_AF: GPIO_Alternate_Function, Frequency: PWM.Hertz)
+    +Set_Frequency(Frequency: PWM.Hertz)
+    +Set_Duty_Cycle_Us(Time_Us: PWM.Microseconds)
+    +Set_Duty_Cycle_Percentage(Percentage: PWM.Percentage)
+    +Enable()
+    +Disable()
+}
+
 class pwm_control {
     +Initialize(PWM_Pin:PWM, 
     +Enable_Output(PWM_Pin:PWM)
+}
+
+class Main {
+    +Initialize_Motor()
+    +Randomized_Control_Loop()
 }
 
 stm32f429disco --> cortex-m : depends_on
@@ -65,6 +86,13 @@ stm32_hal *--> Timers
 stm32_hal *--> Device
 stm32_hal *--> PWM
 stm32_hal *--> GPIO
+
+Motor_Base <|-- Motor_Driver : extends
+Motor_Driver *--> PWM : uses
+Motor_Driver *--> Timers : controls
+
+Main *--> Motor_Driver : instantiates
+Main *--> Timers : uses
 
 ```
 

@@ -10,6 +10,7 @@ use HAL;
 use Ada.Numerics.Float_Random;
 
 procedure Main is
+   -- First selected configuration
    My_Motor  : Motor_Driver.Motor;
    My_Timer  : STM32.Timers.Timer renames STM32.Device.Timer_2;
    Motor_Pin : STM32.GPIO.GPIO_Point renames STM32.Device.PA5;
@@ -17,6 +18,7 @@ procedure Main is
    Alt_Func : STM32.GPIO_Alternate_Function := STM32.Device.GPIO_AF_TIM2_1;
    Motor_Frequency : STM32.PWM.Hertz := 50;
 
+   -- Second selected configuration
    --  My_Motor  : Motor_Driver.Motor;
    --  My_Timer  : STM32.Timers.Timer renames STM32.Device.Timer_4;
    --  Motor_Pin : STM32.GPIO.GPIO_Point renames STM32.Device.PB7;
