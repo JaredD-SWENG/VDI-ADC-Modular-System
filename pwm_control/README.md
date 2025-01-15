@@ -10,6 +10,17 @@ Here’s the updated Markdown table with only the two pins, leaving the function
 |          | Timer_4 | PB7      | Channel_2     | GPIO_AF_TIM4_2     |
 |          | Timer_2 | PA5      | Channel_1     | GPIO_AF_TIM2_1     |
 
+## Outputs
+
+### 50Hz 1ms/10% Duty Cycle
+
+![50Hz 1ms/10% Duty Cycle](<boundary_test_captures/2025-01-15 50Hz 1ms Ouput.png>)
+
+### 50Hz 2ms/20% Duty Cycle
+
+![50Hz 2ms/20% Duty Cycle](<boundary_test_captures/2025-01-15 50Hz 2ms Ouput.png>)
+
+---
 
 ## Hardware Architecture
 
