@@ -93,12 +93,12 @@ package body Steering_Motor is
       Duty      : Integer;
    begin
       if Angle >= Self.Max_Angle then
-         Duty := Center + Diff;  -- 2000 µs
+         Duty := Center - Diff;  
       elsif Angle <= -Self.Max_Angle then
-         Duty := Center - Diff;  -- 1000 µs
+         Duty := Center + Diff;  
       else
          -- Interpolate: duty = center + (angle * diff) / max_angle
-         Duty := Center + (Angle * Diff) / Self.Max_Angle;
+         Duty := Center + (-Angle * Diff) / Self.Max_Angle;
       end if;
       return STM32.PWM.Microseconds (Duty);
    end Angle_To_Duty;

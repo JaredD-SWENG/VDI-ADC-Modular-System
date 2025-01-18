@@ -23,17 +23,21 @@ begin
       Steering_Motor.Steer_Right (My_Steering);
       delay 1.0;
 
+      delay 5.0;
+
       -- Center the steering motor using the Set_Angle operation.
       Steering_Motor.Set_Angle (My_Steering, 0);
       delay 1.0;
 
       -- Steer left 30 degrees.
-      Steering_Motor.Set_Angle (My_Steering, -30);
+      Steering_Motor.Set_Angle (My_Steering, 30);
       delay 1.0;
 
       -- Steer right 30 degrees.
-      Steering_Motor.Set_Angle (My_Steering, 30);
+      Steering_Motor.Set_Angle (My_Steering, -30);
       delay 1.0;
+
+      delay 5.0;
 
 
    end loop;
