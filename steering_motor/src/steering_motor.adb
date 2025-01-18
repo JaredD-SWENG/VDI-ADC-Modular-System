@@ -62,7 +62,10 @@ package body Steering_Motor is
 
    procedure Center (This : in out Steering) is
    begin
+      This.Enable;
       Set_Duty_Cycle_Us (This, This.Default_Duty_Center);
+      Delay 0.5;  -- Delay for half a second.
+      This.Disable;
    end Center;
 
    procedure Steer_Left (This : in out Steering) is
@@ -99,5 +102,13 @@ package body Steering_Motor is
       end if;
       return STM32.PWM.Microseconds (Duty);
    end Angle_To_Duty;
+
+   procedure Set_Angle (This : in out Steering; Angle : Integer) is
+   begin
+      This.Enable;
+      Set_Duty_Cycle_Us (This, Angle_To_Duty (This, Angle));
+      Delay 0.5;  -- Delay for half a second.
+      This.Disable;
+   end Set_Angle;
 
 end Steering_Motor;

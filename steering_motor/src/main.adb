@@ -1,10 +1,5 @@
 with HAL; use HAL;
-with STM32.GPIO;
-with STM32.PWM;
-with STM32.Timers;
-with STM32.Device;
 with Steering_Motor;
-with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Main is
 
@@ -16,6 +11,30 @@ begin
    Steering_Motor.Initialize(My_Steering);
 
    loop
+      -- Center the steering motor.
+      Steering_Motor.Center (My_Steering);
+      delay 1.0;
+
+      -- Steer left.
+      Steering_Motor.Steer_Left (My_Steering);
+      delay 1.0;
+
+      -- Steer right.
+      Steering_Motor.Steer_Right (My_Steering);
+      delay 1.0;
+
+      -- Center the steering motor using the Set_Angle operation.
+      Steering_Motor.Set_Angle (My_Steering, 0);
+      delay 1.0;
+
+      -- Steer left 30 degrees.
+      Steering_Motor.Set_Angle (My_Steering, -30);
+      delay 1.0;
+
+      -- Steer right 30 degrees.
+      Steering_Motor.Set_Angle (My_Steering, 30);
+      delay 1.0;
+
 
    end loop;
 end Main;

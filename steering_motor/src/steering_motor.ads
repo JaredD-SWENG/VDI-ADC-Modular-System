@@ -26,7 +26,7 @@ package Steering_Motor is
 
    -- High-level steering operations:
    -- Set the steering angle (in degrees); allowed range is -30 (left) to +30 (right).
-   --  procedure Set_Angle (This : in out Steering; Angle : Integer);
+   procedure Set_Angle (This : in out Steering; Angle : Integer);
    procedure Center    (This : in out Steering);
    procedure Steer_Left  (This : in out Steering);
    procedure Steer_Right (This : in out Steering);
