@@ -5,6 +5,8 @@ with GNAT.OS_Lib;
 with Reference_QOI;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
+with Simulated_Camera;
+with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
 
 procedure Load_Qoi is
    type Storage_Array_Access is access all Storage_Array;
@@ -303,20 +305,23 @@ procedure Load_Qoi is
    --------------------------------------------------------------------------------
    -- Adjust_Brightness
    --
-   -- Adjusts the brightness of an image by adding a specified value to each
-   -- color channel of every pixel.
+   -- Adjusts the brightness of an image by either adding a specified value to each
+   -- color channel of every pixel or flipping the brightness (dimming bright pixels
+   -- and brightening dim ones, but leaving very dark pixels unchanged).
    --
    -- Parameters:
-   --    Data        - Image data array to be adjusted (modified in-place)
-   --    Desc        - QOI descriptor containing image metadata
-   --    Brightness  - Integer value to adjust brightness (-255 to 255)
+   --    Data           - Image data array to be adjusted (modified in-place)
+   --    Desc           - QOI descriptor containing image metadata
+   --    Brightness     - Integer value to adjust brightness (-255 to 255)
+   --    Flip_Brightness - Boolean flag to enable special flip brightness mode
    --
    -- Effects:
-   --    Modifies the input Data array in-place by increasing or decreasing
-   --    the brightness of each pixel. Values are clamped between 0 and 255.
+   --    Modifies the input Data array in-place by increasing/decreasing brightness
+   --    or flipping brightness. Values are clamped between 0 and 255.
    --------------------------------------------------------------------------------
    procedure Adjust_Brightness
-     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Brightness : Integer)
+     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Brightness : Integer;
+      Flip_Brightness :        Boolean)
    is
       -- Number of channels per pixel (3 for RGB, 4 for RGBA)
       Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
@@ -324,14 +329,38 @@ procedure Load_Qoi is
       -- Temporary variable for adjusted channel value
       Adjusted_Value : Integer;
 
+      -- Midpoint for flip brightness (127 for 8-bit images)
+      Midpoint : constant Integer := 127;
+
+      -- Threshold below which very dark pixels remain unchanged
+      Dark_Threshold : constant Integer := 5;
+
    begin
       -- Iterate through each pixel in the image data
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
          -- Process only color channels (skip alpha channel if present)
          if (I - Data'First) mod Pixel_Size < Pixel_Size - 1 then
-            -- Adjust brightness and clamp value between 0 and 255
-            Adjusted_Value := Integer (Data (I)) + Brightness;
+            if Flip_Brightness then
+               -- Flip brightness: dim bright pixels, brighten dim ones,
+               -- but leave very dark pixels unchanged
+               if Integer (Data (I)) > Midpoint then
+                  -- Dim bright pixels above the midpoint
+                  Adjusted_Value :=
+                    Integer (Data (I)) - (Integer (Data (I)) - Midpoint) / 2;
+               elsif Integer (Data (I)) > Dark_Threshold then
+                  -- Brighten dim pixels above the dark threshold but below midpoint
+                  Adjusted_Value :=
+                    Integer (Data (I)) + (Midpoint - Integer (Data (I))) / 2;
+               else
+                  -- Leave very dark pixels unchanged
+                  Adjusted_Value := Integer (Data (I));
+               end if;
+            else
+               -- Standard brightness adjustment: add/subtract Brightness value
+               Adjusted_Value := Integer (Data (I)) + Brightness;
+            end if;
 
+            -- Clamp adjusted value between 0 and 255
             if Adjusted_Value < 0 then
                Data (I) := 0;
             elsif Adjusted_Value > 255 then
@@ -1759,95 +1788,196 @@ procedure Load_Qoi is
 
    Input : Input_Data;
 begin
-   Input := Load_QOI ("lanes_images\lane1.qoi");
+   -- Initialize the simulated camera with the folder path containing QOI frames
+   Simulated_Camera.Initialize ("frames_folder");
 
-   -- Apply region of interest to focus on the lower half of the image
-   --  Region_Of_Interest
-   --    (Input.Data.all,
-   --     Input.Desc,
-   --     1,
-   --     Input.Desc.Height / 3,
-   --     Input.Desc.Width,
-   --     Input.Desc.Height);
+   loop
+      -- Get the next frame from the simulated camera
+      declare
+         Frame_Name : constant String := Simulated_Camera.Get_Frame;
+      begin
+         Put_Line ("Processing frame: " & Frame_Name);
 
-   -- Rotate the image (optional)
-   -- Rotate_Image (Data => Input.Data.all, Desc => Input.Desc, Angle => -10.0);
+         -- Load the current frame using Load_QOI
+         Input := Load_QOI (Frame_Name);
 
-   -- Flip the image horizontally (optional)
-   -- Flip_Image (Data => Input.Data.all, Desc => Input.Desc, Direction => "Horizontal");
+         -- Apply region of interest to focus on the lower half of the image
+         Region_Of_Interest
+           (Input.Data.all, Input.Desc, Input.Desc.Width / 4 + 1,
+            Input.Desc.Height / 3 + 1, 3 * Input.Desc.Width / 4,
+            2 * Input.Desc.Height / 3);
 
-   -- Sharpen the image (optional)
-   -- Sharpen_Image (Data => Input.Data.all, Desc => Input.Desc);
+         -- Rotate the image (optional)
+         -- Rotate_Image (Data => Input.Data.all, Desc => Input.Desc, Angle => -10.0);
 
-   -- Convert to black and white (optional)
-   Convert_To_Black_And_White (Input.Data.all, Input.Desc);
+         -- Flip the image horizontally (optional)
+         -- Flip_Image (Data => Input.Data.all, Desc => Input.Desc, Direction => "Horizontal");
 
-   -- Apply morphological operations (optional)
-   Morphological_Operation
-     (Input.Data.all, Input.Desc, "Erosion", "Square", 3);
+         -- Sharpen the image (optional)
+         --Sharpen_Image (Data => Input.Data.all, Desc => Input.Desc);
 
-   -- Convert to grayscale first
-   --Convert_To_Grayscale (Input.Data.all, Input.Desc);
+         -- Apply Sobel edge detection
+         Sobel_Edge_Detection
+           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+            Input.Desc.Channels);
 
-   -- Invert colors of the loaded image (optional)
-   -- Invert_Colors (Input.Data.all, Input.Desc);
+         -- Increase brightness by 50 (optional)
+         Adjust_Brightness
+           (Input.Data.all, Input.Desc, 50, Flip_Brightness => True);
 
-   -- Increase brightness by 50 (optional)
-   --  Adjust_Brightness (Input.Data.all, Input.Desc, 50);
+         -- Invert colors of the loaded image (optional)
+         --Invert_Colors (Input.Data.all, Input.Desc);
 
-   -- Increase contrast by a factor of 1.2 (optional)
-   -- Adjust_Contrast (Input.Data.all, Input.Desc, Factor => 3.0);
+         -- Increase contrast by a factor of 1.2 (optional)
+         --Adjust_Contrast (Input.Data.all, Input.Desc, Factor => 1.0);
 
-   -- Blur the image
-   --  Blur_Image
-   --    (Input.Data.all,
-   --     Input.Desc.Width,
-   --     Input.Desc.Height,
-   --     Input.Desc.Channels);
+         -- Convert to grayscale first
+         Convert_To_Grayscale (Input.Data.all, Input.Desc);
 
-   -- Apply Sobel edge detection
-   --  Sobel_Edge_Detection
-   --    (Input.Data.all,
-   --     Input.Desc.Width,
-   --     Input.Desc.Height,
-   --     Input.Desc.Channels);
+         -- Blur the image
+         -- Blur_Image
+         --    (Input.Data.all,
+         --     Input.Desc.Width,
+         --     Input.Desc.Height,
+         --     Input.Desc.Channels);
 
-   -- Apply Canny edge detection
-   --  Canny_Edge_Detection
-   --    (Input.Data.all,
-   --     Input.Desc.Width,
-   --     Input.Desc.Height,
-   --     Input.Desc.Channels,
-   --     Low_Threshold  => 0.1,
-   --     High_Threshold => 0.3);
+         -- Apply Canny edge detection
+         Canny_Edge_Detection
+           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+            Input.Desc.Channels, Low_Threshold => 0.1, High_Threshold => 0.15);
 
-   -- Apply Hough Transform to detect lines
-   --  Hough_Transform
-   --    (Input.Data.all,
-   --     Input.Desc.Width,
-   --     Input.Desc.Height,
-   --     Input.Desc.Channels);
+         -- Convert to black and white (optional)
+         Convert_To_Black_And_White (Input.Data.all, Input.Desc);
 
-   -- After edge detection and before encoding
-   --  Hough_Circle_Transform
-   --    (Data        => Input.Data.all,
-   --     Width       => Input.Desc.Width,
-   --     Height      => Input.Desc.Height,
-   --     Channels    => Input.Desc.Channels,
-   --     Min_Radius  => 10  -- Minimum circle radius to detect
-   --     ,
-   --     Max_Radius  => 20  -- Maximum circle radius to detect
-   --     ,
-   --     Threshold   => 20 -- Minimum votes needed to detect a circle
-   --     ,
-   --     Max_Circles => 600   -- Maximum number of circles to detect
-   --    );
+         -- Apply morphological operations (optional)
+         Morphological_Operation
+           (Input.Data.all, Input.Desc, "Closing", "Square", 10);
 
-   declare
-      Output      : Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
-      Output_Size : Storage_Count;
-   begin
-      QOI.Encode (Input.Data.all, Input.Desc, Output, Output_Size);
-      Write_To_File ("output.qoi", Output, Output_Size);
-   end;
+         Sobel_Edge_Detection
+           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+            Input.Desc.Channels);
+
+         Canny_Edge_Detection
+           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+            Input.Desc.Channels, Low_Threshold => 0.28,
+            High_Threshold                     => 0.34);
+
+         -- Apply Hough Transform to detect lines
+         Hough_Transform
+           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+            Input.Desc.Channels);
+
+         -- After edge detection and before encoding
+         -- Hough_Circle_Transform
+         --    (Data        => Input.Data.all,
+         --     Width       => Input.Desc.Width,
+         --     Height      => Input.Desc.Height,
+         --     Channels    => Input.Desc.Channels,
+         --     Min_Radius  => 10,
+         --     Max_Radius  => 20,
+         --     Threshold   => 20,
+         --     Max_Circles => 600);
+
+         declare
+            Output : Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+            Output_Size : Storage_Count;
+         begin
+            QOI.Encode (Input.Data.all, Input.Desc, Output, Output_Size);
+            Write_To_File ("output.qoi", Output, Output_Size);
+
+            Put_Line ("Frame processed and saved: " & Frame_Name);
+
+            --delay 0.1;  -- Optional: Simulate a delay between frames if needed.
+
+            exit when Frame_Name = "frames_folder/frame_0954.qoi";
+            -- Replace "frame_end.qoi" with a condition to stop processing.
+
+         end;
+      end;
+   end loop;
 end Load_Qoi;
+--     Input := Load_QOI ("lanes_images\lane7.qoi");
+
+--     -- Apply region of interest to focus on the lower half of the image
+--     Region_Of_Interest(Input.Data.all, Input.Desc, Input.Desc.Width / 4 + 1, Input.Desc.Height / 3 + 1, 3 * Input.Desc.Width / 4, 2 * Input.Desc.Height / 3);
+
+--     -- Rotate the image (optional)
+--     -- Rotate_Image (Data => Input.Data.all, Desc => Input.Desc, Angle => -10.0);
+
+--     -- Flip the image horizontally (optional)
+--     -- Flip_Image (Data => Input.Data.all, Desc => Input.Desc, Direction => "Horizontal");
+
+--     -- Sharpen the image (optional)
+--     --Sharpen_Image (Data => Input.Data.all, Desc => Input.Desc);
+
+--     -- Apply Sobel edge detection
+--     Sobel_Edge_Detection
+--       (Input.Data.all,
+--        Input.Desc.Width,
+--        Input.Desc.Height,
+--        Input.Desc.Channels);
+
+--     -- Increase brightness by 50 (optional)
+--     Adjust_Brightness (Input.Data.all, Input.Desc, 50, Flip_Brightness => True);
+
+--     -- Invert colors of the loaded image (optional)
+--     --Invert_Colors (Input.Data.all, Input.Desc);
+
+--     -- Increase contrast by a factor of 1.2 (optional)
+--     --Adjust_Contrast (Input.Data.all, Input.Desc, Factor => 1.0);
+
+--     -- Convert to black and white (optional)
+--     -- Convert_To_Black_And_White (Input.Data.all, Input.Desc);
+
+--     -- Apply morphological operations (optional)
+--     --Morphological_Operation (Input.Data.all, Input.Desc, "Erosion", "Square", 3);
+
+--     -- Convert to grayscale first
+--     Convert_To_Grayscale (Input.Data.all, Input.Desc);
+
+--     -- Blur the image
+--     --  Blur_Image
+--     --    (Input.Data.all,
+--     --     Input.Desc.Width,
+--     --     Input.Desc.Height,
+--     --     Input.Desc.Channels);
+
+--     -- Apply Canny edge detection
+--     Canny_Edge_Detection
+--       (Input.Data.all,
+--        Input.Desc.Width,
+--        Input.Desc.Height,
+--        Input.Desc.Channels,
+--        Low_Threshold  => 0.1,
+--        High_Threshold => 0.15);
+
+--     -- Apply Hough Transform to detect lines
+--     Hough_Transform
+--       (Input.Data.all,
+--        Input.Desc.Width,
+--        Input.Desc.Height,
+--        Input.Desc.Channels);
+
+--     -- After edge detection and before encoding
+--     --  Hough_Circle_Transform
+--     --    (Data        => Input.Data.all,
+--     --     Width       => Input.Desc.Width,
+--     --     Height      => Input.Desc.Height,
+--     --     Channels    => Input.Desc.Channels,
+--     --     Min_Radius  => 10  -- Minimum circle radius to detect
+--     --     ,
+--     --     Max_Radius  => 20  -- Maximum circle radius to detect
+--     --     ,
+--     --     Threshold   => 20 -- Minimum votes needed to detect a circle
+--     --     ,
+--     --     Max_Circles => 600   -- Maximum number of circles to detect
+--     --    );
+
+--     declare
+--        Output      : Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+--        Output_Size : Storage_Count;
+--     begin
+--        QOI.Encode (Input.Data.all, Input.Desc, Output, Output_Size);
+--        Write_To_File ("output.qoi", Output, Output_Size);
+--     end;
+--  end Load_Qoi;
