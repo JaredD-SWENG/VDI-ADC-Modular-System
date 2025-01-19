@@ -3,3 +3,6 @@
 
 # Ada Library Information
 *.ali
+obj/development/simulated_camera.adb.stderr
+obj/development/simulated_camera.adb.stdout
+obj/development/simulated_camera.cswi
