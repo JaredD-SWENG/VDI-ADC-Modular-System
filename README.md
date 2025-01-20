@@ -8,7 +8,10 @@ After reviewing the STM32F429 datasheet and the board documentation, the followi
 | Function  | Timer   | GPIO Pin | Timer Channel | Alternate Function |
 |-----------|--------|----------|---------------|---------------------|
 | Drive PWM | Timer 4 | PB7      | Channel 2     | GPIO_AF_TIM4_2     |
+| Drive Mosfet | N/A | PC8      | N/A     | N/A     |
 | Steering PWM | Timer 2 | PA5      | Channel 1     | GPIO_AF_TIM2_1     |
+
+
 
 ### References:
 - **Board Documentation:** "um1670-discovery-kit-with-stm32f429zi-mcu-stmicroelectronics.pdf"  
