@@ -1,0 +1,19 @@
+name = "simulation"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["Jared"]
+maintainers = ["Jared <example@example.com>"]
+maintainers-logins = ["github-username"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["simulation"]
+
+[build-switches]
+"*".style_checks = "No" # I swear to god I cannot stand this on
+
+[[pins]]
+opencv_ada = { path='../cv_ada' }
+camera = { path='../camera' }
