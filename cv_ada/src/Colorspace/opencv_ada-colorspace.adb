@@ -1,27 +1,62 @@
-package body OpenCV_Ada.Colorspace is
-   -- Convert RGB(A) image to grayscale
+with QOI;
+with Ada.Text_IO;                       use Ada.Text_IO;
+with System.Storage_Elements;           use System.Storage_Elements;
+with GNAT.OS_Lib;
+with Reference_QOI;
+with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
+with Ada.Unchecked_Deallocation;
+with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
+
+package Colorspace is
+   type Storage_Array_Access is access all Storage_Array;
+
+   type Input_Data is record
+      Data : Storage_Array_Access;
+      Desc : QOI.QOI_Desc;
+   end record;
+
+   
+   ------------------------------------------------------------------------------
+   -- Convert_To_Grayscale
+   --
+   -- Converts an RGB or RGBA image to grayscale using the luminosity method
+   --
+   -- Parameters:
+   --   Data   - Image data array to be converted (modified in-place)
+   --   Desc   - QOI descriptor containing image metadata
+   --
+   -- The conversion uses the luminosity formula:
+   -- Y = 0.299R + 0.587G + 0.114B
+   --
+   -- For RGBA images, the alpha channel is preserved unchanged
+   ------------------------------------------------------------------------------
    procedure Convert_To_Grayscale
      (Data : in out Storage_Array; Desc : QOI.QOI_Desc)
    is
-      Pixel_Size : constant Storage_Count := Desc.Channels;
+      -- Number of channels per pixel (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+
+      -- Calculated grayscale value for current pixel
       Gray_Value : Storage_Element;
+
    begin
+      -- Process each pixel (skipping to start of each pixel using mod)
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
-         if I mod Pixel_Size = 1 then
-            -- Convert to grayscale using luminosity method
-            -- Y = 0.299R + 0.587G + 0.114B
+         if (I - Data'First) mod Pixel_Size = 0 then
+            -- Convert RGB to grayscale using luminosity method
+            -- Add 500 to numerator to ensure proper rounding (integer math)
             Gray_Value :=
               Storage_Element
-                ((Integer (Data (I)) * 299 + Integer (Data (I + 1)) * 587
-                  + Integer (Data (I + 2)) * 114)
-                 / 1000);
+                ((Integer (Data (I)) * 299 + Integer (Data (I + 1)) * 587 +
+                  Integer (Data (I + 2)) * 114 + 500) /
+                 1_000);
 
-            -- Set RGB channels to the same gray value
-            Data (I) := Gray_Value;     -- R
-            Data (I + 1) := Gray_Value; -- G
-            Data (I + 2) := Gray_Value; -- B
+            -- Apply gray value to RGB channels
+            Data (I)     := Gray_Value; -- Red channel
+            Data (I + 1) := Gray_Value; -- Green channel
+            Data (I + 2) := Gray_Value; -- Blue channel
 
-            -- Preserve alpha channel if it exists
+            -- Keep alpha channel unchanged if present (RGBA)
             if Pixel_Size = 4 then
                Data (I + 3) := Data (I + 3);
             end if;
@@ -29,36 +64,54 @@ package body OpenCV_Ada.Colorspace is
       end loop;
    end Convert_To_Grayscale;
 
-   -- Add this procedure after Convert_To_Grayscale
+   --------------------------------------------------------------------------------
+   -- Convert_To_Black_And_White
+   --
+   -- Converts an image from grayscale to pure black and white using a threshold.
+   --
+   -- Parameters:
+   --    Data      - Image data array to be converted (modified in-place)
+   --    Desc      - QOI image descriptor containing format information
+   --    Threshold - Brightness value (0-255) that determines black/white cutoff,
+   --                defaults to 128
+   --
+   -- Effects:
+   --    Modifies the input Data array in-place, converting each pixel to either
+   --    pure black (0) or pure white (255) based on the threshold value.
+   --    Alpha channel values are preserved if present.
+   --------------------------------------------------------------------------------
    procedure Convert_To_Black_And_White
-     (Data      : in out Storage_Array;
-      Desc      : QOI.QOI_Desc;
-      Threshold : Storage_Element := 128)
+     (Data      : in out Storage_Array; Desc : QOI.QOI_Desc;
+      Threshold :        Storage_Element := 128)
    is
-      Pixel_Size : constant Storage_Count := Desc.Channels;
+      -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
+      Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
+      -- Value to set for all color channels (0 for black, 255 for white)
       BW_Value   : Storage_Element;
    begin
+      -- Iterate through each pixel in the image data
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
+         -- Process only the first channel of each pixel
          if I mod Pixel_Size = 1 then
-            -- Check if the pixel is above or below threshold
-            -- Since image is already grayscale, we can just check one channel
+            -- Determine if pixel should be black or white
             if Data (I) >= Threshold then
-               BW_Value := 255; -- White
+               BW_Value := 255;  -- Convert to white
 
             else
-               BW_Value := 0;   -- Black
+               BW_Value := 0;    -- Convert to black
             end if;
 
-            -- Set RGB channels to either black or white
-            Data (I) := BW_Value;     -- R
-            Data (I + 1) := BW_Value; -- G
-            Data (I + 2) := BW_Value; -- B
+            -- Apply the black/white value to all color channels
+            Data (I)     := BW_Value;  -- Red channel
+            Data (I + 1) := BW_Value;  -- Green channel
+            Data (I + 2) := BW_Value;  -- Blue channel
 
-            -- Preserve alpha channel if it exists
+            -- If image has alpha channel, preserve its original value
             if Pixel_Size = 4 then
                Data (I + 3) := Data (I + 3);
             end if;
          end if;
       end loop;
    end Convert_To_Black_And_White;
-end OpenCV_Ada.Colorspace;
+end Colorspace;
+
