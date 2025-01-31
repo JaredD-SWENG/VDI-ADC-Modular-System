@@ -4,7 +4,7 @@ with Lane_Detection;
 with Path_Planning;
 with Event_Broker;
 with Camera; use Camera;
-with opencv_ada; use opencv_ada;
+with CV_Ada; use CV_Ada;
 
 procedure Simulation is
 begin

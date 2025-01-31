@@ -1,5 +1,5 @@
 with "config/simulation_config.gpr";
-with "../cv_ada/opencv_ada.gpr"; -- To reference all library functions
+with "../cv_ada/cv_ada.gpr"; -- To reference all library functions
 with "../camera/camera.gpr"; -- To reference all camera functions
 
 project Simulation is

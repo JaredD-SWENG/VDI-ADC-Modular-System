@@ -1,12 +1,12 @@
 with QOI;
 with System.Storage_Elements; use System.Storage_Elements;
-with Load_QOI;                use Load_QOI;
 -- with Ada.Strings;             use Ada.Strings;
 -- with Ada.Text_IO;             use Ada.Text_IO;
 
-with Opencv_Ada.Colorspace;      use Opencv_Ada.Colorspace;
-with Opencv_Ada.Edge_Detection;  use Opencv_Ada.Edge_Detection;
-with Opencv_Ada.Hough_Transform; use Opencv_Ada.Hough_Transform;
+with CV_Ada.IO_Operations;   use CV_Ada.IO_Operations;
+with CV_Ada.Colorspace;      use CV_Ada.Colorspace;
+with CV_Ada.Edge_Detection;  use CV_Ada.Edge_Detection;
+with CV_Ada.Hough_Transform; use CV_Ada.Hough_Transform;
 
 procedure Testing_Image_Functions is
    -- Input_File_Name   : String := "src\images\" & "5x5BlackSquare.qoi";
@@ -15,7 +15,7 @@ procedure Testing_Image_Functions is
    Output_File_Name : constant String := "output.qoi";
    Input            : Input_Data;
 begin
-   Input := Get_QOI (Input_File_Name);
+   Input := Load_QOI (Input_File_Name);
 
    ----------------- PRE-REQs ---------------- (Function Pre-requisites)
    -- Convert to grayscale first

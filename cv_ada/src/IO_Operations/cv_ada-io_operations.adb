@@ -1,21 +1,12 @@
-with QOI;
 with Ada.Text_IO;                       use Ada.Text_IO;
-with System.Storage_Elements;           use System.Storage_Elements;
 with GNAT.OS_Lib;
 with Reference_QOI;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
 
-package body IO_Operations is
-
-type Storage_Array_Access is access all Storage_Array;
-
-type Input_Data is record
-      Data : Storage_Array_Access;
-      Desc : QOI.QOI_Desc;
-end record;
--------------------------------------------------------------------------------
+package body CV_Ada.IO_Operations is
+   -------------------------------------------------------------------------------
    -- Write_To_File
    --
    -- Writes binary data from a Storage_Array to a file
@@ -141,4 +132,4 @@ end record;
       end;
    end Load_QOI;
 
-end IO_Operations;
+end CV_Ada.IO_Operations;

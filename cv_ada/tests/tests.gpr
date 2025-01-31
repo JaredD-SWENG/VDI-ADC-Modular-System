@@ -1,15 +1,13 @@
 with "config/tests_config.gpr";
-with "../opencv_ada.gpr"; -- To reference all library functions
+with "../CV_Ada.gpr"; -- To reference all library functions
 
 project Tests is
    for Languages use ("Ada", "C");
-   for Source_Dirs use ("src/", "src/external/", "config/", "reference-qoi/", "stb/");
+   for Source_Dirs use ("src/", "config/");
    for Object_Dir use "obj/" & Tests_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
    for Main use ("tests.adb");
-
-   for Excluded_Source_Files use ("qoibench.c", "qoiconv.c", "qoifuzz.c");
 
    package Compiler is
       for Default_Switches ("Ada") use Tests_Config.Ada_Compiler_Switches & ("-gnat2022");

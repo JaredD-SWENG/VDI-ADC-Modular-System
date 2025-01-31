@@ -1,20 +1,12 @@
-with QOI;
+with CV_Ada.Basic_Transformations;
 with Ada.Text_IO;                       use Ada.Text_IO;
-with System.Storage_Elements;           use System.Storage_Elements;
 with GNAT.OS_Lib;
 with Reference_QOI;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
-with Simulated_Camera;
 with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
 
-package Basic_Transformations is
-   type Storage_Array_Access is access all Storage_Array;
-
-   type Input_Data is record
-      Data : Storage_Array_Access;
-      Desc : QOI.QOI_Desc;
-   end record;
+package body CV_Ada.Basic_Transformations is
    ------------------------------------------------------------------------------
    -- Region_Of_Interest
    --
@@ -31,7 +23,6 @@ package Basic_Transformations is
    --   The image is cropped to the specified region, and pixels outside
    --   this region are removed. The image metadata is updated accordingly.
    ------------------------------------------------------------------------------
-   
    procedure Region_Of_Interest
      (Data   : in out Storage_Array; Desc : in out QOI.QOI_Desc;
       X1, Y1 : in     Storage_Count;
@@ -214,7 +205,7 @@ package Basic_Transformations is
    --   Modifies the input Data array in-place by rearranging pixel values.
    ------------------------------------------------------------------------------
    procedure Flip_Image
-     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Direction : String)
+     (Data : in out Storage_Array; Desc : QOI.QOI_Desc; Direction : Directions)
    is
       -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
       Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
@@ -225,7 +216,7 @@ package Basic_Transformations is
       -- Temporary buffer to hold a single row during processing
       Temp_Row : Storage_Array (1 .. Row_Size);
    begin
-      if Direction = "Horizontal" then
+      if Direction = CV_Ada.Basic_Transformations.Horizontal then
          -- Flip the image horizontally
          for Y in 0 .. Desc.Height - 1 loop
             -- Process each row of the image
@@ -246,7 +237,7 @@ package Basic_Transformations is
             end;
          end loop;
 
-      elsif Direction = "Vertical" then
+      elsif Direction = CV_Ada.Basic_Transformations.Vertical then
          -- Flip the image vertically
          for Y in 0 .. (Desc.Height / 2) - 1 loop
             declare
@@ -501,4 +492,4 @@ package Basic_Transformations is
       Data := Temp;
    end Sharpen_Image;
 
-end Basic_Transformations;
+end CV_Ada.Basic_Transformations;

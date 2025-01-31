@@ -1,21 +1,11 @@
-with QOI;
 with Ada.Text_IO;                       use Ada.Text_IO;
-with System.Storage_Elements;           use System.Storage_Elements;
 with GNAT.OS_Lib;
 with Reference_QOI;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
 
-package Morphological_Operations is
-   type Storage_Array_Access is access all Storage_Array;
-
-   type Input_Data is record
-      Data : Storage_Array_Access;
-      Desc : QOI.QOI_Desc;
-   end record;
-
-   
+package body CV_Ada.Morphological_Operations is   
    --------------------------------------------------------------------------------
    -- Morphological_Operation
    --
@@ -35,28 +25,9 @@ package Morphological_Operations is
    --    morphological operation.
    --------------------------------------------------------------------------------
    procedure Morphological_Operation
-     (Data    : in out Storage_Array; Desc : QOI.QOI_Desc; Operation : String;
-      SE_Type :        String; SE_Size : Integer)
+     (Data    : in out Storage_Array; Desc : QOI.QOI_Desc; Operation : Morph_Operations;
+      SE_Type : SE_Types; SE_Size : Integer)
    is
-      -- Define an enumeration type for operations
-      type Morph_Operation is (Erosion, Dilation, Opening, Closing);
-
-      -- Map input string to enumeration
-      function To_Morph_Operation (Op : String) return Morph_Operation is
-      begin
-         if Op = "Erosion" then
-            return Erosion;
-         elsif Op = "Dilation" then
-            return Dilation;
-         elsif Op = "Opening" then
-            return Opening;
-         elsif Op = "Closing" then
-            return Closing;
-         else
-            raise Program_Error with "Invalid operation";
-         end if;
-      end To_Morph_Operation;
-
       -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
       Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
       Width      : constant Integer       := Integer (Desc.Width);
@@ -79,7 +50,7 @@ package Morphological_Operations is
          Dist_X : constant Integer := abs (X - Center);
          Dist_Y : constant Integer := abs (Y - Center);
       begin
-         if SE_Type = "Square" then
+         if SE_Type = SE_Square then
             return Dist_X <= Center and Dist_Y <= Center;
          else -- Circle
             return
@@ -178,12 +149,12 @@ package Morphological_Operations is
       if SE_Size < 1 or SE_Size > 30 then
          raise Constraint_Error
            with "Structuring element size must be between 1 and 30";
-      elsif not (SE_Type = "Square" or SE_Type = "Circle") then
+      elsif not (SE_Type = SE_Square or SE_Type = SE_Circle) then
          raise Program_Error with "Invalid structuring element type";
       end if;
 
       -- Perform requested operation using enumeration-based case statement.
-      case To_Morph_Operation (Operation) is
+      case Operation is
          when Erosion =>
             Erode;
 
@@ -209,4 +180,4 @@ package Morphological_Operations is
 
    end Morphological_Operation;
 
-end Morphological_Operations;
+end CV_Ada.Morphological_Operations;

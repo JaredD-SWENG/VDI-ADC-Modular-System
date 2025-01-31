@@ -18,4 +18,4 @@ executables = ["tests"]
 aaa = "*"
 
 [[pins]]
-opencv_ada = { path='..' }
+cv_ada = { path='..' }

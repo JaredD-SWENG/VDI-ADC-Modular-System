@@ -7,7 +7,8 @@ with AAA.Strings;
 with Ada.Strings.Fixed;       use Ada.Strings.Fixed;
 with System.Storage_Elements; use System.Storage_Elements;
 
-with Load_QOI; use Load_QOI;
+with CV_Ada.IO_Operations;   use CV_Ada.IO_Operations;
+with CV_Ada;                 use CV_Ada;
 
 procedure Tests is
    Input1 : Input_Data;
@@ -23,8 +24,8 @@ begin
    then
       Put_Line ("QOI Image 1: " & Ada.Command_Line.Argument (1));
       Put_Line ("QOI Image 2: " & Ada.Command_Line.Argument (2));
-      Input1 := Get_QOI (Ada.Command_Line.Argument (1));
-      Input2 := Get_QOI (Ada.Command_Line.Argument (2));
+      Input1 := Load_QOI (Ada.Command_Line.Argument (1));
+      Input2 := Load_QOI (Ada.Command_Line.Argument (2));
    else
       Put_Line (Standard_Error, "File extension can only be '.qoi' for both!");
       GNAT.OS_Lib.OS_Exit (1);

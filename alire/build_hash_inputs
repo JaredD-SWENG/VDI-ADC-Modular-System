@@ -1,0 +1,6 @@
+dependency:qoi=0.1.0=fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146
+external:LIBRARY_TYPE=default
+external:OPENCV_ADA_LIBRARY_TYPE=default
+profile:opencv_ada=RELEASE
+switches:opencv_ada=-O3,-fdata-sections,-ffunction-sections,-gnatW8,-gnatn
+version:gnat_native=13.2.2
