@@ -91,11 +91,11 @@ package body Drive_Motor is
          LCD_Std_Out.Put (10,150,"Calibrating...");
          This.Set_Duty_Cycle_Percentage (10);
 
-         delay 2.0;
+         delay 3.0;
 
          This.Set_Duty_Cycle_Percentage (5);
 
-         delay 2.0;
+         delay 5.0;
          LCD_Std_Out.Put (10,150,"               ");
          LCD_Std_Out.Put (10,150,"Calibrated");
       else
