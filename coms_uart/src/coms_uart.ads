@@ -16,28 +16,27 @@ package Coms_Uart is
 
    ----------------------------------------------------------------------------
    -- Run
-   -- Demo loop: sends a default transmit buffer using the array-based Transmit
-   -- method with a 1-second delay.
+   -- Demo loop: sends a default transmit buffer (e.g., "Hello VDI.\r\n")
+   -- using the array-based Transmit call with a 1-second delay.
    ----------------------------------------------------------------------------
    procedure Run;
 
    ----------------------------------------------------------------------------
    -- Send_String
-   -- Converts an Ada String into a UART_Data_8b array and transmits it using
-   -- the array-based Transmit call.
+   -- Converts an Ada String into a UART_Data_8b array and transmits it.
    ----------------------------------------------------------------------------
    procedure Send_String (Data : String);
    
    ----------------------------------------------------------------------------
    -- Send_Newline
-   -- Sends a carriage return and line feed.
+   -- Sends a carriage return and a line feed.
    ----------------------------------------------------------------------------
    procedure Send_Newline;
 
    ----------------------------------------------------------------------------
    -- Receive_Line
-   -- Reads characters into Output until a CR or LF is encountered (or the buffer
-   -- is full). Optionally echoes each character.
+   -- Reads characters into Output until a CR or LF is encountered (or the
+   -- buffer is full). Optionally echoes each character (except CR/LF).
    ----------------------------------------------------------------------------
    procedure Receive_Line
      (Output :    out String;
@@ -49,4 +48,6 @@ package Coms_Uart is
    -- Flushes any residual data from the RX buffer.
    ----------------------------------------------------------------------------
    procedure Flush_RX;
+
+   procedure Process_Command (Command : String);
 end Coms_Uart;
