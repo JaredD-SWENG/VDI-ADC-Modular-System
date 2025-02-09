@@ -1,11 +1,11 @@
-with HAL;                 use HAL;
-with STM32.Device;       use STM32.Device;
-with STM32.USARTs;       use STM32.USARTs;
-with STM32.GPIO;         use STM32.GPIO;
-with Interfaces;         use Interfaces;
-with STM32_SVD.RCC;      use STM32_SVD.RCC;
-with HAL.UART;           use HAL.UART;
-with STM32.Board; use STM32.Board;
+with HAL;           use HAL;
+with STM32.Device;  use STM32.Device;
+with STM32.USARTs;  use STM32.USARTs;
+with STM32.GPIO;    use STM32.GPIO;
+with Interfaces;    use Interfaces;
+with STM32_SVD.RCC; use STM32_SVD.RCC;
+with HAL.UART;      use HAL.UART;
+with STM32.Board;   use STM32.Board;
 with Ada.Strings, Ada.Strings.Fixed;
 
 package body Coms_Uart is
@@ -15,10 +15,10 @@ package body Coms_Uart is
    -- (Type: UART_Data_8b)
    ----------------------------------------------------------------------------
    Tx_Buffer : constant UART_Data_8b :=
-     (Character'Pos('H'), Character'Pos('e'), Character'Pos('l'),
-      Character'Pos('l'), Character'Pos('o'), Character'Pos(' '),
-      Character'Pos('V'), Character'Pos('D'), Character'Pos('I'),
-      Character'Pos('.'), Character'Pos(ASCII.CR), Character'Pos(ASCII.LF));
+     (Character'Pos ('H'), Character'Pos ('e'), Character'Pos ('l'),
+      Character'Pos ('l'), Character'Pos ('o'), Character'Pos (' '),
+      Character'Pos ('V'), Character'Pos ('D'), Character'Pos ('I'),
+      Character'Pos ('.'), Character'Pos (ASCII.CR), Character'Pos (ASCII.LF));
 
    ----------------------------------------------------------------------------
    -- Define USART1 pins (TX on PA9 and RX on PA10)
@@ -51,39 +51,35 @@ package body Coms_Uart is
    ----------------------------------------------------------------------------
    -- Initialize
    ----------------------------------------------------------------------------
-   procedure Initialize is
+   procedure Coms_Initialize is
    begin
       Configure_System_Clock_HSI_16MHz;
       Enable_Clock (GPIO_A);
       Enable_Clock (USART_1);
 
-      Configure_IO (USART1_TX,
-                    (Mode           => Mode_AF,
-                     AF             => GPIO_AF_USART1_7,
-                     Resistors      => Floating,
-                     AF_Output_Type => Push_Pull,
-                     AF_Speed       => Speed_50MHz));
+      Configure_IO
+        (USART1_TX,
+         (Mode => Mode_AF, AF => GPIO_AF_USART1_7, Resistors => Floating,
+          AF_Output_Type => Push_Pull, AF_Speed => Speed_50MHz));
 
-      Configure_IO (USART1_RX,
-                    (Mode           => Mode_AF,
-                     AF             => GPIO_AF_USART1_7,
-                     Resistors      => Floating,
-                     AF_Output_Type => Push_Pull,
-                     AF_Speed       => Speed_50MHz));
+      Configure_IO
+        (USART1_RX,
+        (Mode => Mode_AF, AF => GPIO_AF_USART1_7, Resistors => Floating,
+          AF_Output_Type => Push_Pull, AF_Speed => Speed_50MHz));
 
-      USART_1.Set_Baud_Rate         (115_200);
-      USART_1.Set_Word_Length       (Word_Length_8);
-      USART_1.Set_Stop_Bits         (Stopbits_1);
-      USART_1.Set_Parity            (No_Parity);
-      USART_1.Set_Mode              (Tx_Rx_Mode);
-      USART_1.Set_Flow_Control      (No_Flow_Control);
+      USART_1.Set_Baud_Rate (115_200);
+      USART_1.Set_Word_Length (Word_Length_8);
+      USART_1.Set_Stop_Bits (Stopbits_1);
+      USART_1.Set_Parity (No_Parity);
+      USART_1.Set_Mode (Tx_Rx_Mode);
+      USART_1.Set_Flow_Control (No_Flow_Control);
       USART_1.Set_Oversampling_Mode (Oversampling_By_16);
 
       USART_1.Enable;
 
       Initialize_LEDs;
       Flush_RX;
-   end Initialize;
+   end Coms_Initialize;
 
    ----------------------------------------------------------------------------
    -- Flush_RX
@@ -106,7 +102,7 @@ package body Coms_Uart is
       Status : UART_Status;
    begin
       while True loop
-         USART_1.Transmit (UART_Data_8b'(Tx_Buffer), Status, Timeout => 1000);
+         USART_1.Transmit (UART_Data_8b'(Tx_Buffer), Status, Timeout => 1_000);
          delay 1.0;
       end loop;
    end Run;
@@ -120,10 +116,19 @@ package body Coms_Uart is
       Status : UART_Status;
    begin
       for I in Data'Range loop
-         Buffer(I) := UInt8 (Character'Pos(Data(I)));
+         Buffer (I) := UInt8 (Character'Pos (Data (I)));
       end loop;
-      USART_1.Transmit (Buffer, Status, Timeout => 1000);
+      USART_1.Transmit (Buffer, Status, Timeout => 1_000);
    end Send_String;
+
+   ----------------------------------------------------------------------------
+   -- Send_String_Newline
+   -- Converts an Ada String into a UART_Data_8b array, appends a CR/LF, and transmits it.
+   ----------------------------------------------------------------------------
+   procedure Send_String_Newline (Data : String) is
+      begin
+         Send_String (Data & ASCII.CR & ASCII.LF);
+      end Send_String_Newline;
 
    ----------------------------------------------------------------------------
    -- Send_Newline
@@ -131,8 +136,8 @@ package body Coms_Uart is
    ----------------------------------------------------------------------------
    procedure Send_Newline is
    begin
-      USART_1.Transmit (UInt9 (Character'Pos(ASCII.CR)));
-      USART_1.Transmit (UInt9 (Character'Pos(ASCII.LF)));
+      USART_1.Transmit (UInt9 (Character'Pos (ASCII.CR)));
+      USART_1.Transmit (UInt9 (Character'Pos (ASCII.LF)));
    end Send_Newline;
 
    ----------------------------------------------------------------------------
@@ -140,9 +145,7 @@ package body Coms_Uart is
    -- Reads characters into Output until a CR or LF is encountered (or the buffer is full).
    ----------------------------------------------------------------------------
    procedure Receive_Line
-     (Output :    out String;
-      Last   :    out Natural;
-      Echo   :    Boolean := False)
+     (Output : out String; Last : out Natural; Echo : Boolean := False)
    is
       Char_Count : Natural := 0;
       Received   : UInt9;
@@ -155,7 +158,7 @@ package body Coms_Uart is
          end loop;
          USART_1.Receive (Received);
          declare
-            C : constant Character := Character'Val(Received);
+            C : constant Character := Character'Val (Received);
          begin
             -- Only echo if not CR or LF.
             if Echo and then not (C = ASCII.CR or else C = ASCII.LF) then
@@ -167,8 +170,8 @@ package body Coms_Uart is
                exit;
             else
                if Char_Count < Output'Length then
-                  Char_Count := Char_Count + 1;
-                  Output(Char_Count) := C;
+                  Char_Count          := Char_Count + 1;
+                  Output (Char_Count) := C;
                else
                   Last := Char_Count;
                   exit;
@@ -178,21 +181,45 @@ package body Coms_Uart is
       end loop;
    end Receive_Line;
 
-procedure Process_Command(Command : String) is
-   use Ada.Strings, Ada.Strings.Fixed;
-   CMD : constant String := Trim(Command, Both);
-begin
-   if CMD = "LED ON" then
-      Turn_On (Green_LED);
-      Send_String(ASCII.CR & ASCII.LF & "LED ON" & ASCII.CR & ASCII.LF);
-   elsif CMD = "LED OFF" then
-      Turn_Off (Green_LED);
-      Send_String(ASCII.CR & ASCII.LF & "LED OFF" & ASCII.CR & ASCII.LF);
-   else
-      Send_String(ASCII.CR & ASCII.LF & "ERR: Invalid command" & ASCII.CR & ASCII.LF);
-   end if;
-end Process_Command;
+   ----------------------------------------------------------------------------
+   -- Clear_Screen
+   -- Sends an escape sequence to clear the screen.
+   ----------------------------------------------------------------------------
+   procedure Clear_Screen is
+   begin
+      Send_String (ASCII.ESC & "[2J");
+   end Clear_Screen;
 
+   ----------------------------------------------------------------------------
+   -- Newline
+   -- Sends a carriage return and a line feed.
+   ----------------------------------------------------------------------------
+   procedure Newline is
+   begin
+      Send_String (ASCII.CR & ASCII.LF);
+   end Newline;
 
+      ----------------------------------------------------------------------------
+   -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
+   -- Process_Command
+   -- Processes a command string.
+   ----------------------------------------------------------------------------
+   procedure Process_Command (Command : String) is
+      use Ada.Strings, Ada.Strings.Fixed;
+      CMD : constant String := Trim (Command, Both);
+   begin
+      if CMD = "LED ON" then
+         Turn_On (Green_LED);
+         Send_String_Newline (ASCII.CR & ASCII.LF & "Green LED Turned ON");
+      elsif CMD = "LED OFF" then
+         Turn_Off (Green_LED);
+         Send_String_Newline (ASCII.CR & ASCII.LF & "Green LED Turned OFF");
+      else
+         Send_String_Newline
+           (ASCII.CR & ASCII.LF & "ERR: Invalid command");
+      end if;
+   end Process_Command;
 
 end Coms_Uart;
+
+

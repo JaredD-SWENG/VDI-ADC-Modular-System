@@ -12,7 +12,7 @@ package Coms_Uart is
    -- Sets up the system clock, GPIO pins, and configures USART1 for
    -- 115200 baud (8N1).
    ----------------------------------------------------------------------------
-   procedure Initialize;
+   procedure Coms_Initialize;
 
    ----------------------------------------------------------------------------
    -- Run
@@ -26,7 +26,14 @@ package Coms_Uart is
    -- Converts an Ada String into a UART_Data_8b array and transmits it.
    ----------------------------------------------------------------------------
    procedure Send_String (Data : String);
-   
+
+   ----------------------------------------------------------------------------
+   -- Send_String_Newline
+   -- Converts an Ada String into a UART_Data_8b array, appends a CR/LF, and
+   -- transmits it.
+   ----------------------------------------------------------------------------
+   procedure Send_String_Newline (Data : String);
+
    ----------------------------------------------------------------------------
    -- Send_Newline
    -- Sends a carriage return and a line feed.
@@ -49,5 +56,22 @@ package Coms_Uart is
    ----------------------------------------------------------------------------
    procedure Flush_RX;
 
+   ----------------------------------------------------------------------------
+   -- Clear_Screen
+   -- Sends an escape sequence to clear the screen.
+   ----------------------------------------------------------------------------
+   procedure Clear_Screen;
+
+   ----------------------------------------------------------------------------
+   -- Newline
+   -- Sends a carriage return and a line feed.
+   ----------------------------------------------------------------------------
+   procedure Newline;
+
+   ----------------------------------------------------------------------------
+   -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
+   -- Process_Command
+   -- Processes a command string currently to control the green built-in LED.
+   ----------------------------------------------------------------------------
    procedure Process_Command (Command : String);
 end Coms_Uart;

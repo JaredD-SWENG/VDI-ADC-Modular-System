@@ -10,7 +10,7 @@ project Coms_Uart is
    for Object_Dir use "obj/" & Coms_Uart_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("main_send_test.adb");
+   for Main use ("main.adb");
 
    package Compiler is
       for Default_Switches ("Ada") use Coms_Uart_Config.Ada_Compiler_Switches;
