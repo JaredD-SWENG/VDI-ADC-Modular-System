@@ -13,9 +13,6 @@ procedure Main is
    Input_Buffer : String(1..80);
    Last_Char    : Natural;
 begin
-   Coms_Initialize;
-
-   Clear_Screen;
    Send_String_Newline ("UART Controller Ready");
    
    loop

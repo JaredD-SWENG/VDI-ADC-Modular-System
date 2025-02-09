@@ -7,12 +7,6 @@ with STM32_SVD.RCC;
 with HAL.UART;
 
 package Coms_Uart is
-   ----------------------------------------------------------------------------
-   -- Initialize
-   -- Sets up the system clock, GPIO pins, and configures USART1 for
-   -- 115200 baud (8N1).
-   ----------------------------------------------------------------------------
-   procedure Coms_Initialize;
 
    ----------------------------------------------------------------------------
    -- Run

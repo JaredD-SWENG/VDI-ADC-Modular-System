@@ -49,39 +49,6 @@ package body Coms_Uart is
    end Configure_System_Clock_HSI_16MHz;
 
    ----------------------------------------------------------------------------
-   -- Initialize
-   ----------------------------------------------------------------------------
-   procedure Coms_Initialize is
-   begin
-      Configure_System_Clock_HSI_16MHz;
-      Enable_Clock (GPIO_A);
-      Enable_Clock (USART_1);
-
-      Configure_IO
-        (USART1_TX,
-         (Mode => Mode_AF, AF => GPIO_AF_USART1_7, Resistors => Floating,
-          AF_Output_Type => Push_Pull, AF_Speed => Speed_50MHz));
-
-      Configure_IO
-        (USART1_RX,
-        (Mode => Mode_AF, AF => GPIO_AF_USART1_7, Resistors => Floating,
-          AF_Output_Type => Push_Pull, AF_Speed => Speed_50MHz));
-
-      USART_1.Set_Baud_Rate (115_200);
-      USART_1.Set_Word_Length (Word_Length_8);
-      USART_1.Set_Stop_Bits (Stopbits_1);
-      USART_1.Set_Parity (No_Parity);
-      USART_1.Set_Mode (Tx_Rx_Mode);
-      USART_1.Set_Flow_Control (No_Flow_Control);
-      USART_1.Set_Oversampling_Mode (Oversampling_By_16);
-
-      USART_1.Enable;
-
-      Initialize_LEDs;
-      Flush_RX;
-   end Coms_Initialize;
-
-   ----------------------------------------------------------------------------
    -- Flush_RX
    -- Reads and discards any residual data from the RX buffer.
    ----------------------------------------------------------------------------
@@ -219,7 +186,35 @@ package body Coms_Uart is
            (ASCII.CR & ASCII.LF & "ERR: Invalid command");
       end if;
    end Process_Command;
+begin
+   Configure_System_Clock_HSI_16MHz;
+   Enable_Clock (GPIO_A);
+   Enable_Clock (USART_1);
 
+   Configure_IO
+     (USART1_TX,
+      (Mode => Mode_AF, AF => GPIO_AF_USART1_7, Resistors => Floating,
+       AF_Output_Type => Push_Pull, AF_Speed => Speed_50MHz));
+
+   Configure_IO
+     (USART1_RX,
+     (Mode => Mode_AF, AF => GPIO_AF_USART1_7, Resistors => Floating,
+       AF_Output_Type => Push_Pull, AF_Speed => Speed_50MHz));
+
+   USART_1.Set_Baud_Rate (115_200);
+   USART_1.Set_Word_Length (Word_Length_8);
+   USART_1.Set_Stop_Bits (Stopbits_1);
+   USART_1.Set_Parity (No_Parity);
+   USART_1.Set_Mode (Tx_Rx_Mode);
+   USART_1.Set_Flow_Control (No_Flow_Control);
+   USART_1.Set_Oversampling_Mode (Oversampling_By_16);
+
+   USART_1.Enable;
+
+   Initialize_LEDs;
+   Flush_RX;
+
+   Clear_Screen;
 end Coms_Uart;
 
 
