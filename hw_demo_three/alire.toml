@@ -10,3 +10,10 @@ website = ""
 tags = []
 
 executables = ["hw_demo_three"]
+
+[[depends-on]]
+stm32f429disco = "0.1.0"
+stm32_gui = "0.1.0"
+
+[[pins]]
+gnat_arm_elf = "12.2.1"

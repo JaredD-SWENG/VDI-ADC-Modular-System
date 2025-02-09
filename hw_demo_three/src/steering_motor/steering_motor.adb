@@ -20,7 +20,7 @@ package body Steering_Motor is
       This.Generator := Timer;
 
       -- Set up the timer generator with the desired frequency.
-      STM32.PWM.Configure_PWM_Timer (This.Generator, Frequency * 2);
+      STM32.PWM.Configure_PWM_Timer (This.Generator, Frequency);
 
       -- Attach the PWM channel to the timer generator.
       This.PWM_Mod.Attach_PWM_Channel (This.Generator, Channel, Pin, GPIO_AF);
@@ -33,14 +33,14 @@ package body Steering_Motor is
      (This : in out Steering; Frequency : STM32.PWM.Hertz)
    is
    begin
-      STM32.PWM.Configure_PWM_Timer (This.Generator, Frequency * 2);
+      STM32.PWM.Configure_PWM_Timer (This.Generator, Frequency);
    end Set_Frequency;
 
    procedure Set_Duty_Cycle_Us
      (This : in out Steering; Time_Us : STM32.PWM.Microseconds)
    is
    begin
-      This.PWM_Mod.Set_Duty_Time (Time_Us / 2);
+      This.PWM_Mod.Set_Duty_Time (Time_Us);
    end Set_Duty_Cycle_Us;
 
    procedure Set_Duty_Cycle_Percentage
@@ -64,7 +64,7 @@ package body Steering_Motor is
    begin
       This.Enable;
       Set_Duty_Cycle_Us (This, This.Default_Duty_Center);
-      Delay 0.5;  -- Delay for half a second.
+      Delay 0.1;  -- Delay for half a second.
       This.Disable;
    end Center;
 
@@ -72,7 +72,7 @@ package body Steering_Motor is
    begin
       This.Enable;
       Set_Duty_Cycle_Us (This, This.Default_Duty_Center + This.Max_Angle_From_Center);
-      Delay 0.5;  -- Delay for half a second.
+      Delay 0.1;  -- Delay for half a second.
       This.Disable;
    end Steer_Left;
 
@@ -80,7 +80,7 @@ package body Steering_Motor is
    begin
       This.Enable;
       Set_Duty_Cycle_Us (This, This.Default_Duty_Center - This.Max_Angle_From_Center);
-      Delay 0.5;  -- Delay for half a second.
+      Delay 0.1;  -- Delay for half a second.
       This.Disable;
    end Steer_Right;
 
@@ -107,7 +107,7 @@ package body Steering_Motor is
    begin
       This.Enable;
       Set_Duty_Cycle_Us (This, Angle_To_Duty (This, Angle));
-      Delay 0.5;  -- Delay for half a second.
+      Delay 0.1;  -- Delay for half a second.
       This.Disable;
    end Set_Angle;
 

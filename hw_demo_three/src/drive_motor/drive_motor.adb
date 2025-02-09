@@ -74,33 +74,25 @@ package body Drive_Motor is
 
    procedure Calibrate (This : in out Motor) is
    begin
-      Digital_Out.Disable (This.Power_Pin); -- Turn off power to motor.
+      --  Digital_Out.Disable (This.Power_Pin); -- Turn off power to motor.
 
-      Delay 3.0;  -- Wait a short delay to ensure proper power-down
+      --  Delay 3.0;  -- Wait a short delay to ensure proper power-down
 
       Digital_Out.Enable (This.Power_Pin);  -- Power on the motor.
 
       -- Calibrate the motor.
       if Digital_Out.Is_Enabled (This.Power_Pin) then
-         LCD_Std_Out.Put (10,150,"               ");
-         LCD_Std_Out.Put (10,120,"Power On");
-      
+
          Delay 0.5;  -- Wait a short delay to ensure proper power-up before calibration begins.
          
-         LCD_Std_Out.Put (10,150,"               ");
-         LCD_Std_Out.Put (10,150,"Calibrating...");
          This.Set_Duty_Cycle_Percentage (10);
 
-         delay 3.0;
+         delay 1.0;
 
          This.Set_Duty_Cycle_Percentage (5);
 
-         delay 5.0;
-         LCD_Std_Out.Put (10,150,"               ");
-         LCD_Std_Out.Put (10,150,"Calibrated");
-      else
-         LCD_Std_Out.Put (10,150,"               ");
-         LCD_Std_Out.Put (10,150,"Power OFF");
+         delay 0.2;
+
       end if;
 
    end Calibrate;

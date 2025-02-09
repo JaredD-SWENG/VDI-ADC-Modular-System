@@ -9,9 +9,6 @@ with STM32.Board;   use STM32.Board;
 with Ada.Strings, Ada.Strings.Fixed;
 
 package body Coms_Uart is
-
-
-
    ----------------------------------------------------------------------------
    -- Define USART1 pins (TX on PA9 and RX on PA10)
    ----------------------------------------------------------------------------
@@ -167,7 +164,7 @@ package body Coms_Uart is
    -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
    ----------------------------------------------------------------------------
    procedure Output_Demo is
-      Demo_Message : constant String := "Hello VDI from Penn State!";
+      Demo_Message : constant String := "Hello Ada from Penn State!";
    begin
       Clear_Screen;
       Send_String_Newline ("UART Controller Ready");
