@@ -10,15 +10,7 @@ with Ada.Strings, Ada.Strings.Fixed;
 
 package body Coms_Uart is
 
-   ----------------------------------------------------------------------------
-   -- Demo Transmit Buffer: "Hello VDI.\r\n"
-   -- (Type: UART_Data_8b)
-   ----------------------------------------------------------------------------
-   Tx_Buffer : constant UART_Data_8b :=
-     (Character'Pos ('H'), Character'Pos ('e'), Character'Pos ('l'),
-      Character'Pos ('l'), Character'Pos ('o'), Character'Pos (' '),
-      Character'Pos ('V'), Character'Pos ('D'), Character'Pos ('I'),
-      Character'Pos ('.'), Character'Pos (ASCII.CR), Character'Pos (ASCII.LF));
+
 
    ----------------------------------------------------------------------------
    -- Define USART1 pins (TX on PA9 and RX on PA10)
@@ -59,20 +51,6 @@ package body Coms_Uart is
          USART_1.Receive (Dummy);
       end loop;
    end Flush_RX;
-
-   ----------------------------------------------------------------------------
-   -- Run
-   -- Demo loop: sends Tx_Buffer using the array-based Transmit call (with Timeout),
-   -- then delays 1 second.
-   ----------------------------------------------------------------------------
-   procedure Run is
-      Status : UART_Status;
-   begin
-      while True loop
-         USART_1.Transmit (UART_Data_8b'(Tx_Buffer), Status, Timeout => 1_000);
-         delay 1.0;
-      end loop;
-   end Run;
 
    ----------------------------------------------------------------------------
    -- Send_String
@@ -166,10 +144,8 @@ package body Coms_Uart is
       Send_String (ASCII.CR & ASCII.LF);
    end Newline;
 
-      ----------------------------------------------------------------------------
+   ----------------------------------------------------------------------------
    -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
-   -- Process_Command
-   -- Processes a command string.
    ----------------------------------------------------------------------------
    procedure Process_Command (Command : String) is
       use Ada.Strings, Ada.Strings.Fixed;
@@ -186,6 +162,35 @@ package body Coms_Uart is
            (ASCII.CR & ASCII.LF & "ERR: Invalid command");
       end if;
    end Process_Command;
+
+   ----------------------------------------------------------------------------
+   -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
+   ----------------------------------------------------------------------------
+   procedure Output_Demo is
+      Demo_Message : constant String := "Hello VDI from Penn State!";
+   begin
+      Clear_Screen;
+      Send_String_Newline ("UART Controller Ready");
+      Send_String_Newline (Demo_Message);
+   end Output_Demo;
+
+   ----------------------------------------------------------------------------
+   -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
+   ----------------------------------------------------------------------------
+   procedure Input_Demo is
+      Input_Buffer : String(1..80);
+      Last_Char    : Natural;
+   begin
+      loop
+         Send_String("CMD> ");
+         Receive_Line(Output => Input_Buffer, 
+                      Last   => Last_Char, 
+                      Echo   => True);
+         Process_Command(Input_Buffer(1..Last_Char));
+      end loop;
+   end Input_Demo;
+
+-- package eloboration block
 begin
    Configure_System_Clock_HSI_16MHz;
    Enable_Clock (GPIO_A);

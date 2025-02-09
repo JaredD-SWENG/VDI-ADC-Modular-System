@@ -7,14 +7,6 @@ with STM32_SVD.RCC;
 with HAL.UART;
 
 package Coms_Uart is
-
-   ----------------------------------------------------------------------------
-   -- Run
-   -- Demo loop: sends a default transmit buffer (e.g., "Hello VDI.\r\n")
-   -- using the array-based Transmit call with a 1-second delay.
-   ----------------------------------------------------------------------------
-   procedure Run;
-
    ----------------------------------------------------------------------------
    -- Send_String
    -- Converts an Ada String into a UART_Data_8b array and transmits it.
@@ -64,8 +56,8 @@ package Coms_Uart is
 
    ----------------------------------------------------------------------------
    -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
-   -- Process_Command
-   -- Processes a command string currently to control the green built-in LED.
    ----------------------------------------------------------------------------
    procedure Process_Command (Command : String);
+   procedure Output_Demo;  -- Sends welcome message and demo text
+   procedure Input_Demo;   -- Runs command line interface
 end Coms_Uart;
