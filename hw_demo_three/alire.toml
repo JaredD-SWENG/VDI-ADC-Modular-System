@@ -1,0 +1,12 @@
+name = "hw_demo_three"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["Kevin Fox"]
+maintainers = ["Kevin Fox <kpf5297@psu.edu>"]
+maintainers-logins = ["kpf5297"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["hw_demo_three"]
