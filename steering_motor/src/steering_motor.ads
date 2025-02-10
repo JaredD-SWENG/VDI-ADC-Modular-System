@@ -5,7 +5,7 @@ with STM32.Device;
 with HAL; use HAL;
 
 package Steering_Motor is
-   type Steering is limited private;
+   type Steering is limited private;   
 
    -- Initialize the steering Steering (configuration is entirely hardcoded).
    procedure Initialize
@@ -23,6 +23,7 @@ package Steering_Motor is
    procedure Set_Frequency (This : in out Steering; Frequency : STM32.PWM.Hertz);
    procedure Set_Duty_Cycle_Us (This : in out Steering; Time_Us : STM32.PWM.Microseconds);
    procedure Set_Duty_Cycle_Percentage (This : in out Steering; Percentage : STM32.PWM.Percentage);
+   function Get_Angle(This: Steering) return Integer;
 
    -- High-level steering operations:
    -- Set the steering angle (in degrees); allowed range is -30 (left) to +30 (right).
@@ -30,6 +31,9 @@ package Steering_Motor is
    procedure Center    (This : in out Steering);
    procedure Steer_Left  (This : in out Steering);
    procedure Steer_Right (This : in out Steering);
+   procedure Set_Relative_Angle(This : in out Steering; i : Integer);
+   procedure Set_Scaled_Angle(This : in out Steering; offset : Float);
+   procedure Smooth_Steering(This : in out Steering; target : Float; alpha: Float);
 
 private
    type Steering is tagged limited record
@@ -43,6 +47,8 @@ private
       Max_Angle_From_Center : STM32.PWM.Microseconds := 500;
 
       Max_Angle : Integer := 45;
+
+      Stored_Angle: Integer := 0;
       
    end record;
 
