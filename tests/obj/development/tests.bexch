@@ -1,0 +1,38 @@
+[GENERATED OBJECT FILE]
+b__tests.o
+[PROJECT FILES]
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\tests.gpr
+20241126002040 4c5efc1c2b88cb5518d55c4da607c5a6
+C:\Users\Harry\AppData\Local\alire\cache\builds\qoi_0.1.0_25d61809\fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146\config\qoi_config.gpr
+20241125230712 965009f3ef4d28007be385ef1584c5a8
+C:\Users\Harry\AppData\Local\alire\cache\builds\qoi_0.1.0_25d61809\fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146\qoi.gpr
+20241016224344 d42640846d20468ce1a689efb6feed4a
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\config\opencv_ada_config.gpr
+20241126074936 45809ff48e689573c365232793bc3581
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\opencv_ada.gpr
+20241109210118 7366e065d1b1f48e12e052c5d8661dcf
+C:\Users\Harry\AppData\Local\alire\cache\builds\aaa_0.2.6_dfd6339b\4b0e05559a1597b9a8663e173289320b9032228418df7970ca073dbe83252d4b\config\aaa_config.gpr
+20241125230712 c6b31cb3c2941c9e3840fe74c42e1fe9
+C:\Users\Harry\AppData\Local\alire\cache\builds\aaa_0.2.6_dfd6339b\4b0e05559a1597b9a8663e173289320b9032228418df7970ca073dbe83252d4b\aaa.gpr
+20241027020654 8e6b76f32b288b8223ecf47953b66017
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\config\tests_config.gpr
+20241125230712 beb66a9f4995ac61d99d07f9983fad9a
+[BOUND OBJECT FILES]
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\obj\development\reference_qoi.o
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\obj\development\load_qoi.o
+C:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\obj\development\tests.o
+[GENERATED SOURCE FILES]
+b__tests.ads
+b__tests.adb
+b__tests.ali
+[RESULTING OPTIONS]
+-LC:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\obj\development\
+-LC:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\tests\obj\development\
+-LC:\Users\Harry\AppData\Local\alire\cache\builds\aaa_0.2.6_dfd6339b\4b0e05559a1597b9a8663e173289320b9032228418df7970ca073dbe83252d4b\lib\
+-LC:\Users\Harry\Desktop\PSUClasses\2024 3 Fall Semester\SWENG 480\AdaProjects\VDI-ADC-Modular-System\lib\
+-LC:\Users\Harry\AppData\Local\alire\cache\builds\qoi_0.1.0_25d61809\fd01df144711f754427d2eba79f32875d9b4226deae00b0bb5d8d756f91bb146\lib\
+-LC:/users/harry/appdata/local/alire/cache/toolchains/gnat_native_13.2.2_88799c95/lib/gcc/x86_64-w64-mingw32/13.2.0/adalib/
+-static
+-static-libgcc
+C:/users/harry/appdata/local/alire/cache/toolchains/gnat_native_13.2.2_88799c95/lib/gcc/x86_64-w64-mingw32/13.2.0/adalib/libgnat.a
+-Wl,--stack=0x2000000

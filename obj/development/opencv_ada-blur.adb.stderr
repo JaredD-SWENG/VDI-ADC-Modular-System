@@ -1,0 +1,1 @@
+opencv_ada-blur.adb:68:20: warning: redundant conversion, expression is of type "Float" [-gnatwr]

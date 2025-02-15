@@ -1,0 +1,4 @@
+reference_qoi.adb:39:10: warning: "To_Compare" is not modified, could be declared constant [-gnatwk]
+reference_qoi.adb:129:43: warning: redundant conversion, "Ref_Out_Len" is of type "Storage_Count" [-gnatwr]
+reference_qoi.adb:132:10: warning: "To_Compare" is not modified, could be declared constant [-gnatwk]
+reference_qoi.ads:3:18: warning: unit "Interfaces.C.Strings" is not referenced [-gnatwu]

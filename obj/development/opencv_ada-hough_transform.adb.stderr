@@ -1,0 +1,4 @@
+opencv_ada-hough_transform.adb:2:25: warning: no entities of "Opencv_Ada.Graphics.Pixel" are referenced [-gnatwu]
+opencv_ada-hough_transform.adb:28:07: warning: constant "Min_Line_Length" is not referenced [-gnatwu]
+opencv_ada-hough_transform.adb:30:07: warning: constant "Max_Line_Gap" is not referenced [-gnatwu]
+opencv_ada-hough_transform.adb:32:07: warning: constant "Angle_Threshold" is not referenced [-gnatwu]

@@ -1,0 +1,3 @@
+opencv_ada-graphics-draw_line.ads:1:28: error: file "opencv_ada-graphics.ads" not found
+opencv_ada-graphics-draw_line.ads:1:28: error: "Opencv_Ada.Graphics.Draw_Line (body)" depends on "Opencv_Ada.Graphics.Draw_Line (spec)"
+opencv_ada-graphics-draw_line.ads:1:28: error: "Opencv_Ada.Graphics.Draw_Line (spec)" depends on "Opencv_Ada.Graphics (spec)"

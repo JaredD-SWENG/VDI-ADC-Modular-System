@@ -1,0 +1,9 @@
+# Object file
+*.o
+
+# Ada Library Information
+*.ali
+
+camera/frames_folder/
+
+camera/frames_folder.zip

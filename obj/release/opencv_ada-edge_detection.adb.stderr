@@ -1,0 +1,1 @@
+opencv_ada-edge_detection.adb:108:07: warning: variable "Gradient_Direction" is read but never assigned [-gnatwv]

@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Ada Debugger (Windows)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/simulation/bin/simulation.exe",  // Ensure this points to your executable
+            "cwd": "${workspaceFolder}",  // Set the current working directory to your project folder
+            "windows": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "C:\\GNAT\\2021\\bin\\gdb.exe"  // Update with your GNAT installation path
+            },
+            "preLaunchTask": "alr: Build with debug",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

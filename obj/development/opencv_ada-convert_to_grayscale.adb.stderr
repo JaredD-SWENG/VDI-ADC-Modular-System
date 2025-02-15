@@ -1,0 +1,2 @@
+opencv_ada-convert_to_grayscale.adb:1:35: warning: file name does not match unit name, should be "opencv_ada-colorspace-convert_to_grayscale.adb" [enabled by default]
+opencv_ada-convert_to_grayscale.adb:1:35: error: file "opencv_ada-colorspace-convert_to_grayscale.ads" not found
