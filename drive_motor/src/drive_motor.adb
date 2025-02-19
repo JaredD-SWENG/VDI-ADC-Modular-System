@@ -97,10 +97,6 @@ package body Drive_Motor is
    ----------------------------------------------------------------------------
    procedure Calibrate (This : in out Motor) is
    begin
-      -- Turn off power to motor before calibration
-      Digital_Out.Disable (This.Power_Pin);
-      delay 3.0;  -- Wait a short delay to ensure proper power-down
-
       Digital_Out.Enable (This.Power_Pin);  -- Power on the motor
 
       if Digital_Out.Is_Enabled (This.Power_Pin) then
@@ -110,10 +106,9 @@ package body Drive_Motor is
 
          Coms_Uart.Send_String_Newline("Calibrating...");
          This.Set_Duty_Cycle_Percentage (10);
-         delay 3.0;
+         delay 0.2;
 
          This.Set_Duty_Cycle_Percentage (5);
-         delay 5.0;
 
          Coms_Uart.Send_String_Newline("Calibrated");
       else
