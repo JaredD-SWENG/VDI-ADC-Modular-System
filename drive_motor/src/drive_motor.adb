@@ -1,9 +1,9 @@
 with STM32.GPIO;
 with STM32.Device;
 with STM32.Board;
-with HAL.Framebuffer;
 with Coms_Uart;
 with Digital_Out;
+with HAL; use HAL;
 
 
 package body Drive_Motor is
@@ -41,6 +41,7 @@ package body Drive_Motor is
 
       -- Disable PWM output initially.
       This.PWM_Mod.Disable_Output;
+      Coms_Uart.Send_String_Newline("Motor Initialized.");
    end Initialize;
 
    ----------------------------------------------------------------------------
@@ -50,8 +51,9 @@ package body Drive_Motor is
    begin
       This.PWM_Mod.Enable_Output;
 
-      -- Enable Mosfet for BLDC controller and motor power.
+      -- Enable Mosfet for BLDC controller + motor power.
       Digital_Out.Enable (This.Power_Pin);
+      Coms_Uart.Send_String_Newline("Motor Enabled (via Enable procedure).");
 
       Calibrate (This);
    end Enable;
@@ -65,6 +67,7 @@ package body Drive_Motor is
       Digital_Out.Disable (This.Power_Pin);
 
       This.PWM_Mod.Disable_Output;
+      Coms_Uart.Send_String_Newline("Motor Disabled (via Disable procedure).");
    end Disable;
 
    ----------------------------------------------------------------------------
@@ -96,19 +99,25 @@ package body Drive_Motor is
    -- Calibrate
    ----------------------------------------------------------------------------
    procedure Calibrate (This : in out Motor) is
+      Min_Percentage : constant Integer := 5;
+      Max_Percentage : constant Integer := 10;
+      Calibrate_Time : constant Duration := 2.0;
+
    begin
-      Digital_Out.Enable (This.Power_Pin);  -- Power on the motor
+      -- Power cycle the motor.
+      Digital_Out.Disable (This.Power_Pin);
+      delay Calibrate_Time;
+      Digital_Out.Enable (This.Power_Pin);
 
       if Digital_Out.Is_Enabled (This.Power_Pin) then
-         Coms_Uart.Send_String_Newline("Power On");
+         Coms_Uart.Send_String_Newline("Motor Power On - Calibrating...");
+         delay 0.5;  -- Wait for power to stabilize.
 
-         delay 0.5;  -- Wait a short delay before calibration begins
+         This.Set_Duty_Cycle_Percentage (Min_Percentage);
 
-         Coms_Uart.Send_String_Newline("Calibrating...");
-         This.Set_Duty_Cycle_Percentage (10);
-         delay 0.2;
+         delay Calibrate_Time;
 
-         This.Set_Duty_Cycle_Percentage (5);
+         This.Set_Duty_Cycle_Percentage (Max_Percentage);
 
          Coms_Uart.Send_String_Newline("Calibrated");
       else
@@ -125,7 +134,7 @@ package body Drive_Motor is
       Min_Percentage      : constant Integer := 5;
       Max_Percentage      : constant Integer := 100;
    begin
-      -- Constrain Speed_Percentage to range [5%, 10%].
+      -- Constrain Speed_Percentage to range
       Adjusted_Percentage := Integer'Max(Min_Percentage, Integer'Min(Max_Percentage, Speed_Percentage));
 
       -- Calculate duty cycle based on constrained percentage.
@@ -144,6 +153,22 @@ package body Drive_Motor is
    procedure Stop (This : in out Motor) is
    begin
       Set_Duty_Cycle_Us (This, This.Min_Duty_Cycle); -- Set to minimum duty cycle (stopping point).
+      Coms_Uart.Send_String_Newline("Motor Stop invoked (min duty).");
    end Stop;
+
+   procedure Emergency_Stop (This : in out Motor) is
+   begin
+      -- Immediately set speed to 0
+      Set_Speed (This, 0);
+      delay 0.1;
+
+      -- Disable Mosfet for BLDC controller and motor power.
+      Digital_Out.Disable (This.Power_Pin);
+
+      -- Disable PWM output.
+      This.PWM_Mod.Disable_Output;
+
+      Coms_Uart.Send_String_Newline("EMERGENCY STOP - Motor Power Cut!");
+   end Emergency_Stop;
    
 end Drive_Motor;
