@@ -30,13 +30,6 @@ The **Drive Motor Package** controls motor speed, direction, and power using **P
 
 ## 📊 PWM Output Examples
 
-### 50Hz 1ms (10% Duty Cycle)
-![50Hz 1ms/10% Duty Cycle](<boundary_test_captures/2025-01-15 50Hz 1ms Ouput.png>)
-
-### 50Hz 2ms (20% Duty Cycle)
-![50Hz 2ms/20% Duty Cycle](<boundary_test_captures/2025-01-15 50Hz 2ms Ouput.png>)
-
-## Test Demo
 [Demo Video](https://psu.mediaspace.kaltura.com/media/drive_test_19FEB2025/1_2dv4cfyu)
 
 ---
