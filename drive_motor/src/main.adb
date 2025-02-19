@@ -1,106 +1,189 @@
-with Digital_Out;
-with STM32.Device; use STM32.Device;
-with STM32.Board; use STM32.Board;
-with STM32.PWM; use STM32.PWM;
-with STM32.Timers; use STM32.Timers;
-with STM32.GPIO; use STM32.GPIO;
+with Coms_Uart;    use Coms_Uart;
 with Drive_Motor;
-with LCD_Std_Out;
+with STM32.Device;
+with STM32.PWM;
+with STM32.Timers;
+with HAL;          use HAL;
 
 procedure Main is
-   -- Declare a Drive_Motor instance
-   Motor : Drive_Motor.Motor;
 
-   Delay_Time : constant Duration := 5.0;  -- Delay time for each step
+   ---------------------------------------------------------------------------
+   -- Motor instance for testing
+   ---------------------------------------------------------------------------
+   My_Motor : Drive_Motor.Motor;
 
-   -- Button Area (for user interaction feedback)
-   Button_Area_X      : constant Natural := 10;
-   Button_Area_Y      : constant Natural := 20;
-   Button_Area_Text   : constant String  := "Drive Motor";
+   ---------------------------------------------------------------------------
+   -- Track whether motor is enabled or disabled
+   ---------------------------------------------------------------------------
+   Motor_Enabled : Boolean := False;
 
-   -- Output Area (for showing signal state)
-   Output_Area_X      : constant Natural := 10;
-   Output_Area_Y      : constant Natural := 60;
+   ---------------------------------------------------------------------------
+   -- Command buffer for user input
+   ---------------------------------------------------------------------------
+   Command_Buffer : String (1 .. 50) := (others => ' ');
+   Last_Char      : Natural         := 0;
 
-      -- A procedure to draw the static button area text.
-   procedure Draw_Button_Area is
+   ---------------------------------------------------------------------------
+   -- Helper procedure to print the main menu
+   ---------------------------------------------------------------------------
+   procedure Show_Menu is
    begin
-      -- Draw the button label at the designated coordinates.
-      LCD_Std_Out.Put (Button_Area_X, Button_Area_Y, Button_Area_Text);
-   end Draw_Button_Area;
+      Send_String_Newline ("");
+      Send_String_Newline ("========== UART Test Menu ==========");
+      Send_String_Newline ("1) Enable Motor");
+      Send_String_Newline ("2) Disable Motor");
+      Send_String_Newline ("3) Set Motor Frequency  (Hz)");
+      Send_String_Newline ("4) Set Duty Cycle       (%)");
+      Send_String_Newline ("5) Set Duty Time        (us)");
+      Send_String_Newline ("Q) Quit");
+      Send_String      ("Enter choice: "); -- No newline, just a prompt
+   end Show_Menu;
 
-   -- A procedure to update the output area with a new message.
-   procedure Update_Output (Msg : String) is
+   ---------------------------------------------------------------------------
+   -- Helper function to prompt user for numeric input and return as Integer
+   -- If user input is invalid or blank, it returns 0 (or a default).
+   ---------------------------------------------------------------------------
+   function Get_Integer_Input (Prompt : String) return Integer is
+      Local_Buffer : String (1 .. 50) := (others => ' ');
+      Local_Last   : Natural          := 0;
    begin
-      -- Optional: Clear the output area by writing blank spaces.
-      -- Adjust the width as needed. Here, we assume 20 characters is sufficient.
-      LCD_Std_Out.Put (Output_Area_X, Output_Area_Y, "                    ");
-      
-      LCD_Std_Out.Put (Output_Area_X, Output_Area_Y, Msg);
-   end Update_Output;   
-   
+      -- Ask user for the numeric value
+      Send_String (Prompt);
+      Receive_Line (Output => Local_Buffer,
+                    Last   => Local_Last,
+                    Echo   => True);
+
+      if Local_Last = 0 then
+         Send_String_Newline ("No input, returning 0 as default.");
+         return 0;
+      else
+         -- Attempt to convert the typed string to an Integer
+         declare
+            Value_String : constant String := Local_Buffer (1 .. Local_Last);
+            Value        : Integer;
+         begin
+            Value := Integer'Value (Value_String);
+            return Value;
+         exception
+            when others =>
+               Send_String_Newline ("Invalid numeric input. Returning 0.");
+               return 0;
+         end;
+      end if;
+   end Get_Integer_Input;
+
 begin
-   -- Initialize the motor with specified configuration
-   Drive_Motor.Initialize (Motor);
+   -- Clear screen (if terminal supports ANSI codes)
+   Clear_Screen;
 
-   -- Draw the button area
-   Draw_Button_Area;
+   -- Initialize the motor. By default, it's Disabled.
+   Drive_Motor.Initialize (This           => My_Motor,
+                           Timer          => STM32.Device.Timer_4'Access,
+                           PWM_Pin        => STM32.Device.PB7,
+                           Channel        => STM32.Timers.Channel_2,
+                           GPIO_AF        => STM32.Device.GPIO_AF_TIM4_2,
+                           Frequency      => 50,
+                           Max_Duty_Cycle => 2000,
+                           Min_Duty_Cycle => 1000);
 
+   Send_String_Newline ("UART Test Menu with Motor Controls");
+   Send_String_Newline ("Motor is initially DISABLED.");
+   Send_String_Newline ("Type a number or 'Q' to interact.");
 
-   Delay Delay_Time; 
-
+   ---------------------------------------------------------------------------
+   -- Main menu loop
+   ---------------------------------------------------------------------------
    loop
-      if STM32.GPIO.Set (STM32.Board.User_Button_Point) then
+      Show_Menu;
 
-         Update_Output ("Button Pressed");
-         Delay Delay_Time;
-         
-         if STM32.GPIO.Set(STM32.Device.PC8) then
-            -- Disable motor PWM output
-            Drive_Motor.Disable (Motor);
-            Update_Output ("Disabled");
+      Receive_Line (Output => Command_Buffer,
+                    Last   => Last_Char,
+                    Echo   => True);
 
-            LCD_Std_Out.Put (10,120,"               ");
-            LCD_Std_Out.Put (10,150,"               ");
-         else
-            -- Enable motor PWM output
-            Drive_Motor.Enable (Motor);
-            Update_Output ("Enabled");
-         end if;
-         
-         -- Wait for the button to be released.
-         while STM32.GPIO.Set (STM32.Board.User_Button_Point) loop
-            null;
-            delay 0.1;
-         end loop;
+      if Last_Char = 0 then
+         -- User just pressed ENTER with no input
+         Send_String_Newline ("No menu selection received.");
+      else
+         declare
+            User_Input : constant String := Command_Buffer (1 .. Last_Char);
+         begin
+            case User_Input (1) is
+
+               when '1' =>
+                  -- Enable Motor
+                  Drive_Motor.Enable (My_Motor);
+                  Motor_Enabled := True;
+                  Send_String_Newline ("Motor Enabled.");
+
+               when '2' =>
+                  -- Disable Motor
+                  Drive_Motor.Disable (My_Motor);
+                  Motor_Enabled := False;
+                  Send_String_Newline ("Motor Disabled.");
+
+               when '3' =>
+                  -- SET MOTOR FREQUENCY
+                  if not Motor_Enabled then
+                     Send_String_Newline ("Motor is DISABLED. Enable first!");
+                  else
+                     declare
+                        New_Frequency : Integer := Get_Integer_Input ("Enter Frequency (Hz): ");
+                     begin
+                        if New_Frequency > 0 then
+                           Drive_Motor.Set_Frequency
+                             (This => My_Motor,
+                              Frequency => STM32.PWM.Hertz (New_Frequency));
+                           Send_String_Newline ("Frequency set to " & Integer'Image (New_Frequency) & " Hz.");
+                        else
+                           Send_String_Newline ("Frequency NOT changed (invalid input).");
+                        end if;
+                     end;
+                  end if;
+
+               when '4' =>
+                  -- SET DUTY CYCLE PERCENTAGE
+                  if not Motor_Enabled then
+                     Send_String_Newline ("Motor is DISABLED. Enable first!");
+                  else
+                     declare
+                        New_Percent : Integer := Get_Integer_Input ("Enter Duty Cycle % (5..100): ");
+                     begin
+                        if New_Percent >= 5 and then New_Percent <= 100 then
+                           Drive_Motor.Set_Duty_Cycle_Percentage (My_Motor,
+                             STM32.PWM.Percentage (New_Percent));
+                           Send_String_Newline ("Duty Cycle set to " & Integer'Image (New_Percent) & "%.");
+                        else
+                           Send_String_Newline ("Invalid duty cycle. Must be between 5 and 100.");
+                        end if;
+                     end;
+                  end if;
+
+               when '5' =>
+                  -- SET DUTY TIME (microseconds)
+                  if not Motor_Enabled then
+                     Send_String_Newline ("Motor is DISABLED. Enable first!");
+                  else
+                     declare
+                        New_Us : Integer := Get_Integer_Input ("Enter Duty Time (us): ");
+                     begin
+                        if New_Us > 0 then
+                           Drive_Motor.Set_Duty_Cycle_Us (My_Motor,
+                             STM32.PWM.Microseconds (New_Us));
+                           Send_String_Newline ("Duty Time set to " & Integer'Image (New_Us) & " us.");
+                        else
+                           Send_String_Newline ("Duty Time NOT changed (invalid input).");
+                        end if;
+                     end;
+                  end if;
+
+               when 'Q' | 'q' =>
+                  Send_String_Newline ("Exiting menu. Goodbye!");
+                  exit; -- Leave the loop
+
+               when others =>
+                  Send_String_Newline ("Invalid selection: " & User_Input);
+            end case;
+         end;
       end if;
-
-      delay 0.1;
-
-      if STM32.GPIO.Set(STM32.Device.PC8) then
-
-            -- loop speed from 10 to 30
-            for I in 5..20 loop
-               Drive_Motor.Set_Speed (Motor, I);
-               Update_Output ("Speed " & Integer'Image (I));
-               Delay 1.0;
-            end loop;
-
-            -- loop speed from 30 to 10
-            for I in reverse 5.. 20 loop
-               Drive_Motor.Set_Speed (Motor, I);
-               Update_Output ("Speed " & Integer'Image (I));
-               Delay 1.0;
-            end loop;
-
-            -- Disable motor PWM output
-            Drive_Motor.Disable (Motor);
-            Update_Output ("Disabled");
-
-            LCD_Std_Out.Put (10,120,"               ");
-            LCD_Std_Out.Put (10,150,"               ");
-      end if;
-
    end loop;
-
 end Main;
