@@ -3,13 +3,13 @@ with STM32.Timers;
 with STM32.GPIO;
 with STM32.Device;
 with HAL; use HAL;
-with LCD_Std_Out;
 with Digital_Out;
+with Coms_Uart; -- Included UART package for debugging
 
 package Drive_Motor is
    type Motor is limited private;
 
-   -- Initialize the motor (configuration is entirely hardcoded).
+   -- Initialize the motor.
    procedure Initialize
      (This           : in out Motor; 
       Timer          : not null access STM32.Timers.Timer := STM32.Device.Timer_4'Access;
