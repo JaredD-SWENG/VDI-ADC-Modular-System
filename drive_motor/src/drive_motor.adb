@@ -101,23 +101,20 @@ package body Drive_Motor is
    procedure Calibrate (This : in out Motor) is
       Min_Percentage : constant Integer := 5;
       Max_Percentage : constant Integer := 10;
-      Calibrate_Time : constant Duration := 2.0;
+      Calibrate_Time : constant Duration := 0.5;
 
    begin
-      -- Power cycle the motor.
-      Digital_Out.Disable (This.Power_Pin);
-      delay Calibrate_Time;
       Digital_Out.Enable (This.Power_Pin);
 
       if Digital_Out.Is_Enabled (This.Power_Pin) then
          Coms_Uart.Send_String_Newline("Motor Power On - Calibrating...");
          delay 0.5;  -- Wait for power to stabilize.
 
-         This.Set_Duty_Cycle_Percentage (Min_Percentage);
+         This.Set_Duty_Cycle_Percentage (Max_Percentage);
 
          delay Calibrate_Time;
 
-         This.Set_Duty_Cycle_Percentage (Max_Percentage);
+         This.Set_Duty_Cycle_Percentage (Min_Percentage);
 
          Coms_Uart.Send_String_Newline("Calibrated");
       else
