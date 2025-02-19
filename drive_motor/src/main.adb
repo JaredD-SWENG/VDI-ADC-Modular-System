@@ -1,30 +1,21 @@
 with Coms_Uart;    use Coms_Uart;
 with Drive_Motor;
+with HAL;          use HAL;
 with STM32.Device;
 with STM32.PWM;
 with STM32.Timers;
-with HAL;          use HAL;
+with STM32.GPIO;
 
 procedure Main is
 
-   ---------------------------------------------------------------------------
-   -- Motor instance for testing
-   ---------------------------------------------------------------------------
-   My_Motor : Drive_Motor.Motor;
-
-   ---------------------------------------------------------------------------
-   -- Track whether motor is enabled or disabled
-   ---------------------------------------------------------------------------
+   My_Motor      : Drive_Motor.Motor;
    Motor_Enabled : Boolean := False;
 
-   ---------------------------------------------------------------------------
-   -- Command buffer for user input
-   ---------------------------------------------------------------------------
    Command_Buffer : String (1 .. 50) := (others => ' ');
    Last_Char      : Natural         := 0;
 
    ---------------------------------------------------------------------------
-   -- Helper procedure to print the main menu
+   -- Print the main menu
    ---------------------------------------------------------------------------
    procedure Show_Menu is
    begin
@@ -35,19 +26,20 @@ procedure Main is
       Send_String_Newline ("3) Set Motor Frequency  (Hz)");
       Send_String_Newline ("4) Set Duty Cycle       (%)");
       Send_String_Newline ("5) Set Duty Time        (us)");
+      Send_String_Newline ("6) Set Speed (Percentage)");
+      Send_String_Newline ("7) Normal Stop  (Min Duty)");
+      Send_String_Newline ("8) Emergency Stop (Full Cut!)");
       Send_String_Newline ("Q) Quit");
-      Send_String      ("Enter choice: "); -- No newline, just a prompt
+      Send_String      ("Enter choice: "); -- Prompt
    end Show_Menu;
 
    ---------------------------------------------------------------------------
-   -- Helper function to prompt user for numeric input and return as Integer
-   -- If user input is invalid or blank, it returns 0 (or a default).
+   -- Helper to prompt for an Integer
    ---------------------------------------------------------------------------
    function Get_Integer_Input (Prompt : String) return Integer is
       Local_Buffer : String (1 .. 50) := (others => ' ');
       Local_Last   : Natural          := 0;
    begin
-      -- Ask user for the numeric value
       Send_String (Prompt);
       Receive_Line (Output => Local_Buffer,
                     Last   => Local_Last,
@@ -57,7 +49,6 @@ procedure Main is
          Send_String_Newline ("No input, returning 0 as default.");
          return 0;
       else
-         -- Attempt to convert the typed string to an Integer
          declare
             Value_String : constant String := Local_Buffer (1 .. Local_Last);
             Value        : Integer;
@@ -73,26 +64,24 @@ procedure Main is
    end Get_Integer_Input;
 
 begin
-   -- Clear screen (if terminal supports ANSI codes)
+   -- Clear screen
    Clear_Screen;
 
-   -- Initialize the motor. By default, it's Disabled.
-   Drive_Motor.Initialize (This           => My_Motor,
-                           Timer          => STM32.Device.Timer_4'Access,
-                           PWM_Pin        => STM32.Device.PB7,
-                           Channel        => STM32.Timers.Channel_2,
-                           GPIO_AF        => STM32.Device.GPIO_AF_TIM4_2,
-                           Frequency      => 50,
-                           Max_Duty_Cycle => 2000,
-                           Min_Duty_Cycle => 1000);
+   -- Initialize the motor (disabled by default)
+   Drive_Motor.Initialize
+     (This           => My_Motor,
+      Timer          => STM32.Device.Timer_4'Access,
+      PWM_Pin        => STM32.Device.PB7,
+      Channel        => STM32.Timers.Channel_2,
+      GPIO_AF        => STM32.Device.GPIO_AF_TIM4_2,
+      Frequency      => 50,
+      Max_Duty_Cycle => 2000,
+      Min_Duty_Cycle => 1000);
 
    Send_String_Newline ("UART Test Menu with Motor Controls");
    Send_String_Newline ("Motor is initially DISABLED.");
    Send_String_Newline ("Type a number or 'Q' to interact.");
 
-   ---------------------------------------------------------------------------
-   -- Main menu loop
-   ---------------------------------------------------------------------------
    loop
       Show_Menu;
 
@@ -101,7 +90,6 @@ begin
                     Echo   => True);
 
       if Last_Char = 0 then
-         -- User just pressed ENTER with no input
          Send_String_Newline ("No menu selection received.");
       else
          declare
@@ -113,72 +101,96 @@ begin
                   -- Enable Motor
                   Drive_Motor.Enable (My_Motor);
                   Motor_Enabled := True;
-                  Send_String_Newline ("Motor Enabled.");
 
                when '2' =>
                   -- Disable Motor
                   Drive_Motor.Disable (My_Motor);
                   Motor_Enabled := False;
-                  Send_String_Newline ("Motor Disabled.");
 
                when '3' =>
-                  -- SET MOTOR FREQUENCY
+                  -- Set Frequency
                   if not Motor_Enabled then
                      Send_String_Newline ("Motor is DISABLED. Enable first!");
                   else
                      declare
-                        New_Frequency : Integer := Get_Integer_Input ("Enter Frequency (Hz): ");
+                        Freq : Integer := Get_Integer_Input ("Enter Frequency (Hz): ");
                      begin
-                        if New_Frequency > 0 then
-                           Drive_Motor.Set_Frequency
-                             (This => My_Motor,
-                              Frequency => STM32.PWM.Hertz (New_Frequency));
-                           Send_String_Newline ("Frequency set to " & Integer'Image (New_Frequency) & " Hz.");
+                        if Freq > 0 then
+                           Drive_Motor.Set_Frequency (My_Motor,
+                             STM32.PWM.Hertz (Freq));
+                           Send_String_Newline ("Frequency set to " & Integer'Image (Freq) & " Hz.");
                         else
-                           Send_String_Newline ("Frequency NOT changed (invalid input).");
+                           Send_String_Newline ("Invalid frequency!");
                         end if;
                      end;
                   end if;
 
                when '4' =>
-                  -- SET DUTY CYCLE PERCENTAGE
+                  -- Set Duty Cycle %
                   if not Motor_Enabled then
                      Send_String_Newline ("Motor is DISABLED. Enable first!");
                   else
                      declare
-                        New_Percent : Integer := Get_Integer_Input ("Enter Duty Cycle % (5..100): ");
+                        DC : Integer := Get_Integer_Input ("Enter Duty Cycle % (5..100): ");
                      begin
-                        if New_Percent >= 5 and then New_Percent <= 100 then
+                        if DC >= 5 and then DC <= 100 then
                            Drive_Motor.Set_Duty_Cycle_Percentage (My_Motor,
-                             STM32.PWM.Percentage (New_Percent));
-                           Send_String_Newline ("Duty Cycle set to " & Integer'Image (New_Percent) & "%.");
+                             STM32.PWM.Percentage (DC));
+                           Send_String_Newline ("Duty Cycle set to " & Integer'Image (DC) & "%.");
                         else
-                           Send_String_Newline ("Invalid duty cycle. Must be between 5 and 100.");
+                           Send_String_Newline ("Out of range (5..100) or invalid.");
                         end if;
                      end;
                   end if;
 
                when '5' =>
-                  -- SET DUTY TIME (microseconds)
+                  -- Set Duty Time (microseconds)
                   if not Motor_Enabled then
                      Send_String_Newline ("Motor is DISABLED. Enable first!");
                   else
                      declare
-                        New_Us : Integer := Get_Integer_Input ("Enter Duty Time (us): ");
+                        Us : Integer := Get_Integer_Input ("Enter Duty Time (us): ");
                      begin
-                        if New_Us > 0 then
+                        if Us > 0 then
                            Drive_Motor.Set_Duty_Cycle_Us (My_Motor,
-                             STM32.PWM.Microseconds (New_Us));
-                           Send_String_Newline ("Duty Time set to " & Integer'Image (New_Us) & " us.");
+                             STM32.PWM.Microseconds (Us));
+                           Send_String_Newline ("Duty Time set to " & Integer'Image (Us) & " us.");
                         else
-                           Send_String_Newline ("Duty Time NOT changed (invalid input).");
+                           Send_String_Newline ("Invalid duty time!");
                         end if;
                      end;
                   end if;
 
+               when '6' =>
+                  -- Set Speed (Percentage)
+                  if not Motor_Enabled then
+                     Send_String_Newline ("Motor is DISABLED. Enable first!");
+                  else
+                     declare
+                        Spd : Integer := Get_Integer_Input ("Enter Speed % (5..100): ");
+                     begin
+                        Drive_Motor.Set_Speed (My_Motor, Spd);
+                     end;
+                  end if;
+
+               when '7' =>
+                  -- Normal Stop
+                  if not Motor_Enabled then
+                     Send_String_Newline ("Motor is DISABLED; already stopped.");
+                  else
+                     Drive_Motor.Stop (My_Motor);
+                     Send_String_Newline ("Motor Stop invoked.");
+                  end if;
+
+               when '8' =>
+                  -- Emergency Stop
+                  -- We allow this any time (whether enabled or disabled).
+                  Drive_Motor.Emergency_Stop (My_Motor);
+                  Motor_Enabled := False;  -- definitely disabled now
+
                when 'Q' | 'q' =>
                   Send_String_Newline ("Exiting menu. Goodbye!");
-                  exit; -- Leave the loop
+                  exit;
 
                when others =>
                   Send_String_Newline ("Invalid selection: " & User_Input);
