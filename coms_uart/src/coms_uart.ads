@@ -5,6 +5,7 @@ with STM32.GPIO;
 with Interfaces;
 with STM32_SVD.RCC;
 with HAL.UART;
+with Ada.Real_Time;
 
 package Coms_Uart is
    ----------------------------------------------------------------------------
@@ -53,6 +54,12 @@ package Coms_Uart is
    -- Sends a carriage return and a line feed.
    ----------------------------------------------------------------------------
    procedure Newline;
+
+   ----------------------------------------------------------------------------
+   -- Send_Time_Span
+   -- Sends a time span in seconds.
+   ----------------------------------------------------------------------------
+   procedure Send_Time_Span (Span : Time_Span);
 
    ----------------------------------------------------------------------------
    -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
