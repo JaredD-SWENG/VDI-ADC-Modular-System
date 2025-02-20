@@ -107,3 +107,21 @@ Motor_Driver *--> Timers : controls
 
 Main *--> Motor_Driver : instantiates
 Main *--> Timers : uses
+```
+
+## Useful Information
+
+### Show all connected communication devices
+```bash
+ls /dev/tty.*
+```
+
+### Connect via COM port using screen
+```bash
+screen /dev/tty.usbmodem2303 115200
+```
+
+### Using OpenOCD to write to STM32
+```bash
+openocd -f "/openocd/scripts/board/stm32f429discovery.cfg" -c "program /VDI-ADC-Modular-System/drive_motor/bin/main verify reset exit"
+```
