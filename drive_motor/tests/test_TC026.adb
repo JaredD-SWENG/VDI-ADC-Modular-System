@@ -26,7 +26,7 @@ begin
       Drive_Motor.Initialize(Motor);
       Drive_Motor.Enable(Motor);
 
-      -- Phase 1: Initial 20% duty cycle
+      -- Phase 1: Initial 20% Speed
       Coms_Uart.Send_String_Newline("Setting 20% speed...");
       Drive_Motor.Set_Speed(Motor, 20);
       Coms_Uart.Send_String_Newline("TAKE SCOPE CAPTURE NOW (20% Speed). Press y to decelerate...");
@@ -34,18 +34,18 @@ begin
       -- Wait for user confirmation to decelerate
       Coms_Uart.Receive_Line(Input_Buffer, Last_Char, Echo => True);
       if Input_Buffer(1) in 'y' | 'Y' then
-         -- Phase 2: Decelerate to 5%
+         -- Phase 2: Decelerate to 5% Speed
          Start_Time := Clock;
          Drive_Motor.Set_Speed(Motor, 5);
 
-         -- Wait for deceleration completion
+         -- Measure time from command to speed change
          Change_Time := Clock;
          Delta_Time := Change_Time - Start_Time;
 
          -- Report timing
          Coms_Uart.Send_String("Deceleration time: ");
          Coms_Uart.Send_Time_Span(Delta_Time);
-         Coms_Uart.Send_String_Newline(" - TAKE 5% CAPTURE NOW");
+         Coms_Uart.Send_String_Newline(" - TAKE 5% SPEED CAPTURE NOW");
 
          -- Cleanup
          Coms_Uart.Send_String_Newline("Press y to power down...");
