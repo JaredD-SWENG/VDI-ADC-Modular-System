@@ -126,8 +126,9 @@ screen /dev/tty.usbmodem2303 115200
 openocd -f "/openocd/scripts/board/stm32f429discovery.cfg" -c "program /VDI-ADC-Modular-System/drive_motor/bin/main verify reset exit"
 ```
 
-## Output
+## Testing
 
+### Test TC-025 Output
 ```terminal
  === TC-025: Acceleration Response Test ===
 Connect scope to PB7. Press [y] to continue or [n] to abort...
@@ -139,4 +140,18 @@ Setting 5% speed...
 TAKE SCOPE CAPTURE NOW (5% Speed). Press y to continue...
 yAcceleration time: Time:  0s  3533ns - TAKE 20% CAPTURE NOW
 Press ENTER to power down...
+```
+
+### Test TC-026 Output
+```terminal
+ === TC-026: Deceleration Response Test ===
+Connect scope to PB7. Press [y] to continue or [n] to abort...
+yMotor Initialized.
+Motor Enabled (via Enable procedure).
+Motor Power On - Calibrating...
+Calibrated
+Setting 20% speed...
+TAKE SCOPE CAPTURE NOW (20% Speed). Press y to decelerate...
+yDeceleration time: Time:  0s  3500ns - TAKE 5% SPEED CAPTURE NOW
+Press y to power down...
 ```
