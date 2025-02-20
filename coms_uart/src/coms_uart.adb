@@ -145,6 +145,20 @@ package body Coms_Uart is
    end Newline;
 
    ----------------------------------------------------------------------------
+   -- Send_Time_Span
+   -- Sends a time span in seconds.
+   ----------------------------------------------------------------------------
+   procedure Send_Time_Span (Span : Time_Span) is
+      Seconds : Seconds_Count;
+      Subspan : Time_Span;
+   begin
+      Split(Time_Of(0, Span), Seconds, Subspan); 
+      Send_String("Time: " & Seconds_Count'Image(Seconds) & "s");
+      Send_String(" " & Integer'Image(Integer(To_Duration(Subspan) * 1E9)) & "ns");
+   end Send_Time_Span;
+
+
+   ----------------------------------------------------------------------------
    -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
    ----------------------------------------------------------------------------
    procedure Process_Command (Command : String) is
