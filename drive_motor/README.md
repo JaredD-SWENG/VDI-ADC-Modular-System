@@ -218,3 +218,32 @@ Motor Stop invoked (min duty).
 Motor Disabled (via Disable procedure).
 Test complete. Power off scope.
 ```
+
+### Test TC-029 Output
+
+```terminal
+ === TC-029: Frequency Stability Test ===
+Connect scope to PB7. Verify PWM frequency remains constant.
+Motor Initialized.
+Motor Enabled (via Enable procedure).
+Motor Power On - Calibrating...
+Calibrated
+Setting speed to 10%Verify PWM frequency remained constant.
+Did frequency remain stable? (y/n)
+yResult: PASS
+Setting speed to 30%Verify PWM frequency remained constant.
+Did frequency remain stable? (y/n)
+yResult: PASS
+Setting speed to 50%Verify PWM frequency remained constant.
+Did frequency remain stable? (y/n)
+yResult: PASS
+Setting speed to 70%Verify PWM frequency remained constant.
+Did frequency remain stable? (y/n)
+yResult: PASS
+Setting speed to 90%Verify PWM frequency remained constant.
+Did frequency remain stable? (y/n)
+yResult: PASS
+Motor Stop invoked (min duty).
+Motor Disabled (via Disable procedure).
+Test complete. Power off scope.
+```
