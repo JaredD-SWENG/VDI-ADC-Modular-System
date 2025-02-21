@@ -176,3 +176,45 @@ yEMERGENCY STOP - Motor Power Cut!
 Emergency stop time: Time:  0s  100556150ns - VERIFY MOTOR STOPPED IMMEDIATELY
 Press y to power down...
 ```
+
+### Test TC-028 Output
+
+```terminal
+ === TC-028: Speed Limit Enforcement Test ===
+Connect scope to PB7. Follow prompts to verify results.
+Motor Initialized.
+Motor Enabled (via Enable procedure).
+Motor Power On - Calibrating...
+Calibrated
+Applying speed: 10% Below Bottom Limit
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Applying speed: Bottom Limit
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Applying speed: 10% Above Bottom Limit
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Applying speed: Mid-range (50%)
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Applying speed: 10% Below Upper Limit
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Applying speed: Upper Limit
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Applying speed: 10% Above Upper Limit
+Verify scope reflects expected result.
+Did the driver correctly handle this input? (y/n)
+yResult: PASS
+Motor Stop invoked (min duty).
+Motor Disabled (via Disable procedure).
+Test complete. Power off scope.
+```
