@@ -56,4 +56,6 @@ begin
    Drive_Motor.Stop(Motor);
    Drive_Motor.Disable(Motor);
    Coms_Uart.Send_String_Newline("Test complete. Power off scope.");
+
+   delay(25.0);
 end Test_TC028;
