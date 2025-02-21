@@ -112,16 +112,19 @@ Main *--> Timers : uses
 ## Useful Information
 
 ### Show all connected communication devices
+
 ```bash
 ls /dev/tty.*
 ```
 
 ### Connect via COM port using screen
+
 ```bash
 screen /dev/tty.usbmodem2303 115200
 ```
 
 ### Using OpenOCD to write to STM32
+
 ```bash
 openocd -f "/openocd/scripts/board/stm32f429discovery.cfg" -c "program /VDI-ADC-Modular-System/drive_motor/bin/main verify reset exit"
 ```
@@ -129,6 +132,7 @@ openocd -f "/openocd/scripts/board/stm32f429discovery.cfg" -c "program /VDI-ADC-
 ## Testing
 
 ### Test TC-025 Output
+
 ```terminal
  === TC-025: Acceleration Response Test ===
 Connect scope to PB7. Press [y] to continue or [n] to abort...
@@ -143,6 +147,7 @@ Press ENTER to power down...
 ```
 
 ### Test TC-026 Output
+
 ```terminal
  === TC-026: Deceleration Response Test ===
 Connect scope to PB7. Press [y] to continue or [n] to abort...
@@ -153,5 +158,21 @@ Calibrated
 Setting 20% speed...
 TAKE SCOPE CAPTURE NOW (20% Speed). Press y to decelerate...
 yDeceleration time: Time:  0s  3500ns - TAKE 5% SPEED CAPTURE NOW
+Press y to power down...
+```
+
+### Test TC-027 Output
+
+```terminal
+  === TC-027: Emergency Stop Test ===
+Connect scope to PB7. Press [y] to continue or [n] to abort...
+yMotor Initialized.
+Motor Enabled (via Enable procedure).
+Motor Power On - Calibrating...
+Calibrated
+Running at 20% speed...
+TAKE SCOPE CAPTURE NOW (20% Speed). Press y to trigger emergency stop...
+yEMERGENCY STOP - Motor Power Cut!
+Emergency stop time: Time:  0s  100556150ns - VERIFY MOTOR STOPPED IMMEDIATELY
 Press y to power down...
 ```
