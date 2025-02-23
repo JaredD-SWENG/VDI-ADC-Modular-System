@@ -108,13 +108,17 @@ package body Drive_Motor is
 
       if Digital_Out.Is_Enabled (This.Power_Pin) then
          Coms_Uart.Send_String_Newline("Motor Power On - Calibrating...");
-         delay 0.5;  -- Wait for power to stabilize.
 
+
+         Coms_Uart.Send_String_Newline("Setting to max duty cycle...");
          This.Set_Duty_Cycle_Percentage (Max_Percentage);
 
          delay Calibrate_Time;
 
+         Coms_Uart.Send_String_Newline("Setting to min duty cycle...");
          This.Set_Duty_Cycle_Percentage (Min_Percentage);
+
+         delay Calibrate_Time;
 
          Coms_Uart.Send_String_Newline("Calibrated");
       else
