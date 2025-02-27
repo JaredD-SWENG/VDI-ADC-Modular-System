@@ -59,7 +59,7 @@ package Coms_Uart is
    -- Send_Time_Span
    -- Sends a time span in seconds.
    ----------------------------------------------------------------------------
-   procedure Send_Time_Span (Span : Time_Span);
+   procedure Send_Time_Span (Span : Ada.Real_Time.Time_Span);
 
    ----------------------------------------------------------------------------
    -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY

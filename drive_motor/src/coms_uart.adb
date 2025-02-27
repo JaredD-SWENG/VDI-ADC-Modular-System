@@ -7,6 +7,7 @@ with STM32_SVD.RCC; use STM32_SVD.RCC;
 with HAL.UART;      use HAL.UART;
 with STM32.Board;   use STM32.Board;
 with Ada.Strings, Ada.Strings.Fixed;
+with Ada.Real_Time; use Ada.Real_Time;
 
 package body Coms_Uart is
 
@@ -152,10 +153,12 @@ package body Coms_Uart is
       Seconds : Seconds_Count;
       Subspan : Time_Span;
    begin
-      Split(Time_Of(0, Span), Seconds, Subspan); 
+      Split(Time_Of(0, Span), Seconds, Subspan);  -- Fixed: Wrap Span in Time_Of
       Send_String("Time: " & Seconds_Count'Image(Seconds) & "s");
       Send_String(" " & Integer'Image(Integer(To_Duration(Subspan) * 1E9)) & "ns");
    end Send_Time_Span;
+
+
 
 
    ----------------------------------------------------------------------------

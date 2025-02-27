@@ -110,7 +110,48 @@ package body Steering_Motor is
 
    procedure Set_Angle (This : in out Steering; Angle : Integer) is
    begin
-      Set_Duty_Cycle_Us(This, Angle_To_Duty(This, Angle));
+      This.Enable;
+      This.Stored_Angle := Angle;
+      Set_Duty_Cycle_Us (This, Angle_To_Duty (This, Angle));
+      delay 0.05;  -- Delay for half a second.
+      This.Disable;
    end Set_Angle;
+
+   --retrieve the stored angle value
+   function Get_Angle(This: Steering) return Integer is
+   begin
+      return This.Stored_Angle;
+   end Get_Angle;
+
+   --change angle based on current position (not absolute position)
+   procedure Set_Relative_Angle(This : in out Steering; i : Integer) is 
+   begin 
+      This.Enable;
+      This.Stored_Angle := This.Stored_Angle + i;
+      Set_Angle (This , This.Stored_Angle);
+      This.Disable;
+   end Set_Relative_Angle;
+
+   --change angle based on a -1.0 to 1.0 input based on maximum angle position
+   procedure Set_Scaled_Angle(This : in out Steering; offset : Float) is 
+   begin
+      This.Enable;
+         if offset >= -1.0 and offset <= 1.0 then
+            Set_Angle (This , Integer(Float(This.Max_Angle)*offset));
+         end if;
+      This.Disable;
+   end Set_Scaled_Angle;
+
+   procedure Smooth_Steering(This : in out Steering; target : Float; alpha: Float) is
+      Current_Angle: Float := Float(This.Stored_Angle);
+      New_Angle: Float;
+   begin
+      loop
+         exit when abs(Current_Angle - target) < 0.5;
+         New_Angle := (1.0 - alpha) * Current_Angle + alpha * target;
+         This.Set_Angle (Integer(New_Angle));
+         Current_Angle := New_Angle;
+      end loop;
+   end Smooth_Steering;
 
 end Steering_Motor;
