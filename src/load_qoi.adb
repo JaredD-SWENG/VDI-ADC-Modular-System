@@ -335,6 +335,8 @@ procedure Load_Qoi is
       -- Threshold below which very dark pixels remain unchanged
       Dark_Threshold : constant Integer := 5;
 
+      type Color_Channel is (Red, Green, Blue);
+
    begin
       -- Iterate through each pixel in the image data
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
@@ -500,7 +502,7 @@ procedure Load_Qoi is
          -- Process only the first channel of each pixel
          if I mod Pixel_Size = 1 then
             -- Determine if pixel should be black or white
-            if Data (I) >= Threshold then
+            if Data (I) > Threshold then
                BW_Value := 255;  -- Convert to white
 
             else
@@ -844,7 +846,7 @@ procedure Load_Qoi is
       Temp : Storage_Array := Data;
 
       -- Size of the blur kernel (must be even)
-      Kernel_Size : constant Storage_Count := 6;
+      Kernel_Size : constant Storage_Count := 4;
 
       -- Half kernel size used for iteration bounds
       Half_Kernel : constant Storage_Count := Kernel_Size / 2;
@@ -1799,19 +1801,23 @@ begin
          Put_Line ("Processing frame: " & Frame_Name);
 
          -- Load the current frame using Load_QOI
-         Input := Load_QOI (Frame_Name);
+         Input := Load_QOI ("test_images\control.qoi");
 
          -- Apply region of interest to focus on the lower half of the image
-         Region_Of_Interest
-           (Input.Data.all, Input.Desc, Input.Desc.Width / 4 + 1,
-            Input.Desc.Height / 3 + 1, 3 * Input.Desc.Width / 4,
-            2 * Input.Desc.Height / 3);
+         -- Region_Of_Interest (Input.Data.all, Input.Desc, 201, 101, 500, 400);
+
+         -- Apply Guassian Blur
+         --  Gaussian_Blur
+         --    (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+         --     Input.Desc.Channels, Sigma => 5.0 / 6.0);
 
          -- Rotate the image (optional)
          -- Rotate_Image (Data => Input.Data.all, Desc => Input.Desc, Angle => -10.0);
 
          -- Flip the image horizontally (optional)
-         -- Flip_Image (Data => Input.Data.all, Desc => Input.Desc, Direction => "Horizontal");
+         --  Flip_Image
+         --    (Data      => Input.Data.all, Desc => Input.Desc,
+         --     Direction => "Horizontal");
 
          -- Sharpen the image (optional)
          --Sharpen_Image (Data => Input.Data.all, Desc => Input.Desc);
@@ -1822,50 +1828,48 @@ begin
             Input.Desc.Channels);
 
          -- Increase brightness by 50 (optional)
-         Adjust_Brightness
-           (Input.Data.all, Input.Desc, 50, Flip_Brightness => True);
+         --  Adjust_Brightness
+         --    (Input.Data.all, Input.Desc, 50, Flip_Brightness => False);
 
          -- Invert colors of the loaded image (optional)
-         --Invert_Colors (Input.Data.all, Input.Desc);
+         -- Invert_Colors (Input.Data.all, Input.Desc);
 
          -- Increase contrast by a factor of 1.2 (optional)
-         --Adjust_Contrast (Input.Data.all, Input.Desc, Factor => 1.0);
+         -- Adjust_Contrast (Input.Data.all, Input.Desc, Factor => 1.5);
 
          -- Convert to grayscale first
-         Convert_To_Grayscale (Input.Data.all, Input.Desc);
+         -- Convert_To_Grayscale (Input.Data.all, Input.Desc);
 
          -- Blur the image
-         -- Blur_Image
-         --    (Input.Data.all,
-         --     Input.Desc.Width,
-         --     Input.Desc.Height,
+         --  Blur_Image
+         --    (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
          --     Input.Desc.Channels);
 
          -- Apply Canny edge detection
-         Canny_Edge_Detection
-           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
-            Input.Desc.Channels, Low_Threshold => 0.1, High_Threshold => 0.15);
+         --  Canny_Edge_Detection
+         --    (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+         --     Input.Desc.Channels, 30.0 / 255.0, 150.0 / 255.0);
 
          -- Convert to black and white (optional)
-         Convert_To_Black_And_White (Input.Data.all, Input.Desc);
+         -- Convert_To_Black_And_White (Input.Data.all, Input.Desc, 128);
 
-         -- Apply morphological operations (optional)
-         Morphological_Operation
-           (Input.Data.all, Input.Desc, "Closing", "Square", 10);
+         --  -- Apply morphological operations (optional)
+         --  Morphological_Operation
+         --    (Input.Data.all, Input.Desc, "Closing", "Square", 5);
 
-         Sobel_Edge_Detection
-           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
-            Input.Desc.Channels);
+         --  Sobel_Edge_Detection
+         --    (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+         --     Input.Desc.Channels);
 
-         Canny_Edge_Detection
-           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
-            Input.Desc.Channels, Low_Threshold => 0.28,
-            High_Threshold                     => 0.34);
+         --  Canny_Edge_Detection
+         --    (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+         --     Input.Desc.Channels, Low_Threshold => 0.28,
+         --     High_Threshold                     => 0.34);
 
-         -- Apply Hough Transform to detect lines
-         Hough_Transform
-           (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
-            Input.Desc.Channels);
+         --  -- Apply Hough Transform to detect lines
+         --  Hough_Transform
+         --    (Input.Data.all, Input.Desc.Width, Input.Desc.Height,
+         --     Input.Desc.Channels);
 
          -- After edge detection and before encoding
          -- Hough_Circle_Transform
@@ -1889,7 +1893,7 @@ begin
 
             --delay 0.1;  -- Optional: Simulate a delay between frames if needed.
 
-            exit when Frame_Name = "frames_folder/frame_0954.qoi";
+            exit when Frame_Name = "frames_folder/frame_0001.qoi";
             -- Replace "frame_end.qoi" with a condition to stop processing.
 
          end;
