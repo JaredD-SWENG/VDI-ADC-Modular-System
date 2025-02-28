@@ -8,10 +8,10 @@ with Ada.Real_Time; use Ada.Real_Time;
 with Command_Queue; use Command_Queue;
 with Commands; use Commands;
 with Coms_Uart; use Coms_Uart;
-with Motor_Task; use Motor_Task; 
-
+with Motor_Task; use Motor_Task;
 
 package body Drive_Motor is
+
    ----------------------------------------------------------------------------
    -- Initialize
    ----------------------------------------------------------------------------
@@ -24,7 +24,6 @@ package body Drive_Motor is
       Frequency      : STM32.PWM.Hertz := 50;
       Max_Duty_Cycle : STM32.PWM.Microseconds := 2000;
       Min_Duty_Cycle : STM32.PWM.Microseconds := 1000)
-
    is
    begin
       -- Store the timer generator.
@@ -106,22 +105,17 @@ package body Drive_Motor is
       Min_Percentage : constant Integer := 5;
       Max_Percentage : constant Integer := 10;
       Calibrate_Time : constant Duration := 0.5;
-
    begin
       Digital_Out.Enable (This.Power_Pin);
 
       if Digital_Out.Is_Enabled (This.Power_Pin) then
          Coms_Uart.Send_String_Newline("Motor Power On - Calibrating...");
-
-
          Coms_Uart.Send_String_Newline("Setting to max duty cycle...");
          This.Set_Duty_Cycle_Percentage (Max_Percentage);
-
          delay Calibrate_Time;
 
          Coms_Uart.Send_String_Newline("Setting to min duty cycle...");
          This.Set_Duty_Cycle_Percentage (Min_Percentage);
-
          delay Calibrate_Time;
 
          Coms_Uart.Send_String_Newline("Calibrated");
@@ -199,62 +193,6 @@ package body Drive_Motor is
       return Exit_Flag;
    end Is_Exit_Requested;
 
-   task body Motor_Task is
-      use Ada.Real_Time;
-      Speed_Values : constant array (1 .. 5) of Integer := (10, 20, 30, 10, 0);
-      Index        : Positive := 1;
-      Cmd   : Commands.Command_Type;
-      Param : Commands.Command_Param;
-   begin
-      Coms_Uart.Send_String_Newline("[Motor_Task] Started concurrency.");
-
-      -- Ensure the motor is initialized & enabled
-      Motor.Initialize;
-      Motor.Enable;
-
-
-
-      loop
-         exit when Exit_Flag;
-         
-         -- Block until a new command is available (the Get entry will wait until Count > 0)
-         Command_Queue.Main_Queue.Get(Cmd, Param);
-         Coms_Uart.Send_String_Newline("[Motor_Task] Command received");
-
-         case Cmd is
-            when Calibrate_Motor =>
-               Coms_Uart.Send_String_Newline("[Motor_Task] Calibrating motor");
-               Drive_Motor.Enable(Motor);
-
-            when Set_Motor_Speed =>
-               Coms_Uart.Send_String_Newline("[Motor_Task] Setting speed to " & Param.Speed'Image);
-               Drive_Motor.Set_Speed(Motor, Param.Speed);
-
-            when Motor_Stop =>
-               Coms_Uart.Send_String_Newline("[Motor_Task] Stopping motor");
-               Drive_Motor.Stop(Motor);
-
-            when Emergency_Stop =>
-               Coms_Uart.Send_String_Newline("[Motor_Task] Emergency stop!");
-               Drive_Motor.Emergency_Stop(Motor);
-
-            when Exit_Command =>
-               Coms_Uart.Send_String_Newline("[Motor_Task] Exit command received, terminating task");
-               exit;
-
-            when others =>
-               null;
-         end case;
-      end loop;
-
-
-      Coms_Uart.Send_String_Newline("[Motor_Task] Exiting concurrency.");
-
-      -- Optionally stop or disable motor
-      Motor.Stop;
-      Motor.Disable;
-   end Motor_Task;
-
-   begin
+begin
    Coms_Uart.Send_String_Newline("Drive_Motor package elaboration block...");
 end Drive_Motor;

@@ -9,7 +9,9 @@ with Commands;
 with System;
 
 package Drive_Motor is
-   type Motor is limited private;
+   type Motor is tagged limited private;
+
+   type Motor_Access is access all Motor;
 
    procedure Initialize
      (This           : in out Motor; 
@@ -26,29 +28,21 @@ package Drive_Motor is
    procedure Set_Frequency        (This : in out Motor; Frequency : STM32.PWM.Hertz);
    procedure Set_Duty_Cycle_Us    (This : in out Motor; Time_Us : STM32.PWM.Microseconds);
    procedure Set_Duty_Cycle_Percentage (This : in out Motor; Percentage : STM32.PWM.Percentage);
-
-   procedure Calibrate (This : in out Motor);
+   procedure Calibrate            (This : in out Motor);
 
    -- High-level control
-   procedure Set_Speed (This : in out Motor; Speed_Percentage : Integer);
-   procedure Stop       (This : in out Motor);
-   procedure Emergency_Stop (This : in out Motor);
-   function Current_Speed(This : in out Motor) return Integer;
+   procedure Set_Speed            (This : in out Motor; Speed_Percentage : Integer);
+   procedure Stop                 (This : in out Motor);
+   procedure Emergency_Stop        (This : in out Motor);
+   function Current_Speed         (This : in out Motor) return Integer;
 
-   task Motor_Task;
+   -- Task for handling motor control
+   procedure Start_Motor_Task      (Motor_Instance : access Motor);
    procedure Stop_Motor_Task;
    function Is_Exit_Requested return Boolean;
 
 private
    type Motor is tagged limited record
-      PWM_Mod        : STM32.PWM.PWM_Modulator;
-      Generator      : access STM32.Timers.Timer;
-      Max_Duty_Cycle : STM32.PWM.Microseconds;
-      Min_Duty_Cycle : STM32.PWM.Microseconds;
-      Power_Pin      : Digital_Out.Digital_Pin;
-   end record;
-
-   type Controller is tagged limited record
       PWM_Mod        : STM32.PWM.PWM_Modulator;
       Generator      : access STM32.Timers.Timer;
       Max_Duty_Cycle : STM32.PWM.Microseconds;

@@ -1,12 +1,13 @@
-with Command_Queue;          use Command_Queue;
-with Commands;               use Commands;
-with Coms_Uart;              use Coms_Uart;
-with Drive_Motor;            use Drive_Motor;
-with System;                 use System;
+with Command_Queue; use Command_Queue;
+with Commands; use Commands;
+with Coms_Uart; use Coms_Uart;
+with Drive_Motor; use Drive_Motor;
+with System; use System;
 
 package body Motor_Task is
 
-   -- Motor_Instance_Ptr : access Drive_Motor.Motor := null;
+   -- Pointer to the motor instance
+   Motor_Instance_Ptr : access Drive_Motor.Motor := null;
 
    procedure Set_Motor_Instance (Motor_Instance : access Drive_Motor.Motor) is
    begin
@@ -58,9 +59,9 @@ package body Motor_Task is
       Disable(Motor_Instance_Ptr.all);
    end Motor_Handler;
 
-   procedure Start (Motor_Instance : in out Drive_Motor.Motor) is
+   procedure Start (Motor_Instance : access Drive_Motor.Motor) is
    begin
-      Set_Motor_Instance (Motor_Instance'Access);
+      Set_Motor_Instance(Motor_Instance);
    end Start;
 
 end Motor_Task;

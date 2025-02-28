@@ -6,5 +6,5 @@ package Motor_Task is
    procedure Start (Motor_Instance : in out Drive_Motor.Motor);
    procedure Set_Motor_Instance (Motor_Instance : access Drive_Motor.Motor);
 private
-   Motor_Instance_Ptr : access Drive_Motor.Motor := null;
+   --  Motor_Instance_Ptr : access Drive_Motor.Motor := null;
 end Motor_Task;
