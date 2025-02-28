@@ -9,62 +9,31 @@ with Ada.Real_Time;
 
 package Coms_Uart is
    ----------------------------------------------------------------------------
-   -- Send_String
-   -- Converts an Ada String into a UART_Data_8b array and transmits it.
+   -- Public subprograms (unchanged from your original)
    ----------------------------------------------------------------------------
-   procedure Send_String (Data : String);
-
-   ----------------------------------------------------------------------------
-   -- Send_String_Newline
-   -- Converts an Ada String into a UART_Data_8b array, appends a CR/LF, and
-   -- transmits it.
-   ----------------------------------------------------------------------------
+   procedure Send_String         (Data : String);
    procedure Send_String_Newline (Data : String);
-
-   ----------------------------------------------------------------------------
-   -- Send_Newline
-   -- Sends a carriage return and a line feed.
-   ----------------------------------------------------------------------------
    procedure Send_Newline;
-
-   ----------------------------------------------------------------------------
-   -- Receive_Line
-   -- Reads characters into Output until a CR or LF is encountered (or the
-   -- buffer is full). Optionally echoes each character (except CR/LF).
-   ----------------------------------------------------------------------------
-   procedure Receive_Line
-     (Output :    out String;
-      Last   :    out Natural;
-      Echo   :    Boolean := False);
-
-   ----------------------------------------------------------------------------
-   -- Flush_RX
-   -- Flushes any residual data from the RX buffer.
-   ----------------------------------------------------------------------------
+   procedure Receive_Line (Output : out String; Last : out Natural; Echo : Boolean := False);
    procedure Flush_RX;
-
-   ----------------------------------------------------------------------------
-   -- Clear_Screen
-   -- Sends an escape sequence to clear the screen.
-   ----------------------------------------------------------------------------
    procedure Clear_Screen;
-
-   ----------------------------------------------------------------------------
-   -- Newline
-   -- Sends a carriage return and a line feed.
-   ----------------------------------------------------------------------------
    procedure Newline;
+   procedure Send_Time_Span (Span : Ada.Real_Time.Time_Span);
 
-   ----------------------------------------------------------------------------
-   -- Send_Time_Span
-   -- Sends a time span in seconds.
-   ----------------------------------------------------------------------------
-   procedure Send_Time_Span (Span : Time_Span);
-
-   ----------------------------------------------------------------------------
-   -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
-   ----------------------------------------------------------------------------
+   -- Demo subprograms (unchanged from your original)
    procedure Process_Command (Command : String);
-   procedure Output_Demo;  -- Sends welcome message and demo text
-   procedure Input_Demo;   -- Runs command line interface
+   procedure Output_Demo;
+   procedure Input_Demo;
+
+   ----------------------------------------------------------------------------
+   -- Example: A library-level task that runs in parallel
+   ----------------------------------------------------------------------------
+   task UART_Task;
+
+   ----------------------------------------------------------------------------
+   -- Optionally, provide a way to stop the task from outside
+   ----------------------------------------------------------------------------
+   procedure Stop_UART_Task;
+   function  Is_Exit_Requested return Boolean;
+
 end Coms_Uart;

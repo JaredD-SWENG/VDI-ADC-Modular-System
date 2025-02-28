@@ -1,0 +1,4 @@
+pragma Task_Dispatching_Policy(FIFO_Within_Priorities);
+pragma Locking_Policy(Ceiling_Locking);
+pragma Detect_Blocking;
+pragma Profile(Ravenscar);

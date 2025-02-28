@@ -1,11 +1,20 @@
-with LCD_Std_Out;
 with STM32.GPIO;
 with STM32.Device;
 with STM32.Board;
-with HAL.Framebuffer;
+with Coms_Uart;
+with Digital_Out;
+with HAL; use HAL;
+with Ada.Real_Time; use Ada.Real_Time;
+with Command_Queue; use Command_Queue;
+with Commands; use Commands;
+with Coms_Uart; use Coms_Uart;
+with Motor_Task; use Motor_Task; 
+
 
 package body Drive_Motor is
-
+   ----------------------------------------------------------------------------
+   -- Initialize
+   ----------------------------------------------------------------------------
    procedure Initialize
      (This           : in out Motor; 
       Timer          : not null access STM32.Timers.Timer := STM32.Device.Timer_4'Access;
@@ -36,74 +45,101 @@ package body Drive_Motor is
 
       -- Disable PWM output initially.
       This.PWM_Mod.Disable_Output;
+      Coms_Uart.Send_String_Newline("Motor Initialized.");
    end Initialize;
 
+   ----------------------------------------------------------------------------
+   -- Enable
+   ----------------------------------------------------------------------------
    procedure Enable (This : in out Motor) is
    begin
       This.PWM_Mod.Enable_Output;
 
-      -- Enable Mosfet for BLDC controller and motor power.
+      -- Enable Mosfet for BLDC controller + motor power.
       Digital_Out.Enable (This.Power_Pin);
+      Coms_Uart.Send_String_Newline("Motor Enabled (via Enable procedure).");
 
       Calibrate (This);
    end Enable;
 
+   ----------------------------------------------------------------------------
+   -- Disable
+   ----------------------------------------------------------------------------
    procedure Disable (This : in out Motor) is
    begin
       -- Disable Mosfet for BLDC controller and motor power.
       Digital_Out.Disable (This.Power_Pin);
 
       This.PWM_Mod.Disable_Output;
+      Coms_Uart.Send_String_Newline("Motor Disabled (via Disable procedure).");
    end Disable;
 
+   ----------------------------------------------------------------------------
+   -- Set_Frequency
+   ----------------------------------------------------------------------------
    procedure Set_Frequency (This : in out Motor; Frequency : STM32.PWM.Hertz) is
    begin
       STM32.PWM.Configure_PWM_Timer (This.Generator, Frequency);
    end Set_Frequency;
 
+   ----------------------------------------------------------------------------
+   -- Set_Duty_Cycle_Us
+   ----------------------------------------------------------------------------
    procedure Set_Duty_Cycle_Us (This : in out Motor; Time_Us : STM32.PWM.Microseconds) is
    begin
       This.PWM_Mod.Set_Duty_Time (Time_Us);
    end Set_Duty_Cycle_Us;
 
+   ----------------------------------------------------------------------------
+   -- Set_Duty_Cycle_Percentage
+   ----------------------------------------------------------------------------
    procedure Set_Duty_Cycle_Percentage
      (This : in out Motor; Percentage : STM32.PWM.Percentage) is
    begin
       This.PWM_Mod.Set_Duty_Cycle (Percentage);
    end Set_Duty_Cycle_Percentage;
 
+   ----------------------------------------------------------------------------
+   -- Calibrate
+   ----------------------------------------------------------------------------
    procedure Calibrate (This : in out Motor) is
+      Min_Percentage : constant Integer := 5;
+      Max_Percentage : constant Integer := 10;
+      Calibrate_Time : constant Duration := 0.5;
+
    begin
-      --  Digital_Out.Disable (This.Power_Pin); -- Turn off power to motor.
+      Digital_Out.Enable (This.Power_Pin);
 
-      --  Delay 3.0;  -- Wait a short delay to ensure proper power-down
-
-      Digital_Out.Enable (This.Power_Pin);  -- Power on the motor.
-
-      -- Calibrate the motor.
       if Digital_Out.Is_Enabled (This.Power_Pin) then
+         Coms_Uart.Send_String_Newline("Motor Power On - Calibrating...");
 
-         Delay 0.5;  -- Wait a short delay to ensure proper power-up before calibration begins.
-         
-         This.Set_Duty_Cycle_Percentage (10);
 
-         delay 1.0;
+         Coms_Uart.Send_String_Newline("Setting to max duty cycle...");
+         This.Set_Duty_Cycle_Percentage (Max_Percentage);
 
-         This.Set_Duty_Cycle_Percentage (5);
+         delay Calibrate_Time;
 
-         delay 0.2;
+         Coms_Uart.Send_String_Newline("Setting to min duty cycle...");
+         This.Set_Duty_Cycle_Percentage (Min_Percentage);
 
+         delay Calibrate_Time;
+
+         Coms_Uart.Send_String_Newline("Calibrated");
+      else
+         Coms_Uart.Send_String_Newline("Power OFF");
       end if;
-
    end Calibrate;
 
+   ----------------------------------------------------------------------------
+   -- Set_Speed
+   ----------------------------------------------------------------------------
    procedure Set_Speed (This : in out Motor; Speed_Percentage : Integer) is
       Adjusted_Percentage : Integer;
       Adjusted_Duty       : STM32.PWM.Microseconds;
       Min_Percentage      : constant Integer := 5;
       Max_Percentage      : constant Integer := 100;
    begin
-      -- Constrain Speed_Percentage to range [5%, 10%].
+      -- Constrain Speed_Percentage to range
       Adjusted_Percentage := Integer'Max(Min_Percentage, Integer'Min(Max_Percentage, Speed_Percentage));
 
       -- Calculate duty cycle based on constrained percentage.
@@ -116,9 +152,109 @@ package body Drive_Motor is
       Set_Duty_Cycle_Us (This, Adjusted_Duty);
    end Set_Speed;
 
+   ----------------------------------------------------------------------------
+   -- Stop
+   ----------------------------------------------------------------------------
    procedure Stop (This : in out Motor) is
    begin
       Set_Duty_Cycle_Us (This, This.Min_Duty_Cycle); -- Set to minimum duty cycle (stopping point).
+      Coms_Uart.Send_String_Newline("Motor Stop invoked (min duty).");
    end Stop;
 
+   procedure Emergency_Stop (This : in out Motor) is
+   begin
+      -- Immediately set speed to 0
+      Set_Speed (This, 0);
+      delay 0.1;
+
+      -- Disable Mosfet for BLDC controller and motor power.
+      Digital_Out.Disable (This.Power_Pin);
+
+      -- Disable PWM output.
+      This.PWM_Mod.Disable_Output;
+
+      Coms_Uart.Send_String_Newline("EMERGENCY STOP - Motor Power Cut!");
+   end Emergency_Stop;
+   
+   ----------------------------------------------------------------------------
+   -- Current_Speed
+   ----------------------------------------------------------------------------
+   function Current_Speed (This : in out Motor) return Integer is
+   begin
+      return 0;
+   end Current_Speed;
+
+   ----------------------------------------------------------------------------
+   -- Library-level concurrency: example demonstration
+   ----------------------------------------------------------------------------
+   Exit_Flag : Boolean := False;
+
+   procedure Stop_Motor_Task is
+   begin
+      Exit_Flag := True;
+   end Stop_Motor_Task;
+
+   function Is_Exit_Requested return Boolean is
+   begin
+      return Exit_Flag;
+   end Is_Exit_Requested;
+
+   task body Motor_Task is
+      use Ada.Real_Time;
+      Speed_Values : constant array (1 .. 5) of Integer := (10, 20, 30, 10, 0);
+      Index        : Positive := 1;
+      Cmd   : Commands.Command_Type;
+      Param : Commands.Command_Param;
+   begin
+      Coms_Uart.Send_String_Newline("[Motor_Task] Started concurrency.");
+
+      -- Ensure the motor is initialized & enabled
+      Motor.Initialize;
+      Motor.Enable;
+
+
+
+      loop
+         exit when Exit_Flag;
+         
+         -- Block until a new command is available (the Get entry will wait until Count > 0)
+         Command_Queue.Main_Queue.Get(Cmd, Param);
+         Coms_Uart.Send_String_Newline("[Motor_Task] Command received");
+
+         case Cmd is
+            when Calibrate_Motor =>
+               Coms_Uart.Send_String_Newline("[Motor_Task] Calibrating motor");
+               Drive_Motor.Enable(Motor);
+
+            when Set_Motor_Speed =>
+               Coms_Uart.Send_String_Newline("[Motor_Task] Setting speed to " & Param.Speed'Image);
+               Drive_Motor.Set_Speed(Motor, Param.Speed);
+
+            when Motor_Stop =>
+               Coms_Uart.Send_String_Newline("[Motor_Task] Stopping motor");
+               Drive_Motor.Stop(Motor);
+
+            when Emergency_Stop =>
+               Coms_Uart.Send_String_Newline("[Motor_Task] Emergency stop!");
+               Drive_Motor.Emergency_Stop(Motor);
+
+            when Exit_Command =>
+               Coms_Uart.Send_String_Newline("[Motor_Task] Exit command received, terminating task");
+               exit;
+
+            when others =>
+               null;
+         end case;
+      end loop;
+
+
+      Coms_Uart.Send_String_Newline("[Motor_Task] Exiting concurrency.");
+
+      -- Optionally stop or disable motor
+      Motor.Stop;
+      Motor.Disable;
+   end Motor_Task;
+
+   begin
+   Coms_Uart.Send_String_Newline("Drive_Motor package elaboration block...");
 end Drive_Motor;

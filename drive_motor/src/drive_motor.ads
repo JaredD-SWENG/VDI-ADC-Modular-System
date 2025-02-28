@@ -8,6 +8,15 @@ with Coms_Uart;
 
 package Drive_Motor is
 
+   protected type Motor_Controller is
+   procedure Set_Speed(Speed : Integer);
+   function Current_Speed return Integer;
+   procedure Emergency_Stop;
+   private
+      Actual_Speed : Integer := 0;
+      Motor_State  : Motor;  -- Your existing motor type
+   end Motor_Controller;
+
    type Motor is limited private;
 
    procedure Initialize

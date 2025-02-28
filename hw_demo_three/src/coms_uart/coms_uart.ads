@@ -5,59 +5,51 @@ with STM32.GPIO;
 with Interfaces;
 with STM32_SVD.RCC;
 with HAL.UART;
+with Ada.Real_Time;
+with System;
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 
 package Coms_Uart is
-   ----------------------------------------------------------------------------
-   -- Send_String
-   -- Converts an Ada String into a UART_Data_8b array and transmits it.
-   ----------------------------------------------------------------------------
-   procedure Send_String (Data : String);
+
+   task UART_Task;
+
+
+
+   Exit_Flag : Boolean := False;
+
+
 
    ----------------------------------------------------------------------------
-   -- Send_String_Newline
-   -- Converts an Ada String into a UART_Data_8b array, appends a CR/LF, and
-   -- transmits it.
+   -- Public subprograms (unchanged from your original)
    ----------------------------------------------------------------------------
+   procedure Send_String         (Data : String);
    procedure Send_String_Newline (Data : String);
-
-   ----------------------------------------------------------------------------
-   -- Send_Newline
-   -- Sends a carriage return and a line feed.
-   ----------------------------------------------------------------------------
    procedure Send_Newline;
-
-   ----------------------------------------------------------------------------
-   -- Receive_Line
-   -- Reads characters into Output until a CR or LF is encountered (or the
-   -- buffer is full). Optionally echoes each character (except CR/LF).
-   ----------------------------------------------------------------------------
-   procedure Receive_Line
-     (Output :    out String;
-      Last   :    out Natural;
-      Echo   :    Boolean := False);
-
-   ----------------------------------------------------------------------------
-   -- Flush_RX
-   -- Flushes any residual data from the RX buffer.
-   ----------------------------------------------------------------------------
+   procedure Receive_Line (Output : out String; Last : out Natural; Echo : Boolean := False);
    procedure Flush_RX;
-
-   ----------------------------------------------------------------------------
-   -- Clear_Screen
-   -- Sends an escape sequence to clear the screen.
-   ----------------------------------------------------------------------------
    procedure Clear_Screen;
-
-   ----------------------------------------------------------------------------
-   -- Newline
-   -- Sends a carriage return and a line feed.
-   ----------------------------------------------------------------------------
    procedure Newline;
+   procedure Send_Time_Span (Span : Ada.Real_Time.Time_Span);
+   procedure Handle_Drive_Command(Cmd : String);
+   procedure Handle_Steering_Command(Cmd : String);
+
+   -- Demo subprograms (unchanged from your original)
+   procedure Process_Command (Command : String);
+   procedure Output_Demo;
+   procedure Input_Demo;
+   procedure Initialize_Coms_Uart;
+   procedure Request_Exit;
+   function Exit_Requested return Boolean;
 
    ----------------------------------------------------------------------------
-   -- TO BE REMOVED IN FUTURE RELEASE -- FOR DEMO PURPOSES ONLY
+   -- Example: A library-level task that runs in parallel
    ----------------------------------------------------------------------------
-   procedure Process_Command (Command : String);
-   procedure Output_Demo;  -- Sends welcome message and demo text
-   procedure Input_Demo;   -- Runs command line interface
+   --  task UART_Task;
+
+   ----------------------------------------------------------------------------
+   -- Optionally, provide a way to stop the task from outside
+   ----------------------------------------------------------------------------
+   procedure Stop_UART_Task;
+   function  Is_Exit_Requested return Boolean;
+
 end Coms_Uart;
