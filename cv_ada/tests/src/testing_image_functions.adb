@@ -7,13 +7,14 @@ with CV_Ada.IO_Operations;   use CV_Ada.IO_Operations;
 with CV_Ada.Colorspace;      use CV_Ada.Colorspace;
 with CV_Ada.Edge_Detection;  use CV_Ada.Edge_Detection;
 with CV_Ada.Hough_Transform; use CV_Ada.Hough_Transform;
+with CV_Ada.Basic_Transformations; use CV_Ada.Basic_Transformations;
 
 procedure Testing_Image_Functions is
    -- Input_File_Name   : String := "src\images\" & "5x5BlackSquare.qoi";
    -- Input_File_Name  : String := "src\images\" & "hi144p.qoi";
    Input_File_Name  : constant String := "src\images\" & "lane1.qoi";
    Output_File_Name : constant String := "output.qoi";
-   Input            : Input_Data;
+   Input            : CV_Ada.Input_Data;
 begin
    Input := Load_QOI (Input_File_Name);
 
@@ -51,17 +52,16 @@ begin
       Input.Desc.Height,
       Input.Desc.Channels);
    ------------------  END  ------------------
+   
+   ----------------- START ----------------- (Function Testing)
+   
+   -----------------  END  -----------------
 
    declare
       Output      : Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
       -- Output_Temp : Storage_Array (1 .. Input.Desc.Width * Input.Desc.Height * Input.Desc.Channels) := (others => 150);
       Output_Size : Storage_Count;
-
-      ----------------- START ----------------- (Function Testing)
-
-      -----------------  END  -----------------
    begin
-
       QOI.Encode (Input.Data.all, Input.Desc, Output, Output_Size);
       Write_To_File (Output_File_Name, Output, Output_Size);
    end;
