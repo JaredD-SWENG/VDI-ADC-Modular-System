@@ -21,3 +21,14 @@ After reviewing the STM32F429 datasheet and the board documentation, the followi
 
 These pins were chosen because they are not connected to other devices on the STM32F429 Discovery board, ensuring they are available for PWM signal output.
 
+### Notes
+
+Add the Alire index directory to Git's safe.directory lis due to a a security measure implemented in Git versions 2.35.2 and newer to prevent potential vulnerabilities:
+
+```bash
+git config --global --add safe.directory C:/Users/username/AppData/Local/alire/settings/indexes/community/repo
+```
+
+```bash
+alr with stm32_hal
+```
