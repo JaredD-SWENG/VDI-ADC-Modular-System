@@ -15,31 +15,33 @@ with CV_Ada.Blur;
 with CV_Ada.Hough_Transform;
 with System.Storage_Elements; use System.Storage_Elements;
 
+with GNAT.Task_Stack_Usage;
+
 package body Lane_Detection is
    --F_Gen : Ada.Numerics.Float_Random.Generator;
-   Input      : CV_Ada.Img_Input;
-   Temp_Data  : CV_Ada.Input_Data;
+   Input      : CV_Ada.Input_Data;
 
    task body Lane_Detection_Task is
    --Offset_Value : Float;
 
-   Frame_Name : String := "../camera/frames_folder/frame_0000.qoi";
+   Frame_Name : String := "..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder\frame_0000.qoi";
    begin
       accept Start;
       Put_Line ("Lane Detection Started");
 
       -- Initialize the simulated camera with the folder path containing QOI frames
-      Camera.Initialize ("../camera/frames_folder");
+      Camera.Initialize ("..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder");
 
       --Ada.Numerics.Float_Random.Reset (F_Gen);
 
-      while Frame_Name /= "../camera/frames_folder/frame_0001.qoi" loop
+      while Frame_Name /= "..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder\frame_0900.qoi" loop
          --Put_Line ("Processing frame: " & Frame_Name);
          Frame_Name := Camera.Get_Frame;
 
          -- Load the current frame using Load_QOI
-         Temp_Data := CV_Ada.IO_Operations.Load_QOI (Frame_Name);
-         Input := new CV_Ada.Input_Data'(Data => Temp_Data.Data, Desc => Temp_Data.Desc);
+         Input := CV_Ada.IO_Operations.Load_QOI (Frame_Name);
+
+         Put_Line(Natural'Image (GNAT.Task_Stack_Usage.Get_Current_Task_Usage.Value));
 
          -- Apply region of interest to focus on the lower half of the image
          --  CV_Ada.Basic_Transformations.Region_Of_Interest
@@ -90,8 +92,10 @@ package body Lane_Detection is
          -- Convert to black and white (optional) WORKS
          --  CV_Ada.Colorspace.Convert_To_Black_And_White
          --    (Input.Data.all, Input.Desc);
-         --  CV_Ada.Colorspace.Convert_To_Black_And_White
-         --    (Input);
+         CV_Ada.Colorspace.Convert_To_Black_And_White
+           (Input);
+
+           
 
          -- SUPER SLOW OR NOT WORKING
          -- Apply morphological operations (optional)
@@ -124,17 +128,19 @@ package body Lane_Detection is
          --     Max_Circles => 600);
 
          declare
-            --  type Storage_array_access is access all Storage_Array;
-            --  Output      : Storage_array_access :=
-            --     new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
-            --  Output_Size : Storage_Count;
+            Output      : CV_Ada.Storage_Array_Access :=
+               new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+            Output_Size : Storage_Count;
          begin
-            --  QOI.Encode
-            --     (Input.Data.all, Input.Desc, Output.all, Output_Size);
-            --  CV_Ada.IO_Operations.Write_To_File
-            --     ("output.qoi", Output.all, Output_Size);
+            QOI.Encode
+               (Input.Data.all, Input.Desc, Output.all, Output_Size);
+            CV_Ada.IO_Operations.Write_To_File
+               ("output.qoi", Output.all, Output_Size);
 
             Put_Line ("Frame processed and saved: " & Frame_Name);
+
+            CV_Ada.Free_Input_Data(Input);
+            CV_Ada.Free_Storage_Array(Output);
 
             --delay 0.1;  -- Optional: Simulate a delay between frames if needed.
             -- Replace "frame_end.qoi" with a condition to stop processing.

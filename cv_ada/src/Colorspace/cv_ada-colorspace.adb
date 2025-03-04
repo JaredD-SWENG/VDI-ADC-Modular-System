@@ -118,15 +118,15 @@ package body CV_Ada.Colorspace is
      (Input : in out Input_Data;
       Threshold :        Storage_Element := 128)
    is
-
-   Data       : CV_Ada.Storage_Array_Access := new Storage_Array(1 .. Input.Data.all'Length);
+   Data : Storage_Array := Input.Data.all;
+   --  Data       : CV_Ada.Storage_Array_Access := new Storage_Array(1 .. Input.Data.all'Length);
    Desc       : QOI.QOI_Desc                := Input.Desc;
       -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
       Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
       -- Value to set for all color channels (0 for black, 255 for white)
       BW_Value   : Storage_Element;
    begin
-      Data.all := Input.Data.all;
+      --  Data.all := Input.Data.all;
       -- Iterate through each pixel in the image data
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
          -- Process only the first channel of each pixel
@@ -150,6 +150,6 @@ package body CV_Ada.Colorspace is
             end if;
          end if;
       end loop;
-      Input.Data.all := Data.all;
+      --  Input.Data.all := Data.all;
    end Convert_To_Black_And_White;
 end CV_Ada.Colorspace;

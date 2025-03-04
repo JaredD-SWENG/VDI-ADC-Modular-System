@@ -17,29 +17,31 @@ with System.Storage_Elements; use System.Storage_Elements;
 
 procedure Dummy is
    --F_Gen : Ada.Numerics.Float_Random.Generator;
-   Input      : CV_Ada.Img_Input;
-   Temp_Data  : CV_Ada.Input_Data;
+   Input      : CV_Ada.Input_Data;
+   --Input      : CV_Ada.Img_Input;
+   --Temp_Data  : CV_Ada.Input_Data;
 
    --  task body Lane_Detection_Task is
    --Offset_Value : Float;
 
-   Frame_Name : String := "../camera/frames_folder/frame_0000.qoi";
+   Frame_Name : String := "..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder\frame_0000.qoi";
    begin
       --  accept Start;
       Put_Line ("Lane Detection Started");
 
       -- Initialize the simulated camera with the folder path containing QOI frames
-      Camera.Initialize ("../camera/frames_folder");
+      Camera.Initialize ("..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder");
 
       --Ada.Numerics.Float_Random.Reset (F_Gen);
 
-      while Frame_Name /= "../camera/frames_folder/frame_0900.qoi" loop
+      while Frame_Name /= "..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder\frame_0900.qoi" loop
          --Put_Line ("Processing frame: " & Frame_Name);
          Frame_Name := Camera.Get_Frame;
 
          -- Load the current frame using Load_QOI
-         Temp_Data := CV_Ada.IO_Operations.Load_QOI (Frame_Name);
-         Input := new CV_Ada.Input_Data'(Data => Temp_Data.Data, Desc => Temp_Data.Desc);
+         --  Temp_Data := CV_Ada.IO_Operations.Load_QOI (Frame_Name);
+         --  Input := CV_Ada.Input_Data'(Data => Temp_Data.Data, Desc => Temp_Data.Desc);
+         Input := CV_Ada.IO_Operations.Load_QOI (Frame_Name);
 
          -- Apply region of interest to focus on the lower half of the image
          --  CV_Ada.Basic_Transformations.Region_Of_Interest
@@ -48,7 +50,7 @@ procedure Dummy is
          --     2 * Input.Desc.Height / 3);
 
          -- Convert to grayscale first
-         CV_Ada.Colorspace.Convert_To_Grayscale (Input.all);
+         --  CV_Ada.Colorspace.Convert_To_Grayscale (Input);
 
          -- Rotate the image (optional)
          -- CV_Ada.Basic_Transformations.Rotate_Image (Input.Data.all, Input.Desc, 0.0);
@@ -91,7 +93,7 @@ procedure Dummy is
          --  CV_Ada.Colorspace.Convert_To_Black_And_White
          --    (Input.Data.all, Input.Desc);
          CV_Ada.Colorspace.Convert_To_Black_And_White
-           (Input.all);
+           (Input);
 
          -- SUPER SLOW OR NOT WORKING
          -- Apply morphological operations (optional)
