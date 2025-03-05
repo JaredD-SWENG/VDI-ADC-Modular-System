@@ -18,7 +18,7 @@ package body Signal_Recognition is
          Queue_Manager.Enqueue(new Signal_State'(Event_Kind => Signal_Event, 
                                                Color => Signal_Value));
          Put_Line("Signal Recognition State: " & Signal_Color'Image(Signal_Value));
-         delay 3.0;
+         delay 1.0;
       end loop;
    end Signal_Recognition_Task;
 end Signal_Recognition;

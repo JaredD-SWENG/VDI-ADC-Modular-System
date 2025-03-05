@@ -1,15 +1,11 @@
 package CV_Ada.Hough_Transform is
    procedure Hough_Line_Transform
-      (Data                      : in out Storage_Array;
-       Width, Height, Channels   : Storage_Count;
+      (Input : in out Input_Data;
        Theta_Resolution          : Positive := 180;
        Rho_Resolution            : Positive := 180);
 
    procedure Hough_Circle_Transform
-      (Data                      : in out Storage_Array;
-       Width                     : Storage_Count;
-       Height                    : Storage_Count;
-       Channels                  : Storage_Count;
+      (Input : in out Input_Data;
        Min_Radius                : Storage_Count;
        Max_Radius                : Storage_Count;
        Threshold                 : Natural;

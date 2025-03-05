@@ -5,7 +5,9 @@ with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
 
-package body CV_Ada.Morphological_Operations is   
+package body CV_Ada.Morphological_Operations is
+
+   procedure Free is new Ada.Unchecked_Deallocation(Storage_Array, Storage_Array_Access);
    --------------------------------------------------------------------------------
    -- Morphological_Operation
    --
@@ -25,23 +27,29 @@ package body CV_Ada.Morphological_Operations is
    --    morphological operation.
    --------------------------------------------------------------------------------
    procedure Morphological_Operation
-     (Data    : in out Storage_Array; Desc : QOI.QOI_Desc; Operation : Morph_Operations;
-      SE_Type : SE_Types; SE_Size : Integer)
+     (Input    : in out Input_Data;
+      Operation : Morph_Operations;
+      SE_Type : SE_Types; 
+      SE_Size : Integer)
    is
+      -- Get direct reference to the data array and descriptor
+      Data      : Storage_Array_Access := Input.Data;
+      Desc      : QOI.QOI_Desc := Input.Desc;
+      
       -- Size of each pixel in bytes (3 for RGB, 4 for RGBA)
       Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
       Width      : constant Integer       := Integer (Desc.Width);
       Height     : constant Integer       := Integer (Desc.Height);
 
       -- Temporary array for processing
-      Temp : Storage_Array := Data;
+      Temp : Storage_Array_Access := new Storage_Array(Data.all'Range);
 
       -- Function to check if a pixel is white (255)
       function Is_White (X, Y : Integer) return Boolean is
          Idx : constant Storage_Count :=
            Storage_Count ((Y * Width + X) * Integer (Pixel_Size) + 1);
       begin
-         return Data (Idx) = 255;
+         return Data(Idx) = 255;
       end Is_White;
 
       -- Function to create structuring element
@@ -89,13 +97,13 @@ package body CV_Ada.Morphological_Operations is
 
                   -- Set pixel value based on erosion result
                   if Result then
-                     Temp (Idx)     := 255;
-                     Temp (Idx + 1) := 255;
-                     Temp (Idx + 2) := 255;
+                     Temp(Idx)     := 255;
+                     Temp(Idx + 1) := 255;
+                     Temp(Idx + 2) := 255;
                   else
-                     Temp (Idx)     := 0;
-                     Temp (Idx + 1) := 0;
-                     Temp (Idx + 2) := 0;
+                     Temp(Idx)     := 0;
+                     Temp(Idx + 1) := 0;
+                     Temp(Idx + 2) := 0;
                   end if;
                end;
             end loop;
@@ -131,13 +139,13 @@ package body CV_Ada.Morphological_Operations is
 
                   -- Set pixel value based on dilation result
                   if Result then
-                     Temp (Idx)     := 255;
-                     Temp (Idx + 1) := 255;
-                     Temp (Idx + 2) := 255;
+                     Temp(Idx)     := 255;
+                     Temp(Idx + 1) := 255;
+                     Temp(Idx + 2) := 255;
                   else
-                     Temp (Idx)     := 0;
-                     Temp (Idx + 1) := 0;
-                     Temp (Idx + 2) := 0;
+                     Temp(Idx)     := 0;
+                     Temp(Idx + 1) := 0;
+                     Temp(Idx + 2) := 0;
                   end if;
                end;
             end loop;
@@ -145,11 +153,16 @@ package body CV_Ada.Morphological_Operations is
       end Dilate;
 
    begin
+      -- Create a copy of the original data to read from
+      Temp.all := Data.all;
+      
       -- Input validation for structuring element size and type checks.
       if SE_Size < 1 or SE_Size > 30 then
+         Free(Temp);
          raise Constraint_Error
            with "Structuring element size must be between 1 and 30";
       elsif not (SE_Type = SE_Square or SE_Type = SE_Circle) then
+         Free(Temp);
          raise Program_Error with "Invalid structuring element type";
       end if;
 
@@ -163,21 +176,28 @@ package body CV_Ada.Morphological_Operations is
 
          when Opening =>
             Erode;
-            Data := Temp;
+            Data.all := Temp.all;
+            Temp.all := Data.all;  -- Reset Temp for the next operation
             Dilate;
 
          when Closing =>
             Dilate;
-            Data := Temp;
+            Data.all := Temp.all;
+            Temp.all := Data.all;  -- Reset Temp for the next operation
             Erode;
 
          when others =>
+            Free(Temp);
             raise Program_Error with "Unsupported operation";
       end case;
 
       -- Copy result back to input array.
-      Data := Temp;
+      Data.all := Temp.all;
+      
+      -- Free the temporary array
+      Free(Temp);
 
    end Morphological_Operation;
+
 
 end CV_Ada.Morphological_Operations;

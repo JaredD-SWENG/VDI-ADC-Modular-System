@@ -1,0 +1,2 @@
+simulated_camera.ads:1:17: warning: no entities of "Ada.Strings.Unbounded" are referenced in spec [-gnatwu]
+simulated_camera.ads:1:17: warning: with clause might be moved to body [-gnatwu]

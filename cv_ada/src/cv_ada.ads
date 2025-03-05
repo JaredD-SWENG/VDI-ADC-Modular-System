@@ -8,5 +8,7 @@ package CV_Ada is
       Data : Storage_Array_Access;
       Desc : QOI.QOI_Desc;
    end record;
-    procedure test;
+
+   type Img_Input is access all Input_Data;
+   procedure test;
 end CV_Ada;

@@ -57,7 +57,7 @@ package body Path_Planning is
                         else
                            Put_Line("Path Planning: Center");
                         end if;
-                        delay 5.0;
+                        delay 2.0;
                      end;
                   end if;
                end if;
