@@ -136,7 +136,7 @@ package body Lane_Detection is
             CV_Ada.IO_Operations.Write_To_File
                ("output.qoi", Output.all, Output_Size);
 
-            Put_Line ("Frame processed and saved: " & Frame_Name);
+            -- Put_Line ("Frame processed and saved: " & Frame_Name);
 
             --delay 0.1;  -- Optional: Simulate a delay between frames if needed.
             -- Replace "frame_end.qoi" with a condition to stop processing.

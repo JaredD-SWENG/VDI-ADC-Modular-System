@@ -1,6 +1,0 @@
-opencv_ada-edge_detection.adb:1:25: warning: unit "Opencv_Ada.Graphics.Pixel" is not referenced [-gnatwu]
-opencv_ada-edge_detection.adb:108:07: warning: variable "Gradient_Direction" is read but never assigned [-gnatwv]
-opencv_ada-edge_detection.adb:197:66: warning: condition can only be False if invalid values present [-gnatwc]
-opencv_ada-edge_detection.adb:197:66: warning: condition is always True [-gnatwc]
-opencv_ada-edge_detection.adb:199:69: warning: condition can only be False if invalid values present [-gnatwc]
-opencv_ada-edge_detection.adb:199:69: warning: condition is always True [-gnatwc]

@@ -1,2 +1,0 @@
-opencv_ada-sobel_edge_detection.adb:4:39: warning: file name does not match unit name, should be "opencv_ada-edge_detection-sobel_edge_detection.adb" [enabled by default]
-opencv_ada-sobel_edge_detection.adb:4:39: error: file "opencv_ada-edge_detection-sobel_edge_detection.ads" not found

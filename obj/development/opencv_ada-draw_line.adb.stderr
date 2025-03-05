@@ -1,2 +1,0 @@
-opencv_ada-draw_line.adb:1:33: warning: file name does not match unit name, should be "opencv_ada-graphics-draw_line.adb" [enabled by default]
-opencv_ada-draw_line.adb:1:33: error: file "opencv_ada-graphics-draw_line.ads" not found

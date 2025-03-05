@@ -1,2 +1,0 @@
-convert_to_black_and_white.adb:1:24: warning: file name does not match unit name, should be "opencv_ada-convert_to_black_and_white.adb" [enabled by default]
-convert_to_black_and_white.adb:1:24: error: file "opencv_ada-convert_to_black_and_white.ads" not found

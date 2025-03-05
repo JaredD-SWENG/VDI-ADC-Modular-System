@@ -1,3 +1,0 @@
-opencv_ada-colorspace-convert_to_black_and_white.ads:4:30: error: file "opencv_ada-colorspace.ads" not found
-opencv_ada-colorspace-convert_to_black_and_white.ads:4:30: error: "Opencv_Ada.Colorspace.Convert_To_Black_And_White (body)" depends on "Opencv_Ada.Colorspace.Convert_To_Black_And_White (spec)"
-opencv_ada-colorspace-convert_to_black_and_white.ads:4:30: error: "Opencv_Ada.Colorspace.Convert_To_Black_And_White (spec)" depends on "Opencv_Ada.Colorspace (spec)"

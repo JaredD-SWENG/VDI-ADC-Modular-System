@@ -1,3 +1,0 @@
-opencv_ada-blur-gaussian_blur.ads:3:24: error: file "opencv_ada-blur.ads" not found
-opencv_ada-blur-gaussian_blur.ads:3:24: error: "Opencv_Ada.Blur.Gaussian_Blur (body)" depends on "Opencv_Ada.Blur.Gaussian_Blur (spec)"
-opencv_ada-blur-gaussian_blur.ads:3:24: error: "Opencv_Ada.Blur.Gaussian_Blur (spec)" depends on "Opencv_Ada.Blur (spec)"

@@ -1,5 +1,0 @@
-dependency:aaa=0.2.6=4b0e05559a1597b9a8663e173289320b9032228418df7970ca073dbe83252d4b
-external:LIBRARY_TYPE=default
-external:TESTS_LIBRARY_TYPE=default
-profile:tests=DEVELOPMENT
-switches:tests=-Og,-fdata-sections,-ffunction-sections,-g,-gnatVa,-gnatW8,-gnatw.X,-gnatwa
