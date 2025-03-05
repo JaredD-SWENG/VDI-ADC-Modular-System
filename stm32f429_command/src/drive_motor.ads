@@ -1,9 +1,8 @@
 with Digital_Out;
 with STM32.PWM;
+with STM32.Timers;
 
 package Drive_Motor is
-
-   pragma Profiles (Ravenscar);
 
    -- 1) Public subprograms for high-level control
    procedure Initialize;    -- Call once, sets up pins/timer, starts Motor_Task

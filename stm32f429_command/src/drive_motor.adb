@@ -11,11 +11,16 @@ package body Drive_Motor is
    ---------------------------
    -- Internal Declarations --
    ---------------------------
-   Motor_Pin : Digital_Pin;  -- for power
+   Motor_Pin : Digital_Out.Digital_Pin;  -- for power
+   PWM_Pin   : STM32.GPIO.GPIO_Point := STM32.Device.PB7; 
    PWM_Mod   : STM32.PWM.PWM_Modulator;
 
+
    -- For calibrating & controlling the motor
+   Timer_Channel  : STM32.Timers.Timer_Channel := STM32.Timers.Channel_2;
+   GPIO_AF        : STM32.GPIO_Alternate_Function := STM32.Device.GPIO_AF_TIM4_2;
    Generator      : access STM32.Timers.Timer := Timer_4'Access;
+   Frequency      : STM32.PWM.Hertz := 50;
    Max_Duty_Cycle : STM32.PWM.Microseconds := 2000;
    Min_Duty_Cycle : STM32.PWM.Microseconds := 1000;
    Min_Percentage : constant Integer         := 5;
@@ -29,18 +34,19 @@ package body Drive_Motor is
       ----------------------
       -- Setup Timer/PWM --
       ----------------------
-      Enable_Clock (USART_1);   -- Example: might or might not be needed
-      STM32.PWM.Configure_PWM_Timer (Generator, 50);  -- 50 Hz default
-      PWM_Mod.Attach_PWM_Channel
-        (Generator,
-         Channel    => STM32.Timers.Channel_2,
-         Pin        => PB7,
-         AF         => GPIO_AF_TIM4_2);
+      STM32.PWM.Configure_PWM_Timer (Generator, Frequency);
+      PWM_Mod.Attach_PWM_Channel (
+      Generator => Generator,
+      Channel   => Timer_Channel,
+      Point     => PWM_Pin,
+      PWM_AF    => GPIO_AF
+      );
+
 
       ------------------
       -- Setup Output --
       ------------------
-      Initialize (Motor_Pin, PC8);  -- or whichever you prefer
+      Digital_Out.Initialize (Motor_Pin, Digital_Out.Power_Pin);
       PWM_Mod.Disable_Output;
       Motor_Enabled := False;
 
@@ -48,20 +54,19 @@ package body Drive_Motor is
       Motor_Speed := 0;
       Motor_Command := No_Command;
 
-      Send_Debug_String ("[Drive_Motor] Initialization complete.");
    end Initialize;
 
    procedure Set_Speed (Speed_Percentage : Integer) is
+   Local_Speed : Integer := Speed_Percentage;  -- Copy locally
    begin
-      -- Constrain Speed to [Min_Percentage..Max_Percentage]
-      if Speed_Percentage < Min_Percentage then
-         Speed_Percentage := Min_Percentage;
-      elsif Speed_Percentage > Max_Percentage then
-         Speed_Percentage := Max_Percentage;
+      if Local_Speed < Min_Percentage then
+         Local_Speed := Min_Percentage;
+      elsif Local_Speed > Max_Percentage then
+         Local_Speed := Max_Percentage;
       end if;
 
-      Motor_Speed := Speed_Percentage;
-      Motor_Command := No_Command;  -- Just normal operation
+      Motor_Speed := Local_Speed;
+      Motor_Command := No_Command;  -- normal operation
    end Set_Speed;
 
    procedure Stop is
@@ -110,16 +115,19 @@ package body Drive_Motor is
    end Apply_Speed;
 
    procedure Perform_Calibration is
-      Calibrate_Time : constant Duration := 0.5;
+      Calibrate_Time : constant Integer := 500;  -- ms
+      Next_Time      : Time := Clock;
    begin
       Send_Debug_String ("[Drive_Motor] Calibrating...");
       -- e.g. set to max
       Apply_Speed (10);
-      delay Calibrate_Time;
+      Next_Time := Next_Time + Milliseconds(Calibrate_Time);
+      delay until Next_Time;
 
       -- Then set to min
       Apply_Speed (5);
-      delay Calibrate_Time;
+      Next_Time := Next_Time + Milliseconds(Calibrate_Time);
+      delay until Next_Time;
 
       Send_Debug_String ("[Drive_Motor] Calibration done.");
    end Perform_Calibration;
@@ -169,9 +177,6 @@ package body Drive_Motor is
                   Apply_Speed (Motor_Speed);
                end if;
          end case;
-
-         -- For debug: Toggle an LED or do something
-         STM32.Board.Toggle (Blue_LED);
 
          -- Delay for determinism
          Next_Time := Next_Time + Period;

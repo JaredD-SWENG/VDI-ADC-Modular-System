@@ -2,6 +2,7 @@
 with Ada.Real_Time; use Ada.Real_Time;
 with Tasks;
 with Coms_Uart;
+with Drive_Motor;
 
 procedure Stm32f429_Command is
 begin
