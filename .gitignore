@@ -1,5 +1,5 @@
-# Object file
-*.o
+*/obj/
+*/bin/
+*/alire/
 
-# Ada Library Information
-*.ali
+*/config/

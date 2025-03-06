@@ -1,0 +1,318 @@
+# THIS FILE IS GENERATED. DO NOT EDIT.
+
+[solution]
+[solution.context]
+solved = true
+[[solution.state]]
+crate = "adl_middleware"
+fulfilment = "solved"
+pinned = false
+transitivity = "indirect"
+versions = "~0.2.0"
+[solution.state.release]
+authors = [
+"AdaCore",
+]
+description = "Middleware layer of the Ada Drivers Library project"
+licenses = "BSD-3-Clause"
+long-description = "# adl_middleware\n\nMiddleware layer of the Ada Drivers Library project.\n\nThis crate is a snapshot of the `middleware` of [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/tree/master/middleware).\n\nAny bug report, issue, contribution must be adressed to the [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/) repo.\n\n"
+maintainers = [
+"chouteau@adacore.com",
+]
+maintainers-logins = [
+"Fabien-Chouteau",
+]
+name = "adl_middleware"
+project-files = [
+"adl_middleware.gpr",
+]
+tags = [
+"embedded",
+"nostd",
+"fat",
+"bitmap",
+]
+version = "0.2.0"
+website = "https://github.com/AdaCore/Ada_Drivers_Library/"
+[solution.state.release.build-switches]
+[solution.state.release.build-switches."*"]
+style_checks = "no"
+[solution.state.release.configuration]
+auto_gpr_with = true
+disabled = false
+generate_ada = true
+generate_c = true
+generate_gpr = true
+output_dir = "config"
+[solution.state.release.configuration.variables]
+[solution.state.release.configuration.variables.Max_Mount_Name_Length]
+default = 128
+first = 1
+last = 9223372036854775807
+type = "Integer"
+[solution.state.release.configuration.variables.Max_Mount_Points]
+default = 2
+first = 1
+last = 9223372036854775807
+type = "Integer"
+[solution.state.release.configuration.variables.Max_Path_Length]
+default = 1024
+first = 1
+last = 9223372036854775807
+type = "Integer"
+[solution.state.release.origin]
+commit = "623c69130b33accb028f94ad43fd911990c1181d"
+url = "git+https://github.com/Fabien-Chouteau/adl-middleware.git"
+[[solution.state.release.depends-on]]
+hal = "~0.3.0"
+[[solution.state]]
+crate = "cortex_m"
+fulfilment = "solved"
+pinned = false
+transitivity = "indirect"
+versions = "0.5.0"
+[solution.state.release]
+authors = [
+"AdaCore",
+]
+description = "Drivers for Cortex-M micro-controllers (NVIC, SysTick, etc.)"
+licenses = "BSD-3-Clause"
+long-description = "# cortex-m\n\nAda drivers for the peripherals of ARM Cortex-M micro-controllers\n(NVIC,\\nSysTick, etc.)\n\nThis crate is a snapshot of the `Cortex-M` support in [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/tree/master/arch/ARM/cortex_m).\n\nAny bug report, issue, contribution must be adressed to the [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/) repo.\n\n"
+maintainers = [
+"chouteau@adacore.com",
+]
+maintainers-logins = [
+"Fabien-Chouteau",
+]
+name = "cortex_m"
+tags = [
+"embedded",
+"arm",
+"nostd",
+]
+version = "0.5.0"
+website = "https://github.com/AdaCore/Ada_Drivers_Library/"
+[solution.state.release.configuration]
+auto_gpr_with = true
+disabled = false
+generate_ada = true
+generate_c = true
+generate_gpr = true
+output_dir = "config"
+[solution.state.release.configuration.variables]
+[solution.state.release.configuration.variables.core]
+type = "Enum"
+values = [
+"m0",
+"m0p",
+"m4",
+"m4f",
+"m7f",
+"m7df",
+]
+[solution.state.release.origin]
+commit = "39667d15f4df10da6ecfd94af47c463bb54ff2d6"
+url = "git+https://github.com/Fabien-Chouteau/cortex-m.git"
+[[solution.state.release.depends-on]]
+gnat_arm_elf = ">=12"
+hal = "~0.3"
+[[solution.state]]
+crate = "embedded_components"
+fulfilment = "solved"
+pinned = false
+transitivity = "indirect"
+versions = "0.2.0"
+[solution.state.release]
+authors = [
+"AdaCore",
+]
+description = "Platform agnostic drivers to interface external components"
+licenses = "BSD-3-Clause"
+long-description = "# embedded-components\n\nPlatform agnostic drivers to interface external components.\n\nThis crate is a snapshot of the `components` of [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/tree/master/components).\n\nAny bug report, issue, contribution must be adressed to the [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/) repo.\n\n"
+maintainers = [
+"chouteau@adacore.com",
+]
+maintainers-logins = [
+"Fabien-Chouteau",
+]
+name = "embedded_components"
+project-files = [
+"embedded_components.gpr",
+]
+tags = [
+"embedded",
+"nostd",
+]
+version = "0.2.0"
+website = "https://github.com/AdaCore/Ada_Drivers_Library/"
+[solution.state.release.build-switches]
+[solution.state.release.build-switches."*"]
+style_checks = "no"
+[solution.state.release.origin]
+commit = "37c39b23c2a235452401bb8d592f5121d836378b"
+url = "git+https://github.com/Fabien-Chouteau/embedded-components.git"
+[[solution.state.release.depends-on]]
+adl_middleware = "~0.2.0"
+hal = "~0.3.0"
+[[solution.state]]
+crate = "gnat_arm_elf"
+fulfilment = "solved"
+pin_version = "12.2.1"
+pinned = true
+transitivity = "direct"
+versions = "(=12.2.1) & (>=12)"
+[solution.state.release]
+auto-gpr-with = false
+description = "The GNAT Ada compiler - ARM cross-compiler"
+licenses = "GPL-3.0-or-later AND GPL-3.0-or-later WITH GCC-exception-3.1"
+maintainers = [
+"chouteau@adacore.com",
+]
+maintainers-logins = [
+"Fabien-Chouteau",
+]
+name = "gnat_arm_elf"
+provides = [
+"gnat=12.2.1",
+]
+version = "12.2.1"
+[solution.state.release.configuration]
+auto_gpr_with = true
+disabled = true
+generate_ada = true
+generate_c = true
+generate_gpr = true
+output_dir = "config"
+[solution.state.release.environment]
+[solution.state.release.environment.PATH]
+prepend = "${CRATE_ROOT}/bin"
+[solution.state.release.origin]
+binary = true
+hashes = [
+"sha256:9be2ca0ea66cda44cdbbd136f0ef24517c7e25139df80d104b304cad8712d189",
+]
+url = "https://github.com/alire-project/GNAT-FSF-builds/releases/download/gnat-12.2.0-1/gnat-arm-elf-linux64-12.2.0-1.tar.gz"
+[[solution.state]]
+crate = "hal"
+fulfilment = "solved"
+pinned = false
+transitivity = "indirect"
+versions = "~0.3"
+[solution.state.release]
+description = "Hardware Abstraction Layer (HAL)"
+licenses = "BSD-3-Clause"
+long-description = "# hal\n\nHardware Abstraction Layer: interfaces definitions to abstract access to common\nhardware devices and protocols\n\nThis crate is a snapshot of the `hal` in [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/tree/master/hal/src).\n\nAny bug report, issue, contribution must be adressed to the [Ada Drivers\nLibrary](https://github.com/AdaCore/Ada_Drivers_Library/) repo.\n\n"
+maintainers = [
+"chouteau@adacore.com",
+]
+maintainers-logins = [
+"Fabien-Chouteau",
+]
+name = "hal"
+project-files = [
+"hal.gpr",
+]
+tags = [
+"embedded",
+"hal",
+"nostd",
+]
+version = "0.3.1"
+[solution.state.release.origin]
+commit = "58bb6bd72fc276ba1128451e3b4784b6029be0a8"
+url = "git+https://github.com/Fabien-Chouteau/hal.git"
+[[solution.state]]
+crate = "stm32_hal"
+fulfilment = "solved"
+pinned = false
+transitivity = "indirect"
+versions = "0.1.0"
+[solution.state.release]
+authors = [
+"AdaCore",
+]
+description = "stm32 : devices, drivers, svd"
+licenses = "BSD-3-Clause"
+maintainers = [
+"Olivier Henley <olivier.henley@gmail.com>",
+]
+maintainers-logins = [
+"ohenley",
+]
+name = "stm32_hal"
+tags = [
+"embedded",
+"stm32",
+"devices",
+"drivers",
+"svd",
+]
+version = "0.1.0"
+website = "https://github.com/GNAT-Academic-Program/stm32_hal"
+[solution.state.release.configuration]
+auto_gpr_with = true
+disabled = false
+generate_ada = true
+generate_c = true
+generate_gpr = true
+output_dir = "config"
+[solution.state.release.configuration.variables]
+[solution.state.release.configuration.variables.device]
+default = "stm32f746"
+type = "Enum"
+values = [
+"stm32f746",
+"stm32f429",
+"stm32f407xx",
+]
+[solution.state.release.origin]
+commit = "9276ee80473c0c8ff9e56928091b50b4ba960158"
+url = "git+https://github.com/GNAT-Academic-Program/stm32_hal.git"
+[[solution.state.release.depends-on]]
+cortex_m = "0.5.0"
+[[solution.state]]
+crate = "stm32f429disco"
+fulfilment = "solved"
+pinned = false
+transitivity = "direct"
+versions = "0.1.0"
+[solution.state.release]
+authors = [
+"AdaCore",
+]
+description = "Support for the stm32f429disco board"
+licenses = "BSD-3-Clause"
+maintainers = [
+"Olivier Henley <olivier.henley@gmail.com>",
+]
+maintainers-logins = [
+"ohenley",
+]
+name = "stm32f429disco"
+tags = [
+"embedded",
+"stm32",
+"stm32f429disco",
+]
+version = "0.1.0"
+website = "https://github.com/GNAT-Academic-Program/stm32f429disco"
+[solution.state.release.configuration]
+auto_gpr_with = true
+disabled = false
+generate_ada = true
+generate_c = true
+generate_gpr = true
+output_dir = "config"
+[solution.state.release.configuration.values]
+[solution.state.release.configuration.values.cortex_m]
+core = "m4f"
+[solution.state.release.configuration.values.stm32_hal]
+device = "stm32f429"
+[solution.state.release.origin]
+commit = "aa5fe0cb395ba68378ebc37b35db209b3bbab0c9"
+url = "git+https://github.com/GNAT-Academic-Program/stm32f429disco.git"
+[[solution.state.release.depends-on]]
+cortex_m = "0.5.0"
+embedded_components = "0.2.0"
+stm32_hal = "0.1.0"
+

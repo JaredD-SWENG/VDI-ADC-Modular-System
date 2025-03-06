@@ -1,0 +1,18 @@
+name = "hw_refactor"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["Kevin Fox"]
+maintainers = ["Kevin Fox <kevinleefoxjr@gmail.com>"]
+maintainers-logins = ["kpf5297"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = ["stm32", "disco", "uart", "pwm", "thread"]
+
+executables = ["main"]
+
+[[depends-on]]
+stm32f429disco = "0.1.0"
+
+[[pins]]
+gnat_arm_elf = "12.2.1"
