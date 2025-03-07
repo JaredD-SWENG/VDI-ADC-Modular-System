@@ -23,6 +23,12 @@ ls ~/.local/share/alire/toolchains/gnat_arm_elf_13.1.0*/arm-eabi/lib/gnat/
 rm -rf ~/.local/share/alire/toolchains/gnat_arm_elf_12.2.1*
 ```
 
+### GPRBuild to Path (MacOS)
+```bash
+echo 'export PATH="$HOME/.local/share/alire/toolchains/gnat_native_14.2.1_bfef513a/bin:$HOME/.local/share/alire/toolchains/gprbuild_22.0.1_b1220e2b/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
    -- Hardware constants (board-specific)
    Baud_Rate    : constant := 115200;  -- UART baud rate for command interface
    -- LED pins: On STM32F429I-DISCO, LD3 (green) is PG13, LD4 (red) is PG14.
