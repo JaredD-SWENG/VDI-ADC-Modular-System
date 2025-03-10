@@ -92,8 +92,8 @@ procedure Dummy is
          -- Convert to black and white (optional) WORKS
          --  CV_Ada.Colorspace.Convert_To_Black_And_White
          --    (Input.Data.all, Input.Desc);
-         CV_Ada.Colorspace.Convert_To_Black_And_White
-           (Input);
+         --  CV_Ada.Colorspace.Convert_To_Black_And_White
+         --    (Input);
 
          -- SUPER SLOW OR NOT WORKING
          -- Apply morphological operations (optional)
@@ -126,15 +126,15 @@ procedure Dummy is
          --     Max_Circles => 600);
 
          declare
-            type Storage_array_access is access all Storage_Array;
-            Output      : Storage_array_access :=
-               new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
-            Output_Size : Storage_Count;
+            --  type Storage_array_access is access all Storage_Array;
+            --  Output      : Storage_array_access :=
+            --     new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+            --  Output_Size : Storage_Count;
          begin
-            QOI.Encode
-               (Input.Data.all, Input.Desc, Output.all, Output_Size);
-            CV_Ada.IO_Operations.Write_To_File
-               ("output.qoi", Output.all, Output_Size);
+            --  QOI.Encode
+            --     (Input.Data.all, Input.Desc, Output.all, Output_Size);
+            --  CV_Ada.IO_Operations.Write_To_File
+            --     ("output.qoi", Output.all, Output_Size);
 
             Put_Line ("Frame processed and saved: " & Frame_Name);
 

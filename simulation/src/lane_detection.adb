@@ -15,11 +15,11 @@ with CV_Ada.Blur;
 with CV_Ada.Hough_Transform;
 with System.Storage_Elements; use System.Storage_Elements;
 
-with GNAT.Task_Stack_Usage;
-
 package body Lane_Detection is
    --F_Gen : Ada.Numerics.Float_Random.Generator;
    Input      : CV_Ada.Input_Data;
+   In_Data    : CV_Ada.Storage_Array_Access := new Storage_Array(1 .. 1920*1080*3);
+   Out_Data   : CV_Ada.Storage_Array_Access := new Storage_Array(1 .. 1920*1080*3);
 
    task body Lane_Detection_Task is
    --Offset_Value : Float;
@@ -39,9 +39,7 @@ package body Lane_Detection is
          Frame_Name := Camera.Get_Frame;
 
          -- Load the current frame using Load_QOI
-         Input := CV_Ada.IO_Operations.Load_QOI (Frame_Name);
-
-         Put_Line(Natural'Image (GNAT.Task_Stack_Usage.Get_Current_Task_Usage.Value));
+         CV_Ada.IO_Operations.Load_QOI (Frame_Name, In_Data, Out_Data, Input);
 
          -- Apply region of interest to focus on the lower half of the image
          --  CV_Ada.Basic_Transformations.Region_Of_Interest
@@ -92,10 +90,7 @@ package body Lane_Detection is
          -- Convert to black and white (optional) WORKS
          --  CV_Ada.Colorspace.Convert_To_Black_And_White
          --    (Input.Data.all, Input.Desc);
-         CV_Ada.Colorspace.Convert_To_Black_And_White
-           (Input);
-
-           
+         --  CV_Ada.Colorspace.Convert_To_Black_And_White (Input);                             <-------------
 
          -- SUPER SLOW OR NOT WORKING
          -- Apply morphological operations (optional)
@@ -128,8 +123,7 @@ package body Lane_Detection is
          --     Max_Circles => 600);
 
          declare
-            Output      : CV_Ada.Storage_Array_Access :=
-               new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+            Output      : CV_Ada.Storage_Array_Access := new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
             Output_Size : Storage_Count;
          begin
             QOI.Encode
@@ -139,10 +133,16 @@ package body Lane_Detection is
 
             Put_Line ("Frame processed and saved: " & Frame_Name);
 
-            CV_Ada.Free_Input_Data(Input);
+            Input.Data.all := (others => 0);
+            In_Data.all    := (others => 0);
+            Out_Data.all   := (others => 0);
+            --  Output.all     := (others => 0);
+            --  CV_Ada.Free_Input_Data(Input);
+            --  CV_Ada.Free_Storage_Array(In_Data);
+            --  CV_Ada.Free_Storage_Array(Out_Data);
             CV_Ada.Free_Storage_Array(Output);
 
-            --delay 0.1;  -- Optional: Simulate a delay between frames if needed.
+            -- delay 0.1;  -- Optional: Simulate a delay between frames if needed.
             -- Replace "frame_end.qoi" with a condition to stop processing.
          end;
 

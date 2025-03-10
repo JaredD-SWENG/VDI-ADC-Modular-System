@@ -63,7 +63,7 @@ package body CV_Ada.IO_Operations is
    -- Raises:
    --    OS_Exit(1) if file cannot be opened/read or decoding fails
    -------------------------------------------------------------------------------
-   function Load_QOI (Filename : String) return Input_Data is
+   function Load_QOI (Filename : String; Log : Boolean := False) return Input_Data is
       use GNAT.OS_Lib;
 
       FD  : File_Descriptor;  -- File descriptor for input file
@@ -121,13 +121,82 @@ package body CV_Ada.IO_Operations is
                  Out_Data.all
                    (Out_Data'First .. Out_Data'First + Output_Size - 1))
             then
-               Put_Line ("Compare with reference decoder: OK");
+               if Log then Put_Line ("Compare with reference decoder: OK"); end if;
             else
                Put_Line ("Compare with reference decoder: FAIL");
                GNAT.OS_Lib.OS_Exit (1);
             end if;
 
             return Result;
+         end;
+      end;
+   end Load_QOI;
+
+   -------------------------------------------------------------------------------
+   -- Memory Reduction
+   -------------------------------------------------------------------------------
+   procedure Load_QOI (Filename : String; I_Data : in out Storage_Array_Access;
+   O_Data : in out Storage_Array_Access; Result : in out Input_Data; Log : Boolean := False) is
+      use GNAT.OS_Lib;
+
+      FD  : File_Descriptor;  -- File descriptor for input file
+      Ret : Integer;         -- Return value from read operation
+
+      -- Result -- Holds decoded image data and description
+   begin
+      -- Open file in binary mode
+      FD := GNAT.OS_Lib.Open_Read (Filename, Binary);
+
+      -- Exit if file cannot be opened
+      if FD = Invalid_FD then
+         Ada.Text_IO.Put_Line (Standard_Error, GNAT.OS_Lib.Errno_Message);
+         GNAT.OS_Lib.OS_Exit (1);
+      end if;
+
+      declare
+         -- Get file size and allocate buffer
+         Len     : constant Storage_Count := Storage_Count (File_Length (FD));
+         In_Data : constant Storage_Array_Access := I_Data;
+      begin
+         -- Read entire file into buffer
+         Ret := Read (FD, In_Data.all'Address, Integer(Len));
+
+         -- Verify complete file was read
+         if Ret /= In_Data'Length and In_Data'Length < Ret then
+            Ada.Text_IO.Put_Line (GNAT.OS_Lib.Errno_Message);
+            GNAT.OS_Lib.OS_Exit (1);
+         end if;
+
+         Close (FD);
+
+         -- Extract QOI header info into description
+         QOI.Get_Desc (In_Data.all, Result.Desc);
+
+         declare
+            -- Calculate output buffer size based on image dimensions
+            Out_Len     : constant Storage_Count        :=
+              Result.Desc.Width * Result.Desc.Height * Result.Desc.Channels;
+            Out_Data    : constant Storage_Array_Access := O_Data;
+            Output_Size : Storage_Count;  -- Actual size of decoded data
+         begin
+            -- Decode QOI data into raw pixel data
+            QOI.Decode
+              (Data   => In_Data.all, Desc => Result.Desc,
+               Output => Out_Data.all, Output_Size => Output_Size);
+
+            Result.Data := Out_Data;
+
+            -- Verify decoded data matches reference implementation
+            if Reference_QOI.Check_Decode
+                (In_Data.all, Result.Desc,
+                 Out_Data.all
+                   (Out_Data'First .. Out_Data'First + Output_Size - 1))
+            then
+               if Log then Put_Line ("Compare with reference decoder: OK"); end if;
+            else
+               Put_Line ("Compare with reference decoder: FAIL");
+               GNAT.OS_Lib.OS_Exit (1);
+            end if;
          end;
       end;
    end Load_QOI;
