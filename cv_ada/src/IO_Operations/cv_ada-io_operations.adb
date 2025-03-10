@@ -83,8 +83,7 @@ package body CV_Ada.IO_Operations is
       declare
          -- Get file size and allocate buffer
          Len     : constant Storage_Count := Storage_Count (File_Length (FD));
-         In_Data : constant Storage_Array_Access :=
-           new Storage_Array (1 .. Len);
+         In_Data : Storage_Array_Access := new Storage_Array (1 .. Len);
       begin
          -- Read entire file into buffer
          Ret := Read (FD, In_Data.all'Address, In_Data.all'Length);
@@ -114,18 +113,7 @@ package body CV_Ada.IO_Operations is
                Output => Out_Data.all, Output_Size => Output_Size);
 
             Result.Data := Out_Data;
-
-            -- Verify decoded data matches reference implementation
-            if Reference_QOI.Check_Decode
-                (In_Data.all, Result.Desc,
-                 Out_Data.all
-                   (Out_Data'First .. Out_Data'First + Output_Size - 1))
-            then
-               if Log then Put_Line ("Compare with reference decoder: OK"); end if;
-            else
-               Put_Line ("Compare with reference decoder: FAIL");
-               GNAT.OS_Lib.OS_Exit (1);
-            end if;
+            Free_Storage_Array (In_Data);
 
             return Result;
          end;

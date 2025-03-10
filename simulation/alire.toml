@@ -11,6 +11,7 @@ tags = []
 
 executables = ["simulation"]
 
+
 [build-switches]
 "*".style_checks = "No" # I swear to god I cannot stand this on
 
