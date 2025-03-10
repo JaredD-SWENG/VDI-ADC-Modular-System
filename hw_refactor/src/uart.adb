@@ -41,13 +41,16 @@ package body Uart is
    function Emergency_Stop return Boolean is
       (Uart1.Get_Emergency_Stop);
 
-   type Cmd_T is (Emergency_Stop, Set_Speed, Undefined);
-   for Cmd_T use (Emergency_Stop => Character'Pos('E'), 
+   type Cmd_T is (Set_Angle, Emergency_Stop, Set_Speed, Undefined);
+   for Cmd_T use (Set_Angle => Character'Pos('A'),
+                  Emergency_Stop => Character'Pos('E'), 
                   Set_Speed => Character'Pos('S'),
                   Undefined => Character'Pos('U'));
 
    type Command (Cmd : Cmd_T) is record
       case Cmd is
+         when Set_Angle =>
+            Angle : Integer;
          when Set_Speed =>
             Speed : Integer;
          when Emergency_Stop =>
@@ -78,22 +81,26 @@ package body Uart is
       end if;
    end Read_Uart;
 
-   task body Uart_Task is
-      Cmd : Command := (Cmd => Set_Speed, Speed => 0);
-   begin
-      loop
-         Cmd := Read_Uart;
-         if Cmd.Cmd = Set_Speed then
-            Uart1.Set_Speed (Cmd.Speed);
-         elsif Cmd.Cmd = Emergency_Stop then
-            Uart1.Set_Emergency_Stop (Cmd.State);
-         end if;
-      end loop;
-   end Uart_Task;
-
    procedure Init is
    begin
-      null;
+      Initialize_Hardware (COM);
+      Configure (COM, Baud_Rate => 115_200);
    end Init;
+
+   task body Uart_Task is
+   begin
+      Init;
+      loop
+         declare
+            Cmd : Command := Read_Uart;
+         begin
+            if Cmd.Cmd = Set_Speed then
+               Uart1.Set_Speed (Cmd.Speed);
+            elsif Cmd.Cmd = Emergency_Stop then
+               Uart1.Set_Emergency_Stop (Cmd.State);
+            end if;
+         end;
+      end loop;
+   end Uart_Task;
 
 end Uart;
