@@ -7,6 +7,7 @@ package body Event_Broker is
       Processing_Active : Boolean := False;
    begin
       accept Start;
+      Put_Line ("Event Broker Started");
 
       loop
          if Queue_Manager.Has_Signal_Event and Processing_Active then

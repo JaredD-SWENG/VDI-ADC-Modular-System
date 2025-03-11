@@ -1,8 +1,17 @@
 package CV_Ada.Hough_Transform is
+
+   -- Add to CV_Ada.Hough_Transform package specification
+type Line_Parameters is record
+   Rho, Theta : Float;
+   X1, Y1, X2, Y2 : Integer;
+end record;
+
    procedure Hough_Line_Transform
       (Input : in out Input_Data;
-       Theta_Resolution          : Positive := 180;
-       Rho_Resolution            : Positive := 180);
+    Theta_Resolution : Positive := 180; 
+    Rho_Resolution : Positive := 180;
+    Left_Line : out Line_Parameters;
+    Right_Line : out Line_Parameters);
 
    procedure Hough_Circle_Transform
       (Input : in out Input_Data;

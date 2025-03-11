@@ -4,6 +4,7 @@ with Reference_QOI;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;             use Ada.Strings.Unbounded;
+with Ada.Containers;                   use Ada.Containers;
 
 package body CV_Ada.IO_Operations is
    -------------------------------------------------------------------------------
@@ -20,12 +21,12 @@ package body CV_Ada.IO_Operations is
    --    None. Exits program with code 1 if any errors occur during write
    -------------------------------------------------------------------------------
    procedure Write_To_File
-     (Filename : String; D : Storage_Array; Size : Storage_Count)
+     (Filename : String; D : in out Storage_Array_Access; Size : Storage_Count)
    is
       use GNAT.OS_Lib;
 
       FD  : File_Descriptor;  -- File descriptor for the output file
-      Ret : Integer;         -- Return value from Write operation
+      Ret : Integer;          -- Return value from Write operation
    begin
       -- Create a new binary file
       FD := GNAT.OS_Lib.Create_File (Filename, Binary);
@@ -37,7 +38,7 @@ package body CV_Ada.IO_Operations is
       end if;
 
       -- Write Size bytes from array D to file
-      Ret := Write (FD, D'Address, Integer (Size));
+      Ret := Write (FD, D.all'Address, Integer (Size));
 
       -- Verify all bytes were written
       if Ret /= Integer (Size) then
@@ -47,6 +48,8 @@ package body CV_Ada.IO_Operations is
 
       -- Close the file
       Close (FD);
+
+      Free_Storage_Array (D);
    end Write_To_File;
 
    -------------------------------------------------------------------------------
@@ -63,7 +66,7 @@ package body CV_Ada.IO_Operations is
    -- Raises:
    --    OS_Exit(1) if file cannot be opened/read or decoding fails
    -------------------------------------------------------------------------------
-   function Load_QOI (Filename : String) return Input_Data is
+   function Load_QOI (Filename : String; Log : Boolean := False) return Input_Data is
       use GNAT.OS_Lib;
 
       FD  : File_Descriptor;  -- File descriptor for input file
@@ -83,8 +86,7 @@ package body CV_Ada.IO_Operations is
       declare
          -- Get file size and allocate buffer
          Len     : constant Storage_Count := Storage_Count (File_Length (FD));
-         In_Data : constant Storage_Array_Access :=
-           new Storage_Array (1 .. Len);
+         In_Data : Storage_Array_Access := new Storage_Array (1 .. Len);
       begin
          -- Read entire file into buffer
          Ret := Read (FD, In_Data.all'Address, In_Data.all'Length);
@@ -104,7 +106,7 @@ package body CV_Ada.IO_Operations is
             -- Calculate output buffer size based on image dimensions
             Out_Len     : constant Storage_Count        :=
               Result.Desc.Width * Result.Desc.Height * Result.Desc.Channels;
-            Out_Data    : constant Storage_Array_Access :=
+            Out_Data    : Storage_Array_Access :=
               new Storage_Array (1 .. Out_Len);
             Output_Size : Storage_Count;  -- Actual size of decoded data
          begin
@@ -121,11 +123,14 @@ package body CV_Ada.IO_Operations is
                  Out_Data.all
                    (Out_Data'First .. Out_Data'First + Output_Size - 1))
             then
-               Put_Line ("Compare with reference decoder: OK");
+               if Log then Put_Line ("Compare with reference decoder: OK"); end if;
             else
                Put_Line ("Compare with reference decoder: FAIL");
                GNAT.OS_Lib.OS_Exit (1);
             end if;
+
+            -- Free Memory Leak
+            Free_Storage_Array (In_Data);
 
             return Result;
          end;

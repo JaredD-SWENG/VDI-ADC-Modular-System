@@ -3,6 +3,8 @@ with Event_Types; use Event_Types;
 package Event_Queue is
    type Queue_Array is array (1 .. 10) of Event_Access;
 
+   -- PRINT EVENT QUEUE
+
    protected Queue_Manager is
       entry Enqueue(Item : Event_Access);
       entry Dequeue(Item : out Event_Access);

@@ -8,8 +8,8 @@ with CV_Ada; use CV_Ada;
 
 procedure Simulation is
 begin
-   Signal_Recognition.Signal_Recognition_Task.Start;
    Lane_Detection.Lane_Detection_Task.Start;
+   --  Signal_Recognition.Signal_Recognition_Task.Start;
    Path_Planning.Path_Planning_Task.Start;
    Event_Broker.Event_Broker_Task.Start;
 end Simulation;
@@ -103,7 +103,7 @@ end Simulation;
 --     null;  -- Main procedure does not need to do anything else.
 --  end Simulation;
 
--- VERSION BELOW DEALS WITH PRIORITY QUEUE 
+-- VERSION BELOW DEALS WITH PRIORITY QUEUE
 
 --  with Ada.Text_IO;   use Ada.Text_IO;
 --  with Ada.Numerics.Discrete_Random;
@@ -368,7 +368,6 @@ end Simulation;
 --     null;  -- Main procedure does not need to do anything else.
 --  end Simulation;
 
-
 -- FLESHED OUT VERSION OF THE SIMULATION CODE
 
 --  with Ada.Text_IO;             use Ada.Text_IO;
@@ -492,7 +491,7 @@ end Simulation;
 --                 Index : Integer := (Head + I - 1) mod Queue'Length + 1;
 --              begin
 --                 if Queue (Index).Event_Kind = Event_Kind then
---                    -- Remove this event by shifting subsequent elements leftward 
+--                    -- Remove this event by shifting subsequent elements leftward
 --                    for J in Index .. Tail - 1 loop
 --                       Queue (J) := Queue (J + 1);
 --                    end loop;
@@ -517,7 +516,7 @@ end Simulation;
 --              end;
 --           end loop;
 
---           return 0; -- Return 0 if no matching event is found 
+--           return 0; -- Return 0 if no matching event is found
 --        end Find_Event_Index;
 --     end Priority_Queue;
 
@@ -625,7 +624,6 @@ end Simulation;
 --           <<Continue>>
 --        end loop;
 --     end Path_Planning;
-
 
 --  begin
 --     null;
@@ -755,7 +753,7 @@ end Simulation;
 --                 Index : Integer := (Head + I - 1) mod Queue'Length + 1;
 --              begin
 --                 if Queue (Index).Event_Kind = Event_Kind then
---                    -- Remove this event by shifting subsequent elements leftward 
+--                    -- Remove this event by shifting subsequent elements leftward
 --                    for J in Index .. Tail - 1 loop
 --                       Queue (J) := Queue (J + 1);
 --                    end loop;
@@ -780,7 +778,7 @@ end Simulation;
 --              end;
 --           end loop;
 
---           return 0; -- Return 0 if no matching event is found 
+--           return 0; -- Return 0 if no matching event is found
 --        end Find_Event_Index;
 --     end Priority_Queue;
 
@@ -926,7 +924,6 @@ end Simulation;
 --           end loop;
 --        end loop;
 --     end Path_Planning;
-
 
 --  begin
 --     null;

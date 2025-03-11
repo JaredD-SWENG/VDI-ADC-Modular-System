@@ -133,6 +133,7 @@ package body Path_Planning is
       Processing    : Boolean := False;
    begin
       accept Start;
+      Put_Line ("Path Planning Started");
 
       loop
          select
@@ -156,6 +157,7 @@ package body Path_Planning is
                end Kill;
             else
                if Queue_Manager.Is_Empty then
+                  Put_Line ("Path Planning: No events to process");
                   Processing := False;
                else
                   Queue_Manager.Dequeue (Current_Event);
@@ -165,15 +167,18 @@ package body Path_Planning is
                           Signal_State renames
                           Signal_State (Current_Event.all);
                      begin
-                        Put_Line
-                          ("Processing Event: Signal State - " &
-                           Signal_Color'Image (Signal.Color));
+                        --  Put_Line
+                        --    ("Processing Event: Signal State - " &
+                        --     Signal_Color'Image (Signal.Color));
                         case Signal.Color is
                            when Red =>
+                              null;
                               Put_Line ("Path Planning: Stop");
                            when Yellow =>
+                              null;
                               Put_Line ("Path Planning: Slow");
                            when Green =>
+                              null;
                               Put_Line ("Path Planning: Go");
                         end case;
                      end;
@@ -192,7 +197,7 @@ package body Path_Planning is
                         else
                            Put_Line ("Path Planning: Center");
                         end if;
-                        delay 2.0;
+                        delay 1.0;
                      end;
                   end if;
                end if;

@@ -1,8 +1,8 @@
-with CV_Ada.Graphics;               use CV_Ada.Graphics;
-with CV_Ada.Graphics.Pixel;         use CV_Ada.Graphics.Pixel;
+with CV_Ada.Graphics;                   use CV_Ada.Graphics;
+with CV_Ada.Graphics.Pixel;             use CV_Ada.Graphics.Pixel;
 with Ada.Unchecked_Deallocation;
 with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;                       use Ada.Text_IO;
 
 package body CV_Ada.Hough_Transform is
    ------------------------------------------------------------------------------
@@ -22,19 +22,19 @@ package body CV_Ada.Hough_Transform is
    --   rho (distance) and theta (angle) values. Lines are detected as peaks
    --   in the accumulator, with non-maximal suppression to refine results.
    ------------------------------------------------------------------------------
-procedure Hough_Line_Transform
-     (Input : in out Input_Data;
-      Theta_Resolution : Positive := 180; 
-      Rho_Resolution : Positive := 180)
+   procedure Hough_Line_Transform
+     (Input          : in out Input_Data; Theta_Resolution : Positive := 180;
+      Rho_Resolution :        Positive := 180; Left_Line : out Line_Parameters;
+      Right_Line     :    out Line_Parameters)
    is
       -- Extract necessary parameters from Input.Desc
       Width    : Storage_Count := Input.Desc.Width;
-      Height   : Storage_Count := Input.Desc.Height;     
+      Height   : Storage_Count := Input.Desc.Height;
       Channels : Storage_Count := Input.Desc.Channels;
-      
+
       -- Get direct reference to the data array
       Data : Storage_Array_Access := Input.Data;
-      
+
       -- Calculate maximum possible rho value (image diagonal length)
       Max_Rho : constant Float :=
         Sqrt (Float (Width * Width + Height * Height));
@@ -52,6 +52,10 @@ procedure Hough_Line_Transform
       Min_Line_Length : constant Float    := Float (Width + Height) / 8.0;
       Max_Line_Gap    : constant Float    := Float (Width + Height) / 16.0;
       Angle_Threshold : constant Float    := 10.0 * Deg_To_Rad;
+
+      -- Initialize left and right line parameters
+      Left_Line_Found  : Boolean := False;
+      Right_Line_Found : Boolean := False;
    begin
       -- Initialize accumulator to zero
       for R in Acc'Range (1) loop
@@ -91,8 +95,10 @@ procedure Hough_Line_Transform
               2.0); -- Dynamic threshold
 
          type Line_Info is record
-            Rho, Theta : Float;
-            Votes      : Natural;
+            Rho, Theta     : Float;
+            Votes          : Natural;
+            X1, Y1, X2, Y2 : Integer; -- Store endpoints
+            Slope : Float;           -- Store slope for lane classification
          end record;
 
          -- Array to store detected lines
@@ -100,8 +106,20 @@ procedure Hough_Line_Transform
          Lines      : Line_Array;
          Line_Count : Natural := 0;
 
+         -- Arrays to store left and right lane candidates
+         Left_Lane_Candidates  : Line_Array;
+         Right_Lane_Candidates : Line_Array;
+         Left_Count            : Natural := 0;
+         Right_Count           : Natural := 0;
+
          -- Non-maximal suppression window size
          Window_Size : constant Positive := 5;
+
+         -- Lane angle thresholds (in radians)
+         Left_Lane_Min_Angle  : constant Float := 0.5;  -- ~30 degrees
+         Left_Lane_Max_Angle  : constant Float := 1.3;  -- ~75 degrees
+         Right_Lane_Min_Angle : constant Float := 1.8; -- ~105 degrees
+         Right_Lane_Max_Angle : constant Float := 2.6; -- ~150 degrees
       begin
          -- Identify local maxima in accumulator
          for R in Window_Size + 1 .. Rho_Resolution - Window_Size loop
@@ -125,48 +143,132 @@ procedure Hough_Line_Transform
 
                      -- Store line if it's a local maximum and within max line limit
                      if Is_Maximum and Line_Count < Max_Lines then
-                        Line_Count         := Line_Count + 1;
-                        Lines (Line_Count) :=
-                          (Rho   => (Float (R) / Rho_Scale) - Max_Rho,
-                           Theta => Float (T - 1) * Deg_To_Rad,
-                           Votes => Acc (R, T));
+                        declare
+                           Theta          : constant Float :=
+                             Float (T - 1) * Deg_To_Rad;
+                           Rho            : constant Float :=
+                             (Float (R) / Rho_Scale) - Max_Rho;
+                           X1, Y1, X2, Y2 : Integer;
+                           Line_Slope     : Float;
+                        begin
+                           -- Calculate endpoints of each line based on rho and theta
+                           if abs (Sin (Theta)) < 0.001 then
+                              X1         := Integer (Rho);
+                              X2         := X1;
+                              Y1         := 1;
+                              Y2         := Integer (Height);
+                              Line_Slope := Float'Last; -- Vertical line
+                           elsif abs (Cos (Theta)) < 0.001 then
+                              Y1         := Integer (Rho);
+                              Y2         := Y1;
+                              X1         := 1;
+                              X2         := Integer (Width);
+                              Line_Slope := 0.0; -- Horizontal line
+                           else
+                              X1 := 1;
+                              Y1 :=
+                                Integer
+                                  ((Rho - Float (X1) * Cos (Theta)) /
+                                   Sin (Theta));
+                              X2 := Integer (Width);
+                              Y2 :=
+                                Integer
+                                  ((Rho - Float (X2) * Cos (Theta)) /
+                                   Sin (Theta));
+
+                              -- Calculate slope
+                              if X2 /= X1 then
+                                 Line_Slope :=
+                                   Float (Y2 - Y1) / Float (X2 - X1);
+                              else
+                                 Line_Slope := Float'Last;
+                              end if;
+                           end if;
+
+                           -- Only consider lines with reasonable slopes for lanes
+                           -- Classify as left or right lane based on angle
+                           if Theta >= Left_Lane_Min_Angle and
+                             Theta <= Left_Lane_Max_Angle and Line_Slope < 0.0
+                           then -- Left lane (negative slope)
+                              Left_Count := Left_Count + 1;
+                              Left_Lane_Candidates (Left_Count) :=
+                                (Rho   => Rho, Theta => Theta,
+                                 Votes => Acc (R, T), X1 => X1, Y1 => Y1,
+                                 X2    => X2, Y2 => Y2, Slope => Line_Slope);
+                           elsif Theta >= Right_Lane_Min_Angle and
+                             Theta <= Right_Lane_Max_Angle and Line_Slope > 0.0
+                           then -- Right lane (positive slope)
+                              Right_Count := Right_Count + 1;
+                              Right_Lane_Candidates (Right_Count) :=
+                                (Rho   => Rho, Theta => Theta,
+                                 Votes => Acc (R, T), X1 => X1, Y1 => Y1,
+                                 X2    => X2, Y2 => Y2, Slope => Line_Slope);
+                           end if;
+
+                           -- Also store in general lines array for drawing
+                           Line_Count         := Line_Count + 1;
+                           Lines (Line_Count) :=
+                             (Rho => Rho, Theta => Theta, Votes => Acc (R, T),
+                              X1    => X1, Y1 => Y1, X2 => X2, Y2 => Y2,
+                              Slope => Line_Slope);
+                        end;
                      end if;
                   end;
                end if;
             end loop;
          end loop;
 
-         -- Draw detected lines on the image
-         for I in 1 .. Line_Count loop
-            declare
-               Theta          : constant Float := Lines (I).Theta;
-               Rho            : constant Float := Lines (I).Rho;
-               X1, Y1, X2, Y2 : Integer;
-            begin
-               -- Calculate endpoints of each line based on rho and theta
-               if abs (Sin (Theta)) < 0.001 then
-                  X1 := Integer (Rho);
-                  X2 := X1;
-                  Y1 := 1;
-                  Y2 := Integer (Height);
-               elsif abs (Cos (Theta)) < 0.001 then
-                  Y1 := Integer (Rho);
-                  Y2 := Y1;
-                  X1 := 1;
-                  X2 := Integer (Width);
-               else
-                  X1 := 1;
-                  Y1 :=
-                    Integer ((Rho - Float (X1) * Cos (Theta)) / Sin (Theta));
-                  X2 := Integer (Width);
-                  Y2 :=
-                    Integer ((Rho - Float (X2) * Cos (Theta)) / Sin (Theta));
+         -- Find best left and right lane lines (highest vote count)
+         declare
+            Best_Left_Votes  : Natural := 0;
+            Best_Right_Votes : Natural := 0;
+         begin
+            -- Find best left lane
+            for I in 1 .. Left_Count loop
+               if Left_Lane_Candidates (I).Votes > Best_Left_Votes then
+                  Best_Left_Votes := Left_Lane_Candidates (I).Votes;
+                  Left_Line       :=
+                    (Rho   => Left_Lane_Candidates (I).Rho,
+                     Theta => Left_Lane_Candidates (I).Theta,
+                     X1    => Left_Lane_Candidates (I).X1,
+                     Y1    => Left_Lane_Candidates (I).Y1,
+                     X2    => Left_Lane_Candidates (I).X2,
+                     Y2    => Left_Lane_Candidates (I).Y2);
+                  Left_Line_Found := True;
                end if;
+            end loop;
 
-               -- Draw line on the image
-               Draw_Line (Data.all, X1, Y1, X2, Y2, Width, Height, Channels);
-            end;
-         end loop;
+            -- Find best right lane
+            for I in 1 .. Right_Count loop
+               if Right_Lane_Candidates (I).Votes > Best_Right_Votes then
+                  Best_Right_Votes := Right_Lane_Candidates (I).Votes;
+                  Right_Line       :=
+                    (Rho   => Right_Lane_Candidates (I).Rho,
+                     Theta => Right_Lane_Candidates (I).Theta,
+                     X1    => Right_Lane_Candidates (I).X1,
+                     Y1    => Right_Lane_Candidates (I).Y1,
+                     X2    => Right_Lane_Candidates (I).X2,
+                     Y2    => Right_Lane_Candidates (I).Y2);
+                  Right_Line_Found := True;
+               end if;
+            end loop;
+         end;
+
+         Draw_Line
+           (Data.all, Left_Line.X1, Left_Line.Y1, Left_Line.X2, Left_Line.Y2,
+            Width, Height, Channels);
+         Draw_Line
+           (Data.all, Right_Line.X1, Right_Line.Y1, Right_Line.X2,
+            Right_Line.Y2, Width, Height, Channels);
+
+         --  -- Draw detected lines on the image
+         --  for I in 1 .. Line_Count loop
+         --     -- Draw line on the image
+         --     Draw_Line(Data.all,
+         --               Lines(I).X1, Lines(I).Y1,
+         --               Lines(I).X2, Lines(I).Y2,
+         --               Width, Height, Channels);
+         --  end loop;
       end;
 
       -- Free accumulator memory to prevent leaks
@@ -178,7 +280,6 @@ procedure Hough_Line_Transform
          Free_Acc (Temp);
       end;
    end Hough_Line_Transform;
-
 
    ------------------------------------------------------------------------------
    -- Hough_Circle_Transform
@@ -195,23 +296,21 @@ procedure Hough_Line_Transform
    --   Max_Circles - Maximum number of circles to detect (default 10)
    --
    -- Description:
-   --   This procedure uses a 3D accumulator to identify circles by voting on 
-   --   potential center coordinates (x, y) and radius (r). Circles are detected 
-   --   as peaks in the accumulator, with non-maximal suppression to refine results. 
+   --   This procedure uses a 3D accumulator to identify circles by voting on
+   --   potential center coordinates (x, y) and radius (r). Circles are detected
+   --   as peaks in the accumulator, with non-maximal suppression to refine results.
    --   The detected circles are drawn onto the image.
    ------------------------------------------------------------------------------
-procedure Hough_Circle_Transform
-     (Input      : in out Input_Data;
-      Min_Radius : Storage_Count;
-      Max_Radius : Storage_Count;
-      Threshold  : Natural;
-      Max_Circles : Positive := 10)
+   procedure Hough_Circle_Transform
+     (Input       : in out Input_Data; Min_Radius : Storage_Count;
+      Max_Radius  :        Storage_Count; Threshold : Natural;
+      Max_Circles :        Positive := 10)
    is
       -- Extract necessary parameters from Input.Desc
-      Width    : constant Storage_Count := Storage_Count(Input.Desc.Width);
-      Height   : constant Storage_Count := Storage_Count(Input.Desc.Height);
-      Channels : constant Storage_Count := Storage_Count(Input.Desc.Channels);
-      
+      Width    : constant Storage_Count := Storage_Count (Input.Desc.Width);
+      Height   : constant Storage_Count := Storage_Count (Input.Desc.Height);
+      Channels : constant Storage_Count := Storage_Count (Input.Desc.Channels);
+
       -- Get direct reference to the data array
       Data : Storage_Array_Access := Input.Data;
 
@@ -228,17 +327,17 @@ procedure Hough_Circle_Transform
         (others => (others => (others => 0)));
 
       Circles : Circle_Array_Access := new Circle_Array (1 .. Max_Circles);
-      Circle_Count : Natural := 0;
+      Circle_Count : Natural             := 0;
 
       Angle_Steps : constant := 360;
       Deg_To_Rad  : constant := Ada.Numerics.Pi / 180.0;
 
    begin
-      Put_Line("Vo");
+      Put_Line ("Vo");
       -- Voting process
       for Y in 1 .. Height loop
          for X in 1 .. Width loop
-            if Data(((Y - 1) * Width * Channels + (X - 1)) * Channels + 1) > 0
+            if Data (((Y - 1) * Width * Channels + (X - 1)) * Channels + 1) > 0
             then
                for R in Min_Radius .. Max_Radius loop
                   for Theta in 0 .. Angle_Steps - 1 loop
@@ -371,12 +470,12 @@ procedure Hough_Circle_Transform
                            (Storage_Count (X) - 1)) *
                           Channels;
                      begin
-                        Data(Base_Index + 1) := 0;      -- Red channel
-                        Data(Base_Index + 2) := 100;    -- Green channel
-                        Data(Base_Index + 3) := 255;    -- Blue channel
+                        Data (Base_Index + 1) := 0;      -- Red channel
+                        Data (Base_Index + 2) := 100;    -- Green channel
+                        Data (Base_Index + 3) := 255;    -- Blue channel
                         -- Preserve alpha channel if it exists
                         if Channels = 4 then
-                           Data(Base_Index + 4) := Data(Base_Index + 4);
+                           Data (Base_Index + 4) := Data (Base_Index + 4);
                         end if;
                      end;
                   end if;
@@ -391,14 +490,11 @@ procedure Hough_Circle_Transform
            (Object => Circle_Array, Name => Circle_Array_Access);
          Temp_Circles : Circle_Array_Access := Circles;
       begin
-         Free_Circles(Temp_Circles);
+         Free_Circles (Temp_Circles);
       end;
    end Hough_Circle_Transform;
 
-
 end CV_Ada.Hough_Transform;
-
-
 
 --  with CV_Ada.Graphics;               use CV_Ada.Graphics;
 --  with CV_Ada.Graphics.Pixel;         use CV_Ada.Graphics.Pixel;
@@ -586,9 +682,9 @@ end CV_Ada.Hough_Transform;
 --     --   Max_Circles - Maximum number of circles to detect (default 10)
 --     --
 --     -- Description:
---     --   This procedure uses a 3D accumulator to identify circles by voting on 
---     --   potential center coordinates (x, y) and radius (r). Circles are detected 
---     --   as peaks in the accumulator, with non-maximal suppression to refine results. 
+--     --   This procedure uses a 3D accumulator to identify circles by voting on
+--     --   potential center coordinates (x, y) and radius (r). Circles are detected
+--     --   as peaks in the accumulator, with non-maximal suppression to refine results.
 --     --   The detected circles are drawn onto the image.
 --     ------------------------------------------------------------------------------
 --     procedure Hough_Circle_Transform
