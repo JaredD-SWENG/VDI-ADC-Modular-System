@@ -1,4 +1,5 @@
 with Ada.Real_Time; use Ada.Real_Time;
+with STM32.Board;
 
 package body Motor is
    Period  : constant Time_Span := Milliseconds (System_Config.Motor_Period);
@@ -38,14 +39,24 @@ package body Motor is
    task body Motor_Task is
       Next_Release  : Time := Clock;
    begin
+      STM32.Board.Initialize_LEDs;
+      
       loop
+
+         STM32.Board.Turn_On (STM32.Board.Red_LED);
+         
          --PWM_Control.Set (Get_Speed_Motor_1.Get_Speed);
+         Next_Release := Next_Release + Period;
+         delay until Next_Release;
+
+         STM32.Board.Turn_Off (STM32.Board.Red_LED);
          Next_Release := Next_Release + Period;
          delay until Next_Release;
       end loop;
    end Motor_Task;
 
    procedure Init is
+      Next_Release  : Time := Clock;
    begin
       null;
    end Init;

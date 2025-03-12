@@ -9,7 +9,7 @@ procedure Main is
    Next_Release  : Time := Clock;
    Speed : Integer := 0;
 begin
-   Uart.Init;
+   --Uart.Init;
    Motor.Init;
    loop
       Speed := (if Uart.Emergency_Stop then 0 else Uart.Get_Speed_Cmd);
