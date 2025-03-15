@@ -55,6 +55,7 @@ package body Lane_Detection is
    end Calculate_Intersection;
 
    task body Lane_Detection_Task is
+      Event_Priority        : Event_Types.Priority_Level;
       Offset_Value          : Float;
       Left_Line, Right_Line : CV_Ada.Hough_Transform.Line_Parameters;
 
@@ -63,22 +64,28 @@ package body Lane_Detection is
       Intersection_Point : Point;
       Image_Center       : Integer;
 
-      CAMERA_PATH : constant String := "../camera/frames_folder/";
    begin
-      accept Start;
-      Put_Line ("Lane Detection Started");
+      accept Start (Priority : Event_Types.Priority_Level := 1) do
+         Event_Priority := Priority;
+      end Start;
 
-      -- Initialize the simulated camera with the folder path containing QOI frames
-      Camera.Initialize (CAMERA_PATH);
-      --  Camera.Set_Frame_End_Index (50);
+      Put_Line
+        ("Lane Detection Started with Priority:" &
+         Event_Types.Priority_Level'Image (Event_Priority));
 
-      while Camera.Get_Frame_Index < Camera.Get_Frame_End_Index loop
+      loop
          declare
-            Input : CV_Ada.Input_Data := CV_Ada.IO_Operations.Load_QOI (Camera.Get_Next_Frame_Path (True));
+            Current_Frame_Path : String            :=
+              Camera.Get_Next_Frame_Path ("Lane_Detection", False);
+            Input              : CV_Ada.Input_Data :=
+              CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path);
          begin
+            if Current_Frame_Path = "" then
+               exit; -- No more frames
+            end if;
             -- Apply region of interest to focus on the lower half of the image
             CV_Ada.Basic_Transformations.Region_Of_Interest
-               (Input, Input.Desc.Width / 4 + 1, Input.Desc.Height / 3 + 1,
+              (Input, Input.Desc.Width / 4 + 1, Input.Desc.Height / 3 + 1,
                3 * Input.Desc.Width / 4, 2 * Input.Desc.Height / 3);
 
             -- Convert to grayscale first
@@ -86,11 +93,11 @@ package body Lane_Detection is
 
             -- Apply Canny edge detection
             CV_Ada.Edge_Detection.Canny_Edge_Detection
-               (Input, Low_Threshold => 0.1, High_Threshold => 0.15);
+              (Input, Low_Threshold => 0.1, High_Threshold => 0.15);
 
             -- Apply Hough Transform to detect lines
             CV_Ada.Hough_Transform.Hough_Line_Transform
-               (Input, Left_Line => Left_Line, Right_Line => Right_Line);
+              (Input, Left_Line => Left_Line, Right_Line => Right_Line);
 
             -- Calculate image center (horizontal midpoint)
             Image_Center := Integer (Input.Desc.Width) / 2;
@@ -98,19 +105,20 @@ package body Lane_Detection is
             -- Calculate intersection of left and right lane lines
             if Left_Line.X1 /= 0 and Right_Line.X1 /= 0 then
                Intersection_Point :=
-                  Calculate_Intersection
-                     (Left_Line.X1, Left_Line.Y1, Left_Line.X2, Left_Line.Y2,
-                     Right_Line.X1, Right_Line.Y1, Right_Line.X2, Right_Line.Y2,
-                     Intersection_Found);
+                 Calculate_Intersection
+                   (Left_Line.X1, Left_Line.Y1, Left_Line.X2, Left_Line.Y2,
+                    Right_Line.X1, Right_Line.Y1, Right_Line.X2, Right_Line.Y2,
+                    Intersection_Found);
 
                -- Calculate offset from center
                if Intersection_Found then
                   -- Calculate offset as distance from center (positive = right, negative = left)
                   Offset_Value :=
-                     Float (Intersection_Point.X - Image_Center) /
-                     Float (Image_Center);
+                    Float (Intersection_Point.X - Image_Center) /
+                    Float (Image_Center);
                   -- Normalize to -1.0 to 1.0 range
-                  Offset_Value := Float'Min (Float'Max (Offset_Value, -1.0), 1.0);
+                  Offset_Value :=
+                    Float'Min (Float'Max (Offset_Value, -1.0), 1.0);
                else
                   -- Fallback if no intersection found
                   Offset_Value := 0.0;
@@ -125,19 +133,24 @@ package body Lane_Detection is
 
             -- WRITE OUTPUT TO FILE
             declare
-               Output      : CV_Ada.Storage_Array_Access := new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+               Output      : CV_Ada.Storage_Array_Access :=
+                 new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
                Output_Size : Storage_Count;
             begin
-               QOI.Encode (Input.Data.all, Input.Desc, Output.all, Output_Size);
-               CV_Ada.IO_Operations.Write_To_File ("output.qoi", Output, Output_Size);
+               QOI.Encode
+                 (Input.Data.all, Input.Desc, Output.all, Output_Size);
+               CV_Ada.IO_Operations.Write_To_File
+                 ("output.qoi", Output, Output_Size);
             end;
 
             Queue_Manager.Enqueue
-               (new Offset'
-                  (Event_Kind => Offset_Event,
-                  Value      =>
-                     Offset_Value)); -- For some reason, path planning is not receiving the offset event
-            --Put_Line ("Lane Detection Offset: " & Float'Image (Offset_Value));
+              (new Offset'
+                 (Event_Kind => Offset_Event, Priority => Event_Priority,
+                  Value      => Offset_Value));
+            Queue_Manager.PrintQueue;
+            -- For some reason, path planning is not receiving the offset event
+            Put_Line ("Lane Detection Offset: " & Float'Image (Offset_Value));
+            delay 0.1;
          end;
       end loop;
    end Lane_Detection_Task;

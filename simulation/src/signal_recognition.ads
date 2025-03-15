@@ -1,5 +1,7 @@
+with Event_Types; use Event_Types;
+
 package Signal_Recognition is
    task Signal_Recognition_Task is
-      entry Start;
+      entry Start (Priority : Event_Types.Priority_Level := 1);
    end Signal_Recognition_Task;
 end Signal_Recognition;
