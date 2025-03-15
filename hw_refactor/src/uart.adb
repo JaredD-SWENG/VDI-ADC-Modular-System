@@ -104,13 +104,15 @@ package body Uart is
           AF_Speed       => STM32.GPIO.Speed_50MHz));
 
       USART_1.Set_Baud_Rate (115_200);
-      USART_1.Set_Word_Length (Word_Length_8);
-      USART_1.Set_Stop_Bits (Stopbits_1);
-      USART_1.Set_Parity (No_Parity);
-      USART_1.Set_Mode (Tx_Rx_Mode);
-      USART_1.Set_Flow_Control (No_Flow_Control);
-      USART_1.Set_Oversampling_Mode (Oversampling_By_16);
       USART_1.Enable;
+
+      --  USART_1.Set_Word_Length (Word_Length_8);
+      --  USART_1.Set_Stop_Bits (Stopbits_1);
+      --  USART_1.Set_Parity (No_Parity);
+      --  USART_1.Set_Mode (Tx_Rx_Mode);
+      --  USART_1.Set_Flow_Control (No_Flow_Control);
+      --  USART_1.Set_Oversampling_Mode (Oversampling_By_16);
+      --  USART_1.Enable;
       --  HAL.Init (USART_1);
       --  Configure (USART_1, Baud_Rate => 115_200);
       USART_1.Transmit (UInt9 (Character'Pos ('H')));

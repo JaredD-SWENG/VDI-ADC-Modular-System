@@ -1,0 +1,17 @@
+name = "pwm_control"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["Kevin Fox"]
+maintainers = ["Kevin Fox <kpf5297@psu.edu>"]
+maintainers-logins = ["kpf5297"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+[[depends-on]]
+stm32f429disco = "0.1.0"
+stm32_gui = "0.1.0"
+
+[[pins]]
+gnat_arm_elf = "12.2.1"
