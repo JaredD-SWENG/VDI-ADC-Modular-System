@@ -12,7 +12,7 @@ project Stm32f429_Command is
    for Object_Dir use "obj/" & Stm32f429_Command_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("stm32f429_command.adb");
+   for Main use ("main.adb");
 
    package Compiler is
       for Default_Switches ("Ada") use Stm32f429_Command_Config.Ada_Compiler_Switches;

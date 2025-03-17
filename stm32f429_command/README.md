@@ -22,6 +22,13 @@ ls ~/.local/share/alire/toolchains/gnat_arm_elf_13.1.0*/arm-eabi/lib/gnat/
 ```Bash
 rm -rf ~/.local/share/alire/toolchains/gnat_arm_elf_12.2.1*
 ```
+### Write to STM32
+```Bash
+openocd -f "C:/xpack-openocd-0.12.0-4/openocd/scripts/board/stm32f429disc1.cfg" -c "program C:/Code/VDI-ADC-Modular-System/pwm_control/bin/main verify reset exit"
+
+openocd -f "/opt/homebrew/share/openocd/scripts/board/stm32f429discovery.cfg" -c "program /Users/kevinfox/Code/VDI-ADC-Modular-System/stm32f429_command/bin/main verify reset exit"
+```
+
 
    -- Hardware constants (board-specific)
    Baud_Rate    : constant := 115200;  -- UART baud rate for command interface
