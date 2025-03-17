@@ -120,28 +120,24 @@ package body Uart is
    task body Uart_Task is
       Next_Release : Time := Clock;
    begin
-      Init;
+      --  Init;
       loop
-         --  declare
-         --     Cmd : Command := Read_Uart;
-         --  begin
-         --     if Cmd.Cmd = Set_Speed then
-         --        Uart1.Set_Speed (Cmd.Speed);
-         --     elsif Cmd.Cmd = Emergency_Stop then
-         --        Uart1.Set_Emergency_Stop (Cmd.State);
-         --     end if;
-         --  end;
-         STM32.Board.Turn_On (Green_LED);
+         declare
+            Cmd : Command := Read_Uart;
+         begin
+            if Cmd.Cmd = Set_Speed then
+               Uart1.Set_Speed (Cmd.Speed);
+            elsif Cmd.Cmd = Emergency_Stop then
+               Uart1.Set_Emergency_Stop (Cmd.State);
+            end if;
+         end;
 
-         Next_Release := Next_Release + Milliseconds (100);
-         delay until Next_Release;
-
-
-         STM32.Board.Turn_Off (Green_LED);
-         Next_Release := Next_Release + Milliseconds (100);
-         delay until Next_Release;
-
-
+         --  STM32.Board.Turn_On (Green_LED);
+         --  Next_Release := Next_Release + Milliseconds (100);
+         --  delay until Next_Release;
+         --  STM32.Board.Turn_Off (Green_LED);
+         --  Next_Release := Next_Release + Milliseconds (100);
+         --  delay until Next_Release;
       end loop;
    end Uart_Task;
 
