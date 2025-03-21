@@ -1,21 +1,33 @@
-with Uart;
-with Motor;
--- with UI;
+with Uart; use Uart;
+--with Motor;
+--with Steering;
+with STM32.Board;
 
 with Ada.Real_Time; use Ada.Real_Time;
 
 procedure Main is
-   Period  : constant Time_Span := Milliseconds (200);
+   Period  : constant Time_Span := Milliseconds (10);
    Next_Release  : Time := Clock;
-   Speed : Integer := 0;
+   C : Uart.Cmd;
 begin
-   --Uart.Init;
-   Motor.Init;
+   STM32.Board.Initialize_LEDs;
    loop
-      Speed := (if Uart.Emergency_Stop then 0 else Uart.Get_Speed_Cmd);
-      Motor.Set_Speed_Motor_1 (Speed);
-
-      -- UI.Update (Encoder.Get_Speed_Motor_1);
+      C := Uart.Get_Command;
+      case (C) is
+         when center | left | right => 
+            --  Steering.Set_Command(Cmd);
+            null;
+         when go =>
+            STM32.Board.Turn_Off (STM32.Board.Red_LED);
+            STM32.Board.Turn_On (STM32.Board.Green_LED);
+            --  Motor.Set_Command(Cmd);
+         when stop =>
+            STM32.Board.Turn_On (STM32.Board.Red_LED);
+            STM32.Board.Turn_Off (STM32.Board.Green_LED);
+            --  Motor.Set_Command(Cmd);
+         when undefined => 
+            null;
+      end case;
 
       Next_Release := Next_Release + Period;
       delay until Next_Release;

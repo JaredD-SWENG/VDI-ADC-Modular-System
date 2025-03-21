@@ -5,5 +5,5 @@ package System_Config is
    Uart_Priority  : constant Priority := Steering_Priority + 1;
    Motor_Period : constant := 1000;
    Steering_Period : constant := 1000;
-   Uart_Period  : constant := 100;
+   Uart_Period  : constant := 10;
 end System_Config;

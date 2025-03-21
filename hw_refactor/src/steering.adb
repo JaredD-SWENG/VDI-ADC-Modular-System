@@ -3,6 +3,7 @@ with System_Config;
 with STM32.Device;  use STM32.Device;
 with STM32.GPIO;    use STM32.GPIO;
 with STM32.Timers;  use STM32.Timers;
+with STM32.Board;
 
 package body Steering is
    Period : constant Time_Span := Milliseconds(System_Config.Steering_Period);
@@ -41,7 +42,6 @@ package body Steering is
    task body Steering_Task is 
       Next_Release : Time := Clock;
    begin
-
       loop
          --
          Next_Release := Next_Release + Period;
