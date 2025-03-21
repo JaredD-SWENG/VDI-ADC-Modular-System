@@ -18,7 +18,7 @@ package Camera is
    procedure Initialize (Folder_Path : String; Path_Pattern : String := "frame_*.qoi");
    
    -- Get the path to the current frame
-   function Get_Next_Frame_Path (Module_Name : String := ""; Log : Boolean := False) return String;
+   function Get_Next_Frame_Path (Module_Name : String := ""; Prefix : String := "frame_"; Log : Boolean := False) return String;
    
 private
    -- Private variables for internal state

@@ -34,10 +34,8 @@ package body Signal_Recognition is
 
       loop
          declare
-            Current_Frame_Path : String            :=
-              Camera.Get_Next_Frame_Path ("Signal_Recognition", False);
-            Input              : CV_Ada.Input_Data :=
-              CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path);
+            Current_Frame_Path : String            := Camera.Get_Next_Frame_Path ("Signal_Recognition");
+            Input              : CV_Ada.Input_Data := CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path);
          begin
             -- Apply region of interest to focus on the lower half of the image
             CV_Ada.Basic_Transformations.Region_Of_Interest
@@ -58,14 +56,12 @@ package body Signal_Recognition is
             Signal_Value := Signal_Generator.Random (S_Gen);
             -- WRITE OUTPUT TO FILE
             declare
-               Output      : CV_Ada.Storage_Array_Access :=
-                 new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+               Output      : CV_Ada.Storage_Array_Access := new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
                Output_Size : Storage_Count;
             begin
-               QOI.Encode
-                 (Input.Data.all, Input.Desc, Output.all, Output_Size);
-               CV_Ada.IO_Operations.Write_To_File
-                 ("output2.qoi", Output, Output_Size);
+               QOI.Encode (Input.Data.all, Input.Desc, Output.all, Output_Size);
+               CV_Ada.IO_Operations.Write_To_File ("output2.qoi", Output, Output_Size);
+               CV_Ada.Free_Storage_Array (Output);
             end;
 
             Queue_Manager.Enqueue
@@ -76,6 +72,9 @@ package body Signal_Recognition is
             Put_Line
               ("Signal Recognition State: " &
                Signal_Color'Image (Signal_Value));
+            
+            --  CV_Ada.Free_Input_Data (Input);
+            CV_Ada.Free_Storage_Array (Input.Data);
             delay 0.1;
          end;
       end loop;

@@ -92,7 +92,7 @@ package body Camera is
 
    -- Modify Get_Next_Frame_Path to use the global frame index
    function Get_Next_Frame_Path
-     (Module_Name : String := ""; Log : Boolean := False) return String
+     (Module_Name : String := ""; Prefix : String := "frame_"; Log : Boolean := False) return String
    is
       Current_Frame : Integer                := Integer (Current_Global_Frame);
       D_Places      : constant Integer       := Max_Frames'Image'Length;
@@ -102,7 +102,7 @@ package body Camera is
       Formatted_Str : String (1 .. D_Places) :=
         (1 .. Last_Zero => '0') & Formatted_Nbr;
       Frame_Path    : String                 :=
-        To_String (Folder_Path_Unbounded) & "\frame_" & Formatted_Str & ".qoi";
+        To_String (Folder_Path_Unbounded) & "\" & Prefix & Formatted_Str & ".qoi";
    begin
       if Log then
          if Module_Name /= "" then
