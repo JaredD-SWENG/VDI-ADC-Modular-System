@@ -9,8 +9,9 @@ with CV_Ada;      use CV_Ada;
 with Host_Serial; use Host_Serial;
 
 procedure Simulation is
+   CAMERA_PATH : constant String := "..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder";
 begin
-   Simulated_Camera.Start ("..\camera\frames_folder");
+   Simulated_Camera.Start (CAMERA_PATH);
    Lane_Detection.Lane_Detection_Task.Start (Priority => 1);
    Signal_Recognition.Signal_Recognition_Task.Start (Priority => 2);
    Path_Planning.Path_Planning_Task.Start;

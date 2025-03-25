@@ -27,14 +27,13 @@ package body CV_Ada.Colorspace is
       --  Desc       : QOI.QOI_Desc           := Input.Desc;
       --  Pixel_Size : constant Storage_Count := Storage_Count (Desc.Channels);
 
-      Data       : CV_Ada.Storage_Array_Access := new Storage_Array(1 .. Input.Data.all'Length);
+      Data       : Storage_Array_Access        := Input.Data;
       Desc       : QOI.QOI_Desc                := Input.Desc;
       Pixel_Size : constant Storage_Count      := Storage_Count (Desc.Channels);
 
       -- Calculated grayscale value for current pixel
       Gray_Value : Storage_Element;
    begin
-      Data.all := Input.Data.all;
       --Process each pixel (skipping to start of each pixel using mod)
       for I in Data'First .. Data'Last - (Pixel_Size - 1) loop
          if (I - Data'First) mod Pixel_Size = 0 then
@@ -57,7 +56,6 @@ package body CV_Ada.Colorspace is
             end if;
          end if;
       end loop;
-      Input.Data.all := Data.all; -- Should we unreference the data?
    end Convert_To_Grayscale;
 
    --  procedure Convert_To_Grayscale

@@ -75,10 +75,8 @@ package body Lane_Detection is
 
       loop
          declare
-            Current_Frame_Path : String            :=
-              Camera.Get_Next_Frame_Path ("Lane_Detection", False);
-            Input              : CV_Ada.Input_Data :=
-              CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path);
+            Current_Frame_Path : String            := Camera.Get_Next_Frame_Path ("Lane_Detection");
+            Input              : CV_Ada.Input_Data := CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path);
          begin
             if Current_Frame_Path = "" then
                exit; -- No more frames
@@ -92,12 +90,10 @@ package body Lane_Detection is
             CV_Ada.Colorspace.Convert_To_Grayscale (Input);
 
             -- Apply Canny edge detection
-            CV_Ada.Edge_Detection.Canny_Edge_Detection
-              (Input, Low_Threshold => 0.1, High_Threshold => 0.15);
+            CV_Ada.Edge_Detection.Canny_Edge_Detection (Input, Low_Threshold => 0.1, High_Threshold => 0.15);
 
             -- Apply Hough Transform to detect lines
-            CV_Ada.Hough_Transform.Hough_Line_Transform
-              (Input, Left_Line => Left_Line, Right_Line => Right_Line);
+            CV_Ada.Hough_Transform.Hough_Line_Transform (Input, Left_Line => Left_Line, Right_Line => Right_Line);
 
             -- Calculate image center (horizontal midpoint)
             Image_Center := Integer (Input.Desc.Width) / 2;
@@ -133,14 +129,12 @@ package body Lane_Detection is
 
             -- WRITE OUTPUT TO FILE
             declare
-               Output      : CV_Ada.Storage_Array_Access :=
-                 new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
+               Output      : CV_Ada.Storage_Array_Access := new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
                Output_Size : Storage_Count;
             begin
-               QOI.Encode
-                 (Input.Data.all, Input.Desc, Output.all, Output_Size);
-               CV_Ada.IO_Operations.Write_To_File
-                 ("output.qoi", Output, Output_Size);
+               QOI.Encode (Input.Data.all, Input.Desc, Output.all, Output_Size);
+               CV_Ada.IO_Operations.Write_To_File ("output.qoi", Output, Output_Size);
+               CV_Ada.Free_Storage_Array (Output);
             end;
 
             Queue_Manager.Enqueue
@@ -150,6 +144,9 @@ package body Lane_Detection is
             Queue_Manager.PrintQueue;
             -- For some reason, path planning is not receiving the offset event
             Put_Line ("Lane Detection Offset: " & Float'Image (Offset_Value));
+            
+            --  CV_Ada.Free_Input_Data (Input);
+            CV_Ada.Free_Storage_Array (Input.Data);
             delay 0.1;
          end;
       end loop;
