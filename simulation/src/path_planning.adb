@@ -50,16 +50,17 @@ package body Path_Planning is
                            when Red =>
                               null;
                               Put_Line ("Path Planning: Stop");
-                              -- Send_Command(stop);
+                              Send_Command(stop);
                            when Yellow =>
                               null;
                               Put_Line ("Path Planning: Slow");
-                              -- Send_Command(stop);
+                              Send_Command(stop);
                            when Green =>
                               null;
                               Put_Line ("Path Planning: Go");
-                              -- Send_Command(go);
+                              Send_Command(go);
                         end case;
+                        delay 0.1;
                      end;
                   elsif Current_Event.all in Offset'Class then
                      declare
@@ -71,12 +72,15 @@ package body Path_Planning is
                            Float'Image (Lane_Offset.Value));
                         if Lane_Offset.Value < 0.0 then
                            Put_Line ("Path Planning: Turn Right");
+                           Send_Command(right);
                         elsif Lane_Offset.Value > 0.0 then
                            Put_Line ("Path Planning: Turn Left");
+                           Send_Command(left);
                         else
                            Put_Line ("Path Planning: Center");
+                           Send_Command(center);
                         end if;
-                        delay 1.0;
+                        delay 0.1;
                      end;
                   end if;
                end if;
