@@ -50,15 +50,15 @@ package body Path_Planning is
                            when Red =>
                               null;
                               Put_Line ("Path Planning: Stop");
-                              Send_Command(stop);
+                              -- Send_Command(stop);
                            when Yellow =>
                               null;
                               Put_Line ("Path Planning: Slow");
-                              Send_Command(stop);
+                              -- Send_Command(stop);
                            when Green =>
                               null;
                               Put_Line ("Path Planning: Go");
-                              Send_Command(go);
+                              -- Send_Command(go);
                         end case;
                      end;
                   elsif Current_Event.all in Offset'Class then
