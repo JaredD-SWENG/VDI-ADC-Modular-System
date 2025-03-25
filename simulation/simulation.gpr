@@ -1,6 +1,7 @@
 with "config/simulation_config.gpr";
 with "../cv_ada/cv_ada.gpr"; -- To reference all library functions
 with "../camera/camera.gpr"; -- To reference all camera functions
+with "../host_serial/host_serial.gpr"; -- To reference all host serial functions
 with "qoi.gpr";
 
 project Simulation is

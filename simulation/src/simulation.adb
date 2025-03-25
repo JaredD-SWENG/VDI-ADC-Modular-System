@@ -4,8 +4,9 @@ with Signal_Recognition;
 with Lane_Detection;
 with Path_Planning;
 with Event_Broker;
-with Camera; use Camera;
-with CV_Ada; use CV_Ada;
+with Camera;      use Camera;
+with CV_Ada;      use CV_Ada;
+with Host_Serial; use Host_Serial;
 
 procedure Simulation is
 begin
