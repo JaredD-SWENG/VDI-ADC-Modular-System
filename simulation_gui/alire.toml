@@ -1,23 +1,21 @@
-name = "simulation"
+name = "simulation_gui"
 description = ""
 version = "0.1.0-dev"
 
-authors = ["Jared"]
-maintainers = ["Jared <example@example.com>"]
+authors = ["Haris"]
+maintainers = ["Haris <example@example.com>"]
 maintainers-logins = ["github-username"]
 licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
 website = ""
 tags = []
 
-executables = ["simulation"]
+executables = ["simulation_gui"]
 
 [build-switches]
 "*".style_checks = "No" # I swear to god I cannot stand this on
 
-[[pins]]
-cv_ada = { path='../cv_ada' }
-camera = { path='../camera' }
-# simulation_gui = { path='../simulation_gui' }
-
 [[depends-on]]
 gtkada = "^24.0.1"
+
+[[pins]]
+cv_ada = { path='../cv_ada' }

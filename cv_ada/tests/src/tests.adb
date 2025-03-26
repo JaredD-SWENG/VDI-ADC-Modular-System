@@ -44,7 +44,7 @@ begin
    end if;
 
    declare
-      Output           : Storage_Array (1 .. QOI.Encode_Worst_Case (Input1.Desc));
+      Output           : CV_Ada.Storage_Array_Access := new Storage_Array (1 .. QOI.Encode_Worst_Case (Input1.Desc));
       Output_Size      : Storage_Count;
       Difference_Count : Integer          := 0;
       Index            : Storage_Offset   := 1;
@@ -103,7 +103,7 @@ begin
          Put_Line ("%");
       end if;
 
-      QOI.Encode (Input1.Data.all, Input1.Desc, Output, Output_Size);
+      QOI.Encode (Input1.Data.all, Input1.Desc, Output.all, Output_Size);
 
       if Output_Size /= 0 then
          Write_To_File ("src\test_cases\" & "image_comparison.qoi", Output, Output_Size);

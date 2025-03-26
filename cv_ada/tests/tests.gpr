@@ -7,7 +7,7 @@ project Tests is
    for Object_Dir use "obj/" & Tests_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("tests.adb");
+   for Main use ("testing_image_functions.adb");
 
    package Compiler is
       for Default_Switches ("Ada") use Tests_Config.Ada_Compiler_Switches & ("-gnat2022");

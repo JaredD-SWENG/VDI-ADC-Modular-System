@@ -66,7 +66,7 @@ package body CV_Ada.IO_Operations is
    -- Raises:
    --    OS_Exit(1) if file cannot be opened/read or decoding fails
    -------------------------------------------------------------------------------
-   function Load_QOI (Filename : String; Log : Boolean := False) return Input_Data is
+   function Load_QOI (Filename : String) return Input_Data is
       use GNAT.OS_Lib;
 
       FD  : File_Descriptor;  -- File descriptor for input file
@@ -79,6 +79,7 @@ package body CV_Ada.IO_Operations is
 
       -- Exit if file cannot be opened
       if FD = Invalid_FD then
+         Put_Line ("Error opening file: " & Filename);
          Ada.Text_IO.Put_Line (Standard_Error, GNAT.OS_Lib.Errno_Message);
          GNAT.OS_Lib.OS_Exit (1);
       end if;
@@ -93,6 +94,7 @@ package body CV_Ada.IO_Operations is
 
          -- Verify complete file was read
          if Ret /= In_Data'Length then
+            Put_Line ("Error opening file: " & Filename);
             Ada.Text_IO.Put_Line (GNAT.OS_Lib.Errno_Message);
             GNAT.OS_Lib.OS_Exit (1);
          end if;

@@ -15,6 +15,7 @@ with CV_Ada.Hough_Transform;
 with System.Storage_Elements; use System.Storage_Elements;
 
 with Camera;
+with GUI_Function;
 
 package body Lane_Detection is
 
@@ -72,6 +73,7 @@ package body Lane_Detection is
       Put_Line
         ("Lane Detection Started with Priority:" &
          Event_Types.Priority_Level'Image (Event_Priority));
+      --  GUI_Function.AddConsoleText ("Lane Detection Started with Priority:" & Event_Types.Priority_Level'Image (Event_Priority));
 
       loop
          declare
@@ -127,6 +129,10 @@ package body Lane_Detection is
             -- Round to 2 decimal places
             Offset_Value := Float'Rounding (Offset_Value * 100.0) / 100.0;
 
+            --  GUI_Functions.Simulation_Wrapper.SetLeftImage (Input);
+            --  GUI_Function.Simulation_Task.SetLeftImage (Input);
+            GUI_Function.SetLeftImage (Input);
+
             -- WRITE OUTPUT TO FILE
             declare
                Output      : CV_Ada.Storage_Array_Access := new Storage_Array (1 .. QOI.Encode_Worst_Case (Input.Desc));
@@ -141,9 +147,12 @@ package body Lane_Detection is
               (new Offset'
                  (Event_Kind => Offset_Event, Priority => Event_Priority,
                   Value      => Offset_Value));
-            Queue_Manager.PrintQueue;
+            --  Queue_Manager.PrintQueue;
             -- For some reason, path planning is not receiving the offset event
-            Put_Line ("Lane Detection Offset: " & Float'Image (Offset_Value));
+            --  Put_Line ("Lane Detection Offset: " & Float'Image (Offset_Value));
+            --  GUI_Functions.Simulation_Wrapper.AddConsoleText ("Lane Detection Offset: " & Float'Image (Offset_Value));
+            --  GUI_Function.Simulation_Task.AddConsoleText ("Lane Detection Offset: " & Float'Image (Offset_Value));
+            GUI_Function.AddConsoleText ("Lane Detection Offset: " & Float'Image (Offset_Value));
             
             --  CV_Ada.Free_Input_Data (Input);
             CV_Ada.Free_Storage_Array (Input.Data);

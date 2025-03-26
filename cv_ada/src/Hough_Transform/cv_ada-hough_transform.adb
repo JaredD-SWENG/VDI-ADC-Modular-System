@@ -301,58 +301,77 @@ package body CV_Ada.Hough_Transform is
    --   as peaks in the accumulator, with non-maximal suppression to refine results.
    --   The detected circles are drawn onto the image.
    ------------------------------------------------------------------------------
-   procedure Hough_Circle_Transform
-     (Input       : in out Input_Data; Min_Radius : Storage_Count;
-      Max_Radius  :        Storage_Count; Threshold : Natural;
-      Max_Circles :        Positive := 10)
-   is
+      procedure Hough_Circle_Transform (
+      Input       : in out Input_Data; 
+      Min_Radius  : Storage_Count;
+      Max_Radius  : Storage_Count; 
+      Threshold   : Natural;
+      Max_Circles : Positive := 10
+   ) is
       -- Extract necessary parameters from Input.Desc
-      Width    : constant Storage_Count := Storage_Count (Input.Desc.Width);
-      Height   : constant Storage_Count := Storage_Count (Input.Desc.Height);
-      Channels : constant Storage_Count := Storage_Count (Input.Desc.Channels);
+      Width    : constant Storage_Offset := Storage_Offset (Input.Desc.Width);
+      Height   : constant Storage_Offset := Storage_Offset (Input.Desc.Height);
+      Channels : constant Storage_Offset := Storage_Offset (Input.Desc.Channels);
 
       -- Get direct reference to the data array
       Data : Storage_Array_Access := Input.Data;
 
       -- 3D accumulator array (x, y, r)
       type Accumulator_Array is
-        array
-          (Storage_Count range <>, Storage_Count range <>,
-           Storage_Count range <>) of Natural;
+      array (Storage_Count range <>, Storage_Count range <>, Storage_Count range <>) of Natural;
       type Accumulator_Access is access Accumulator_Array;
 
-      Acc :
-        Accumulator_Array
-          (1 .. Width, 1 .. Height, Min_Radius .. Max_Radius) :=
-        (others => (others => (others => 0)));
+      Acc : Accumulator_Array (1 .. Width, 1 .. Height, Min_Radius .. Max_Radius) :=
+      (others => (others => (others => 0)));
 
       Circles : Circle_Array_Access := new Circle_Array (1 .. Max_Circles);
-      Circle_Count : Natural             := 0;
+      Circle_Count : Natural := 0;
 
       Angle_Steps : constant := 360;
       Deg_To_Rad  : constant := Ada.Numerics.Pi / 180.0;
 
+      -- Precompute sin and cos values for all angles
+      type Angle_Table is array (0 .. Angle_Steps - 1) of Float;
+      Sine_Table  : Angle_Table;
+      Cosine_Table: Angle_Table;
+
+      procedure Precompute_Trigonometry is
+      begin
+         for Theta in 0 .. Angle_Steps - 1 loop
+            Sine_Table(Theta) := Sin (Float(Theta) * Deg_To_Rad);
+            Cosine_Table(Theta) := Cos (Float(Theta) * Deg_To_Rad);
+         end loop;
+      end Precompute_Trigonometry;
+
+      -- Safe conversion function inside the procedure
+      function Safe_Convert (X, Y : Storage_Offset) return Storage_Offset is
+      begin
+         if X > 0 and X <= Width and Y > 0 and Y <= Height then
+            return ((Y - 1) * Width + (X - 1)) * Channels + 1;
+         else
+            return 1; -- Return safe default if out of bounds
+         end if;
+      end Safe_Convert;
+
+      Index : Storage_Count := 0;
    begin
-      Put_Line ("Vo");
+      -- Precompute sin and cos values for each angle
+      Precompute_Trigonometry;
+
       -- Voting process
       for Y in 1 .. Height loop
          for X in 1 .. Width loop
-            if Data (((Y - 1) * Width * Channels + (X - 1)) * Channels + 1) > 0
-            then
+            Index := ((Y - 1) * Width + (X - 1)) * Channels + (Channels - 1);
+            if Index >= 0 and Index < (Width * Height * Channels) then
                for R in Min_Radius .. Max_Radius loop
                   for Theta in 0 .. Angle_Steps - 1 loop
                      declare
-                        Angle : constant Float   := Float (Theta) * Deg_To_Rad;
-                        A     : constant Integer :=
-                          Integer (Float (X) - Float (R) * Cos (Angle));
-                        B     : constant Integer :=
-                          Integer (Float (Y) - Float (R) * Sin (Angle));
+                        Angle : constant Float := Float (Theta);
+                        A     : constant Storage_Offset := Storage_Offset (Float (X) - Float (R) * Cosine_Table(Theta));
+                        B     : constant Storage_Offset := Storage_Offset (Float (Y) - Float (R) * Sine_Table(Theta));
                      begin
-                        if A > 0 and A <= Integer (Width) and B > 0 and
-                          B <= Integer (Height)
-                        then
-                           Acc (Storage_Count (A), Storage_Count (B), R) :=
-                             Acc (Storage_Count (A), Storage_Count (B), R) + 1;
+                        if A > 0 and A <= Width and B > 0 and B <= Height then
+                           Acc (A, B, R) := Acc (A, B, R) + 1;
                         end if;
                      end;
                   end loop;
@@ -372,49 +391,19 @@ package body CV_Ada.Hough_Transform is
                      declare
                         Is_Maximum : Boolean := True;
                      begin
-                        -- Check 3x3x3 neighborhood
-                        for DZ in -1 .. 1 loop
-                           declare
-                              Current_R : constant Integer := Integer (R) + DZ;
-                           begin
-                              if Current_R >= Integer (Min_Radius) and
-                                Current_R <= Integer (Max_Radius)
-                              then
-                                 for DY in -1 .. 1 loop
-                                    for DX in -1 .. 1 loop
-                                       declare
-                                          Current_X : constant Integer :=
-                                            Integer (X) + DX;
-                                          Current_Y : constant Integer :=
-                                            Integer (Y) + DY;
-                                       begin
-                                          if Current_X > 0 and
-                                            Current_X <= Integer (Width) and
-                                            Current_Y > 0 and
-                                            Current_Y <= Integer (Height)
-                                          then
-                                             if Acc
-                                                 (Storage_Count (Current_X),
-                                                  Storage_Count (Current_Y),
-                                                  Storage_Count (Current_R)) >
-                                               Center_Value
-                                             then
-                                                Is_Maximum := False;
-                                                exit;
-                                             end if;
-                                          end if;
-                                       end;
-                                    end loop;
-                                    exit when not Is_Maximum;
-                                 end loop;
+                        -- Check 3x3 neighborhood
+                        for DY in -1 .. 1 loop
+                           for DX in -1 .. 1 loop
+                              if Acc (X + Storage_Offset(DX), Y + Storage_Offset(DY), R) > Center_Value then
+                                 Is_Maximum := False;
+                                 exit;
                               end if;
-                              exit when not Is_Maximum;
-                           end;
+                           end loop;
                         end loop;
 
                         if Is_Maximum and Circle_Count < Max_Circles then
-                           Circle_Count           := Circle_Count + 1;
-                           Circles (Circle_Count) := (X, Y, R, Center_Value);
+                           Circle_Count := Circle_Count + 1;
+                           Circles(Circle_Count) := (X, Y, R, Center_Value);
                         end if;
                      end;
                   end if;
@@ -427,51 +416,28 @@ package body CV_Ada.Hough_Transform is
       for I in 1 .. Circle_Count loop
          declare
             Circle : Circle_Parameters renames Circles (I);
-
-            -- Function to safely convert coordinates
-            function Safe_Convert (X, Y : Integer) return Storage_Count is
-            begin
-               if X > 0 and X <= Integer (Width) and Y > 0 and
-                 Y <= Integer (Height)
-               then
-                  return
-                    ((Storage_Count (Y) - 1) * Width +
-                     (Storage_Count (X) - 1)) *
-                    Channels +
-                    1;
-               else
-                  return 1; -- Return safe default if out of bounds
-               end if;
-            end Safe_Convert;
-
          begin
-            -- Draw circle using Bresenham's circle algorithm
+            -- Circle drawing using Bresenham's circle algorithm
             for Theta in 0 .. Angle_Steps - 1 loop
                declare
                   Angle    : constant Float   := Float (Theta) * Deg_To_Rad;
-                  -- Use Integer for intermediate calculations
                   Center_X : constant Integer := Integer (Circle.X);
                   Center_Y : constant Integer := Integer (Circle.Y);
                   Radius   : constant Integer := Integer (Circle.R);
-                  -- Calculate point coordinates
-                  X        : constant Integer :=
-                    Center_X + Integer (Float (Radius) * Cos (Angle));
-                  Y        : constant Integer :=
-                    Center_Y + Integer (Float (Radius) * Sin (Angle));
+                  X        : constant Integer := Center_X + Integer (Float (Radius) * Cos (Angle));
+                  Y        : constant Integer := Center_Y + Integer (Float (Radius) * Sin (Angle));
+
                begin
                   -- Only draw if point is within image bounds
-                  if X > 0 and X <= Integer (Width) and Y > 0 and
-                    Y <= Integer (Height)
-                  then
+                  if X > 0 and Storage_Offset(X) <= Width and Y > 0 and Storage_Offset(Y) <= Height then
                      -- Calculate array index safely
                      declare
-                        Base_Index : constant Storage_Count :=
-                          ((Storage_Count (Y) - 1) * Width +
-                           (Storage_Count (X) - 1)) *
-                          Channels;
+                        Base_Index : constant Storage_Count := Safe_Convert (Storage_Offset(X), Storage_Offset(Y));
                      begin
-                        Data (Base_Index + 1) := 0;      -- Red channel
-                        Data (Base_Index + 2) := 100;    -- Green channel
+                        Put_Line (Center_X'Image & " " & Center_Y'Image & " " & Radius'Image);
+                        Put_Line ("Drawing circle at (" & X'Image & ", " & Y'Image & ")");
+                        Data (Base_Index + 1) := 255;      -- Red channel
+                        Data (Base_Index + 2) := 255;    -- Green channel
                         Data (Base_Index + 3) := 255;    -- Blue channel
                         -- Preserve alpha channel if it exists
                         if Channels = 4 then
@@ -483,15 +449,15 @@ package body CV_Ada.Hough_Transform is
             end loop;
          end;
       end loop;
-
-      -- Free memory
+      
+      -- Free memory (optional)
       declare
-         procedure Free_Circles is new Ada.Unchecked_Deallocation
-           (Object => Circle_Array, Name => Circle_Array_Access);
+         procedure Free_Circles is new Ada.Unchecked_Deallocation (Object => Circle_Array, Name => Circle_Array_Access);
          Temp_Circles : Circle_Array_Access := Circles;
       begin
          Free_Circles (Temp_Circles);
       end;
+
    end Hough_Circle_Transform;
 
 end CV_Ada.Hough_Transform;
