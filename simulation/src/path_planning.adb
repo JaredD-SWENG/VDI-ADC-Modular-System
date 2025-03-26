@@ -74,6 +74,7 @@ package body Path_Planning is
                      declare
                         Lane_Offset :
                           Offset renames Offset (Current_Event.all);
+                        use GUI_Function;
                      begin
                         Put_Line
                           ("Processing Event: Offset - Value: " &
@@ -81,20 +82,20 @@ package body Path_Planning is
                         --  GUI_Function.AddConsoleText ("Processing Event: Offset - Value: " & Float'Image (Lane_Offset.Value));
                         if Lane_Offset.Value < 0.0 then
                            --  Put_Line ("Path Planning: Turn Right");
-                           GUI_Function.RightSignalOn;
-                           GUI_Function.LeftSignalOff;
+                           GUI_Function.Set_Detection_Elements (RightSignal, On);
+                           GUI_Function.Set_Detection_Elements (LeftSignal, Off);
                            --  GUI_Function.AddConsoleText ("Path Planning: Turn Right");
                            --  Send_Command(right);
                         elsif Lane_Offset.Value > 0.0 then
                            --  Put_Line ("Path Planning: Turn Left");
-                           GUI_Function.LeftSignalOn;
-                           GUI_Function.RightSignalOff;
+                           GUI_Function.Set_Detection_Elements (LeftSignal, On);
+                           GUI_Function.Set_Detection_Elements (RightSignal, Off);
                            --  GUI_Function.AddConsoleText ("Path Planning: Turn Left");
                            --  Send_Command(left);
                         else
                            --  Put_Line ("Path Planning: Center");
-                           GUI_Function.LeftSignalOff;
-                           GUI_Function.RightSignalOff;
+                           GUI_Function.Set_Detection_Elements (RightSignal, Off);
+                           GUI_Function.Set_Detection_Elements (LeftSignal, Off);
                            --  GUI_Function.AddConsoleText ("Path Planning: Center");
                            --  Send_Command(center);
                         end if;

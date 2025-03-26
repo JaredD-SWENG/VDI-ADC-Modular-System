@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkListStore" id="listStore">
+    <columns>
+      <!-- column-name Console -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkWindow" id="topWindow">
+    <property name="width-request">1800</property>
+    <property name="height-request">1000</property>
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Car Simulation GUI</property>
+    <property name="resizable">False</property>
+    <property name="window-position">center</property>
+    <property name="default-width">1200</property>
+    <property name="default-height">800</property>
+    <child>
+      <!-- n-columns=2 n-rows=1 -->
+      <object class="GtkGrid">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="row-homogeneous">True</property>
+        <child>
+          <!-- n-columns=1 n-rows=2 -->
+          <object class="GtkGrid">
+            <property name="width-request">1000</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="column-homogeneous">True</property>
+            <child>
+              <!-- n-columns=3 n-rows=3 -->
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <property name="margin-bottom">10</property>
+                <property name="column-homogeneous">True</property>
+                <child>
+                  <object class="GtkImage" id="leftSignal">
+                    <property name="width-request">193</property>
+                    <property name="height-request">69</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="rightSignal">
+                    <property name="width-request">193</property>
+                    <property name="height-request">69</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">2</property>
+                    <property name="top-attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="redLight">
+                    <property name="width-request">75</property>
+                    <property name="height-request">75</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="yellowLight">
+                    <property name="width-request">75</property>
+                    <property name="height-request">75</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="greenLight">
+                    <property name="width-request">75</property>
+                    <property name="height-request">75</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">start</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <!-- n-columns=2 n-rows=1 -->
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="vexpand">True</property>
+                <property name="orientation">vertical</property>
+                <property name="row-homogeneous">True</property>
+                <property name="column-homogeneous">True</property>
+                <child>
+                  <object class="GtkImage" id="leftImage">
+                    <property name="width-request">700</property>
+                    <property name="height-request">600</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="rightImage">
+                    <property name="width-request">700</property>
+                    <property name="height-request">600</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="stock">gtk-dialog-error</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="width-request">400</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="window-placement">top-right</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkTreeView">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="hscroll-policy">natural</property>
+                <property name="vscroll-policy">natural</property>
+                <property name="model">listStore</property>
+                <property name="enable-grid-lines">horizontal</property>
+                <child>
+                  <object class="GtkTreeViewColumn">
+                    <property name="title" translatable="yes">Console Output</property>
+                    <child>
+                      <object class="GtkCellRendererText"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="left-attach">1</property>
+            <property name="top-attach">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkWindow" id="rawWindow">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Raw Image Window</property>
+    <child>
+      <!-- n-columns=1 n-rows=1 -->
+      <object class="GtkGrid">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="row-homogeneous">True</property>
+        <property name="column-homogeneous">True</property>
+        <child>
+          <object class="GtkImage" id="rawImage">
+            <property name="width-request">800</property>
+            <property name="height-request">600</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="stock">gtk-dialog-error</property>
+          </object>
+          <packing>
+            <property name="left-attach">0</property>
+            <property name="top-attach">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

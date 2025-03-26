@@ -12,8 +12,7 @@ with CV_Ada;      use CV_Ada;
 with GUI_Function;
 
 procedure Simulation is
-   CAMERA_PATH : constant String := "..\..\..\..\..\2025 1 Spring Semester\SWENG 481\frames_folder";
-   --  CAMERA_PATH : constant String := "..\camera\frames_folder";
+   CAMERA_PATH : constant String := "..\camera\frames_folder";
 begin
    Simulated_Camera.Start (CAMERA_PATH);
    Lane_Detection.Lane_Detection_Task.Start (Priority => 2);

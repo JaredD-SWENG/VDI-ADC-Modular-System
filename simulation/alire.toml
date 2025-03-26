@@ -21,3 +21,6 @@ camera = { path='../camera' }
 
 [[depends-on]]
 gtkada = "^24.0.1"
+cv_ada = "*"
+camera = "*"
+qoi = "*"

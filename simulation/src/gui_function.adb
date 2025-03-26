@@ -174,30 +174,22 @@ package body GUI_Function is
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Initialize;
 
+   function Trim (S : String) return String is
+         (S (S'First + 1 .. S'Last));
+   function GO (N : String) return GObject is
+      (Get_Object (Builder, Name => N));
+
    procedure Preset_Images is
       BasePath          : constant String    := "..\simulation_gui\images\";
-      LeftSignalObject  : constant GObject   := Get_Object (Builder, Name => "leftSignal");
-      RightSignalObject : constant GObject   := Get_Object (Builder, Name => "rightSignal");
-      RedLightObject    : constant GObject   := Get_Object (Builder, Name => "redLight");
-      YellowLightObject : constant GObject   := Get_Object (Builder, Name => "yellowLight");
-      GreenLightObject  : constant GObject   := Get_Object (Builder, Name => "greenLight");
    begin
-      LeftSignalOffImageRef  := CV_Ada.IO_Operations.Load_QOI(BasePath & "LeftSignalEmpty.qoi");
-      LeftSignalOnImageRef   := CV_Ada.IO_Operations.Load_QOI(BasePath & "LeftSignalFilled.qoi");
-      RightSignalOffImageRef := CV_Ada.IO_Operations.Load_QOI(BasePath & "RightSignalEmpty.qoi");
-      RightSignalOnImageRef  := CV_Ada.IO_Operations.Load_QOI(BasePath & "RightSignalFilled.qoi");
-      RedLightOffImageRef    := CV_Ada.IO_Operations.Load_QOI(BasePath & "RedLightEmpty.qoi");
-      RedLightOnImageRef     := CV_Ada.IO_Operations.Load_QOI(BasePath & "RedLightFilled.qoi");
-      YellowLightOffImageRef := CV_Ada.IO_Operations.Load_QOI(BasePath & "YellowLightEmpty.qoi");
-      YellowLightOnImageRef  := CV_Ada.IO_Operations.Load_QOI(BasePath & "YellowLightFilled.qoi");
-      GreenLightOffImageRef  := CV_Ada.IO_Operations.Load_QOI(BasePath & "GreenLightEmpty.qoi");
-      GreenLightOnImageRef   := CV_Ada.IO_Operations.Load_QOI(BasePath & "GreenLightFilled.qoi");
-
-      Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject),  LeftSignalOffImageRef,  Gtk_Widget(LeftSignalObject));
-      Scale_QOI_Image_To_Window_Size(Gtk_Image(RightSignalObject), RightSignalOffImageRef, Gtk_Widget(RightSignalObject));
-      Scale_QOI_Image_To_Window_Size(Gtk_Image(RedLightObject),    RedLightOffImageRef,    Gtk_Widget(RedLightObject));
-      Scale_QOI_Image_To_Window_Size(Gtk_Image(YellowLightObject), YellowLightOffImageRef, Gtk_Widget(YellowLightObject));
-      Scale_QOI_Image_To_Window_Size(Gtk_Image(GreenLightObject),  GreenLightOffImageRef,  Gtk_Widget(GreenLightObject));
+      for Element in Detection_Elements'Range loop
+         for State in States'Range loop
+            Detection_Images (Element, State) := CV_Ada.IO_Operations.Load_QOI(BasePath & Trim (Element'Image) & Trim (State'Image) & ".qoi");
+         end loop;
+         Scale_QOI_Image_To_Window_Size(Gtk_Image(GO (Trim (Element'Image))),  
+                                        Detection_Images(Element, Off),  
+                                        Gtk_Widget(GO (Trim (Element'Image))));
+      end loop;
    end;
 
    procedure AddConsoleText (Text : String) is
@@ -225,55 +217,23 @@ package body GUI_Function is
       Scale_QOI_Image_To_Window_Size(Gtk_Image(RightImageObject), RightImage, Gtk_Widget(RightImageObject));
    end SetRightImage;
 
-   procedure RightSignalOn is
+   procedure SetLeftSignal (State : States) is
+      LeftSignalObject  : constant GObject   := Get_Object (Builder, Name => "leftSignal");
    begin
-      SetRightSignal(On);
-   end RightSignalOn;
+      if State = On then
+         Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject), Detection_Images (LeftSignal, On), Gtk_Widget(LeftSignalObject));
+      else
+         Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject), Detection_Images (LeftSignal, Off), Gtk_Widget(LeftSignalObject));
+      end if;
+   end;
 
-   procedure RightSignalOff is
+   
+   procedure Set_Detection_Elements (Element : Detection_Elements; State : States) is
+      Object : constant GObject := Get_Object (Builder, Name => Trim (Element'Image));
    begin
-      SetRightSignal(Off);
-   end RightSignalOff;
+      Scale_QOI_Image_To_Window_Size (Gtk_Image (Object), Detection_Images (Element, State), Gtk_Widget (Object));
+   end Set_Detection_Elements;
 
-   procedure LeftSignalOn is
-   begin
-      SetLeftSignal(On);
-   end LeftSignalOn;
-
-   procedure LeftSignalOff is
-   begin
-      SetLeftSignal(Off);
-   end LeftSignalOff;
-
-   procedure RedLightOn is
-   begin
-      SetRedLight(On);
-   end RedLightOn;
-
-   procedure RedLightOff is
-   begin
-      SetRedLight(Off);
-   end RedLightOff;
-
-   procedure YellowLightOn is
-   begin
-      SetYellowLight(On);
-   end YellowLightOn;
-
-   procedure YellowLightOff is
-   begin
-      SetYellowLight(Off);
-   end YellowLightOff;
-
-   procedure GreenLightOn is
-   begin
-      SetGreenLight(On);
-   end GreenLightOn;
-
-   procedure GreenLightOff is
-   begin
-      SetGreenLight(Off);
-   end GreenLightOff;
 
    procedure MainQuitClicked is
    begin
@@ -290,53 +250,4 @@ package body GUI_Function is
       --  return True;
    end;
 
-   procedure SetLeftSignal (State : States) is
-      LeftSignalObject  : constant GObject   := Get_Object (Builder, Name => "leftSignal");
-   begin
-      if State = On then
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject), LeftSignalOnImageRef, Gtk_Widget(LeftSignalObject));
-      else
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject), LeftSignalOffImageRef, Gtk_Widget(LeftSignalObject));
-      end if;
-   end;
-   
-   procedure SetRightSignal (State : States) is
-      RightSignalObject : constant GObject   := Get_Object (Builder, Name => "rightSignal");
-   begin
-      if State = On then
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(RightSignalObject), RightSignalOnImageRef, Gtk_Widget(RightSignalObject));
-      else
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(RightSignalObject), RightSignalOffImageRef, Gtk_Widget(RightSignalObject));
-      end if;
-   end;
-   
-   procedure SetRedLight (State : States) is
-      RedLightObject    : constant GObject   := Get_Object (Builder, Name => "redLight");
-   begin
-      if State = On then
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(RedLightObject), RedLightOnImageRef, Gtk_Widget(RedLightObject));
-      else
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(RedLightObject), RedLightOffImageRef, Gtk_Widget(RedLightObject));
-      end if;
-   end;
-   
-   procedure SetYellowLight (State : States) is
-      YellowLightObject : constant GObject   := Get_Object (Builder, Name => "yellowLight");
-   begin
-      if State = On then
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(YellowLightObject), YellowLightOnImageRef, Gtk_Widget(YellowLightObject));
-      else
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(YellowLightObject), YellowLightOffImageRef, Gtk_Widget(YellowLightObject));
-      end if;
-   end;
-   
-   procedure SetGreenLight (State : States) is
-      GreenLightObject  : constant GObject   := Get_Object (Builder, Name => "greenLight");
-   begin
-      if State = On then
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(GreenLightObject), GreenLightOnImageRef, Gtk_Widget(GreenLightObject));
-      else
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(GreenLightObject), GreenLightOffImageRef, Gtk_Widget(GreenLightObject));
-      end if;
-   end;
 end GUI_Function;
