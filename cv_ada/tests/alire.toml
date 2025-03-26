@@ -1,0 +1,21 @@
+name = "tests"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["Haris"]
+maintainers = ["Haris <example@example.com>"]
+maintainers-logins = ["github-username"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["tests"]
+
+[build-switches]
+"*".style_checks = "No" # I swear to god I cannot stand this on
+
+[[depends-on]]
+aaa = "*"
+
+[[pins]]
+cv_ada = { path='..' }

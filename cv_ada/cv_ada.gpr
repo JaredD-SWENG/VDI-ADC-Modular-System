@@ -1,0 +1,32 @@
+with "config/cv_ada_config.gpr";
+project CV_Ada is
+
+   for Library_Name use "CV_Ada";
+   for Library_Version use Project'Library_Name & ".so." & CV_Ada_Config.Crate_Version;
+
+   for Languages use ("Ada", "C");
+   for Source_Dirs use ("src/**", "dependencies/reference-qoi", "dependencies/stb", "dependencies/code"); -- DO NOT MODIFY
+   for Object_Dir use "obj/" & CV_Ada_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Library_Dir use "lib";
+
+   for Excluded_Source_Files use ("qoibench.c", "qoiconv.c", "qoifuzz.c");
+
+   type Library_Type_Type is ("relocatable", "static", "static-pic");
+   Library_Type : Library_Type_Type :=
+     external ("CV_Ada_LIBRARY_TYPE", external ("LIBRARY_TYPE", "static"));
+   for Library_Kind use Library_Type;
+
+   package Compiler is
+      for Default_Switches ("Ada") use CV_Ada_Config.Ada_Compiler_Switches & ("-gnat2022");
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+   package Install is
+      for Artifacts (".") use ("share");
+   end Install;
+
+end CV_Ada;

@@ -3,3 +3,9 @@
 
 # Ada Library Information
 *.ali
+
+camera/frames_folder/
+
+
+simulation/output2.qoi
+simulation/output.qoi

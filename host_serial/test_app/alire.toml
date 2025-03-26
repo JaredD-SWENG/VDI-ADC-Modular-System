@@ -1,0 +1,18 @@
+name = "test_app"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["RLT"]
+maintainers = ["RLT <example@example.com>"]
+maintainers-logins = ["github-username"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["test_app"]
+
+[[depends-on]]
+host_serial = "*"
+
+[[pins]]
+host_serial = {path = ".."}
