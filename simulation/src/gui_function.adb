@@ -1,5 +1,5 @@
 with Gtk.Main;
-with Gdk.Threads;
+--  with Gdk.Threads;
 with Gtk.Builder;             use Gtk.Builder;
 with Gdk.Types;               use Gdk.Types;
 with Gdk.Types.Keysyms;       use Gdk.Types.Keysyms;
@@ -9,6 +9,7 @@ with Gtk.Window;              use Gtk.Window;
 with Gtk.Enums;               use Gtk.Enums;
 with Gdk.Pixbuf;              use Gdk.Pixbuf;
 with Gtk.Image;               use Gtk.Image;
+with Gdk.Event;               use Gdk.Event;
 
 with Ada.Text_IO;             use Ada.Text_IO;
 with Ada.Exceptions;
@@ -17,6 +18,16 @@ with System.Storage_Elements; use System.Storage_Elements;
 with CV_Ada.IO_Operations;
 
 package body GUI_Function is
+   --  function Trim (S : String) return String  is (S (S'First + 1 .. S'Last));
+   function GO (N : String) return GObject is 
+   begin
+      if Builder = null then
+         Put_Line ("Builder is null!");
+         return null;
+      end if;
+      return Get_Object (Builder, Name => N);
+   end;
+
    function Set_QOI_To_Gdk_Pixbuf(InputData : CV_Ada.Input_Data) return Gdk_Pixbuf is
       Index    : Storage_Offset := 1;
    begin
@@ -36,6 +47,21 @@ package body GUI_Function is
    procedure Scale_QOI_Image_To_Window_Size(Image : Gtk_Image; InputData : CV_Ada.Input_Data; Widget : Gtk_Widget; Width : Gint := 0; Height : Gint := 0) is
    begin
       Set (Image, Scale_Simple(Set_QOI_To_Gdk_Pixbuf(InputData), Get_Allocated_Width(Widget)+Width, Get_Allocated_Height(Widget)+Height, Interp_Nearest));
+   end;
+
+   procedure MainQuitClicked is
+   begin
+      Gtk.Main.Main_Quit;
+   end MainQuitClicked;
+
+   function  KeyPressed (Widget : access Gtk_Widget_Record'Class; Event : Gdk.Event.Gdk_Event_Key) return Boolean is
+      pragma Unreferenced (Widget);
+   begin
+      -- Could use P for pausing the simulation/camera
+      if Event.Keyval = GDK_Escape then MainQuitClicked; end if;
+      return True;
+      --  if Event.Keyval = GDK_Escape then MainQuitClicked(null); end if;
+      --  return True;
    end;
 
    task body Simulation_Wrapper is
@@ -123,6 +149,19 @@ package body GUI_Function is
       --  end loop;
    end Simulation_Wrapper;
 
+   procedure Preset_Images is
+      BasePath          : constant String    := "..\simulation_gui\images\";
+   begin
+      for Element in Detection_Elements'Range loop
+         for State in States'Range loop
+            Detection_Images (Element, State) := CV_Ada.IO_Operations.Load_QOI(BasePath & Element'Image & "_" & State'Image & ".qoi");
+         end loop;
+         Scale_QOI_Image_To_Window_Size(Gtk_Image(GO (Element'Image)),  
+                                        Detection_Images(Element, Off),  
+                                        Gtk_Widget(GO (Element'Image)));
+      end loop;
+   end;
+
    procedure InitializeConsole is
       ConsoleObject : constant GObject := Get_Object (Builder, Name => "listStore");
    begin
@@ -133,7 +172,14 @@ package body GUI_Function is
       end if;
    end InitializeConsole;
 
-   procedure Initialize (FilePath : String := "..\..\GladeGUI\CarSimulatorGUI.glade") is
+   procedure AddConsoleText (Text : String) is
+      ConsoleObject : constant GObject := Get_Object (Builder, Name => "listStore");
+   begin
+      Append (Gtk_List_Store(ConsoleObject), Console_Iterator);
+      Set (Gtk_List_Store(ConsoleObject), Console_Iterator, 0, Text);
+   end AddConsoleText;
+
+   procedure Initialize (FilePath : String := "..\simulation_gui\glade_source\CarSimulatorGUI.glade") is
    begin
       --  Gdk.Threads.G_Init;
       --  Gdk.Threads.Init;
@@ -148,13 +194,13 @@ package body GUI_Function is
 
       Put_Line ("Builder Loading OK: " & FilePath);
 
-      On_Key_Press_Event(Gtk_Widget (Get_Object (Builder, "topWindow")), GUI_Function.KeyPressed'Access);
-      On_Key_Press_Event(Gtk_Widget (Get_Object (Builder, "rawWindow")), GUI_Function.KeyPressed'Access);
+      On_Key_Press_Event(Gtk_Widget (GO ("topWindow")), KeyPressed'Access);
+      On_Key_Press_Event(Gtk_Widget (GO ("rawWindow")), KeyPressed'Access);
 
       Do_Connect (Builder);
 
-      Gtk.Window.Set_Position (Gtk_Window (Get_Object (Builder, "topWindow")), Win_Pos_Center);
-      Gtk.Window.Set_Position (Gtk_Window (Get_Object (Builder, "rawWindow")), Win_Pos_Center);
+      Gtk.Window.Set_Position (Gtk_Window (GO ("topWindow")), Win_Pos_Center);
+      Gtk.Window.Set_Position (Gtk_Window (GO ("rawWindow")), Win_Pos_Center);
 
       Show_All (Gtk_Widget (Get_Object (Gtk_Builder(Builder), "topWindow")));
       Show_All (Gtk_Widget (Get_Object (Gtk_Builder(Builder), "rawWindow")));
@@ -174,80 +220,27 @@ package body GUI_Function is
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Initialize;
 
-   function Trim (S : String) return String is
-         (S (S'First + 1 .. S'Last));
-   function GO (N : String) return GObject is
-      (Get_Object (Builder, Name => N));
-
-   procedure Preset_Images is
-      BasePath          : constant String    := "..\simulation_gui\images\";
-   begin
-      for Element in Detection_Elements'Range loop
-         for State in States'Range loop
-            Detection_Images (Element, State) := CV_Ada.IO_Operations.Load_QOI(BasePath & Trim (Element'Image) & Trim (State'Image) & ".qoi");
-         end loop;
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(GO (Trim (Element'Image))),  
-                                        Detection_Images(Element, Off),  
-                                        Gtk_Widget(GO (Trim (Element'Image))));
-      end loop;
-   end;
-
-   procedure AddConsoleText (Text : String) is
-      ConsoleObject : constant GObject := Get_Object (Builder, Name => "listStore");
-   begin
-      Append (Gtk_List_Store(ConsoleObject), Console_Iterator);
-      Set (Gtk_List_Store(ConsoleObject), Console_Iterator, 0, Text);
-   end AddConsoleText;
-
    procedure SetRawImage (RawImage : in out CV_Ada.Input_Data) is
-      RawImageObject : constant GObject := Get_Object (Builder, Name => "rawImage");
+      RawImageObject : constant GObject := GO ("RawImage");
    begin
       Scale_QOI_Image_To_Window_Size(Gtk_Image(RawImageObject), RawImage, Gtk_Widget(RawImageObject));
    end SetRawImage;
 
    procedure SetLeftImage  (LeftImage  : in out CV_Ada.Input_Data) is
-      LeftImageObject : constant GObject := Get_Object (Builder, Name => "leftImage");
+      LeftImageObject : constant GObject := GO ("LeftImage");
    begin
       Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftImageObject), LeftImage, Gtk_Widget(LeftImageObject));
    end SetLeftImage;
 
    procedure SetRightImage (RightImage : in out CV_Ada.Input_Data) is
-      RightImageObject : constant GObject := Get_Object (Builder, Name => "rightImage");
+      RightImageObject : constant GObject := GO ("RightImage");
    begin
       Scale_QOI_Image_To_Window_Size(Gtk_Image(RightImageObject), RightImage, Gtk_Widget(RightImageObject));
    end SetRightImage;
 
-   procedure SetLeftSignal (State : States) is
-      LeftSignalObject  : constant GObject   := Get_Object (Builder, Name => "leftSignal");
-   begin
-      if State = On then
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject), Detection_Images (LeftSignal, On), Gtk_Widget(LeftSignalObject));
-      else
-         Scale_QOI_Image_To_Window_Size(Gtk_Image(LeftSignalObject), Detection_Images (LeftSignal, Off), Gtk_Widget(LeftSignalObject));
-      end if;
-   end;
-
-   
    procedure Set_Detection_Elements (Element : Detection_Elements; State : States) is
-      Object : constant GObject := Get_Object (Builder, Name => Trim (Element'Image));
+      Object : constant GObject := Get_Object (Builder, Name => Element'Image);
    begin
       Scale_QOI_Image_To_Window_Size (Gtk_Image (Object), Detection_Images (Element, State), Gtk_Widget (Object));
    end Set_Detection_Elements;
-
-
-   procedure MainQuitClicked is
-   begin
-      Gtk.Main.Main_Quit;
-   end MainQuitClicked;
-
-   function  KeyPressed (Widget : access Gtk_Widget_Record'Class; Event : Gdk.Event.Gdk_Event_Key) return Boolean is
-      pragma Unreferenced (Widget);
-   begin
-      -- Could use P for pausing the simulation/camera
-      if Event.Keyval = GDK_Escape then Gtk.Main.Main_Quit; end if;
-      return True;
-      --  if Event.Keyval = GDK_Escape then MainQuitClicked(null); end if;
-      --  return True;
-   end;
-
 end GUI_Function;

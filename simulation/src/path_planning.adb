@@ -12,7 +12,8 @@ package body Path_Planning is
       Processing    : Boolean := False;
    begin
       accept Start;
-      Put_Line ("Path Planning Started");
+      --  Put_Line ("Path Planning Started");
+      --  GUI_Function.AddConsoleText ("Path Planning Started");
 
       loop
          select
@@ -38,7 +39,6 @@ package body Path_Planning is
                if Queue_Manager.Is_Empty then
                   --  Put_Line ("Path Planning: No events to process");
                   --  GUI_Function.AddConsoleText ("Path Planning: No events to process");
-
                   Processing := False;
                else
                   Queue_Manager.Dequeue (Current_Event);
@@ -65,7 +65,7 @@ package body Path_Planning is
                            when Green =>
                               null;
                               --  Put_Line ("Path Planning: Go");
-                              GUI_Function.AddConsoleText ("Path Planning: Go");
+                              --  GUI_Function.AddConsoleText ("Path Planning: Go");
                               --  Send_Command(go);
                         end case;
                         delay 0.1;
@@ -76,26 +76,24 @@ package body Path_Planning is
                           Offset renames Offset (Current_Event.all);
                         use GUI_Function;
                      begin
-                        Put_Line
-                          ("Processing Event: Offset - Value: " &
-                           Float'Image (Lane_Offset.Value));
+                        --  Put_Line ("Processing Event: Offset - Value: " & Float'Image (Lane_Offset.Value));
                         --  GUI_Function.AddConsoleText ("Processing Event: Offset - Value: " & Float'Image (Lane_Offset.Value));
                         if Lane_Offset.Value < 0.0 then
                            --  Put_Line ("Path Planning: Turn Right");
-                           GUI_Function.Set_Detection_Elements (RightSignal, On);
-                           GUI_Function.Set_Detection_Elements (LeftSignal, Off);
+                           GUI_Function.Set_Detection_Elements (Right_Signal, On);
+                           GUI_Function.Set_Detection_Elements (Left_Signal, Off);
                            --  GUI_Function.AddConsoleText ("Path Planning: Turn Right");
                            --  Send_Command(right);
                         elsif Lane_Offset.Value > 0.0 then
                            --  Put_Line ("Path Planning: Turn Left");
-                           GUI_Function.Set_Detection_Elements (LeftSignal, On);
-                           GUI_Function.Set_Detection_Elements (RightSignal, Off);
+                           GUI_Function.Set_Detection_Elements (Left_Signal, On);
+                           GUI_Function.Set_Detection_Elements (Right_Signal, Off);
                            --  GUI_Function.AddConsoleText ("Path Planning: Turn Left");
                            --  Send_Command(left);
                         else
                            --  Put_Line ("Path Planning: Center");
-                           GUI_Function.Set_Detection_Elements (RightSignal, Off);
-                           GUI_Function.Set_Detection_Elements (LeftSignal, Off);
+                           GUI_Function.Set_Detection_Elements (Right_Signal, Off);
+                           GUI_Function.Set_Detection_Elements (Left_Signal, Off);
                            --  GUI_Function.AddConsoleText ("Path Planning: Center");
                            --  Send_Command(center);
                         end if;

@@ -22,7 +22,6 @@ package body Signal_Recognition is
 
    task body Signal_Recognition_Task is
       Signal_Value   : Signal_Color;
-      Event_Priority : Event_Types.Priority_Level;
    begin
       accept Start (Priority : Event_Types.Priority_Level := 1) do
          Event_Priority := Priority;
@@ -60,7 +59,7 @@ package body Signal_Recognition is
                Output_Size : Storage_Count;
             begin
                QOI.Encode (Input.Data.all, Input.Desc, Output.all, Output_Size);
-               CV_Ada.IO_Operations.Write_To_File ("output2.qoi", Output, Output_Size);
+               CV_Ada.IO_Operations.Write_To_File ("output.qoi", Output, Output_Size);
                CV_Ada.Free_Storage_Array (Output);
             end;
 
