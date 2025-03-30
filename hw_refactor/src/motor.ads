@@ -1,4 +1,9 @@
 with System_Config;
+with STM32.Board; -- LED init and named constants
+with STM32.PWM; -- PWM control
+with STM32.Timers; -- Timer control
+with STM32.GPIO; -- GPIO control
+with STM32.Device; -- Device specific constants
 
 package Motor is
 

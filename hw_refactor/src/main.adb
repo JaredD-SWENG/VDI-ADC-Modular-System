@@ -1,5 +1,6 @@
 with Uart; use Uart;
---with Motor;
+with Motor;
+with Uarts; use Uarts;
 --with Steering;
 with STM32.Board;
 
@@ -9,8 +10,13 @@ procedure Main is
    Period  : constant Time_Span := Milliseconds (10);
    Next_Release  : Time := Clock;
    C : Uart.Cmd;
+   GoSpeed : Integer := 25;
+   StopSpeed : Integer := 0;
 begin
    STM32.Board.Initialize_LEDs;
+   Uarts.Initialize_UART_GPIO;
+   Uarts.Initialize;
+   Motor.Init;
    loop
       C := Uart.Get_Command;
       case (C) is
@@ -20,15 +26,17 @@ begin
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
             STM32.Board.Turn_On (STM32.Board.Green_LED);
-            --  Motor.Set_Command(Cmd);
+            Motor.Set_Speed_Motor_1 (GoSpeed);
+
          when stop =>
             STM32.Board.Turn_On (STM32.Board.Red_LED);
             STM32.Board.Turn_Off (STM32.Board.Green_LED);
-            --  Motor.Set_Command(Cmd);
+            Motor.Set_Speed_Motor_1 (StopSpeed);
+     
          when undefined => 
             null;
       end case;
-
+      
       Next_Release := Next_Release + Period;
       delay until Next_Release;
    end loop;
