@@ -1,6 +1,5 @@
 with Uart; use Uart;
 with Motor;
-with Uarts; use Uarts;
 --with Steering;
 with STM32.Board;
 
@@ -14,8 +13,6 @@ procedure Main is
    StopSpeed : Integer := 0;
 begin
    STM32.Board.Initialize_LEDs;
-   Uarts.Initialize_UART_GPIO;
-   Uarts.Initialize;
    Motor.Init;
    loop
       C := Uart.Get_Command;
@@ -26,12 +23,12 @@ begin
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
             STM32.Board.Turn_On (STM32.Board.Green_LED);
-            Motor.Set_Speed_Motor_1 (GoSpeed);
+            Motor.Set_Speed_Motor_1 (25);
 
          when stop =>
             STM32.Board.Turn_On (STM32.Board.Red_LED);
             STM32.Board.Turn_Off (STM32.Board.Green_LED);
-            Motor.Set_Speed_Motor_1 (StopSpeed);
+            Motor.Set_Speed_Motor_1 (0);
      
          when undefined => 
             null;

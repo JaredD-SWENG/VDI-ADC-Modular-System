@@ -49,7 +49,7 @@ package body Motor is
    task body Motor_Task is
       Next_Release : Time := Clock;
    begin
-
+      Init;
       loop
 
          --PWM_Control.Set (Get_Speed_Motor_1.Get_Speed);

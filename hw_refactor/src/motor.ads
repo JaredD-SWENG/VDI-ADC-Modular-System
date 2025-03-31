@@ -14,5 +14,5 @@ package Motor is
    private
    task Motor_Task with
       Storage_Size => 1 * 1024,
-      Priority     => System_Config.Uart_Priority;
+      Priority     => System_Config.Motor_Priority;
 end Motor;
