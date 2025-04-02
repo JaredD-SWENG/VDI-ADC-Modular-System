@@ -21,11 +21,11 @@ begin
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
             STM32.Board.Turn_On (STM32.Board.Green_LED);
-            Motor.Set_Speed_Motor_1 (25);
+            Motor.Set_Speed_Drive (25);
          when stop =>
             STM32.Board.Turn_On (STM32.Board.Red_LED);
             STM32.Board.Turn_Off (STM32.Board.Green_LED);
-            Motor.Set_Speed_Motor_1 (0);
+            Motor.Set_Speed_Drive (0);
          when undefined => 
             null;
       end case;
