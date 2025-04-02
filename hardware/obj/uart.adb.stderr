@@ -1,0 +1,14 @@
+uart.adb:1:09: warning: no entities of "Ada.Real_Time" are referenced [-gnatwu]
+uart.adb:1:21: warning: use clause for package "Real_Time" has no effect [-gnatwu]
+uart.adb:2:21: warning: use clause for package "HAL" has no effect [-gnatwu]
+uart.adb:3:07: (style) bad casing of "Uarts" declared at uarts.ads:4
+uart.adb:3:21: warning: use clause for package "Uarts" has no effect [-gnatwu]
+uart.adb:3:26: (style) bad casing of "Uarts" declared at uarts.ads:4
+uart.adb:5:06: warning: redundant with clause in body [-gnatwr]
+uart.adb:34:28: (style) space required
+uart.ads:5:40: (style) space required
+uart.ads:6:35: (style) space required
+uart.ads:7:37: (style) space required
+uart.ads:8:38: (style) space required
+uart.ads:9:37: (style) space required
+uart.ads:10:42: (style) space required

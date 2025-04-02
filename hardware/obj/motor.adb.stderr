@@ -1,0 +1,11 @@
+motor.adb:55:12: (style) two spaces required
+motor.adb:78:33: (style) space required
+motor.ads:2:11: warning: unit "STM32.Board" is not referenced [-gnatwu]
+motor.ads:3:11: warning: unit "STM32.PWM" is not referenced in spec [-gnatwu]
+motor.ads:3:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:4:11: warning: unit "STM32.Timers" is not referenced in spec [-gnatwu]
+motor.ads:4:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:5:11: warning: unit "STM32.GPIO" is not referenced [-gnatwu]
+motor.ads:6:11: warning: unit "STM32.Device" is not referenced in spec [-gnatwu]
+motor.ads:6:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:14:04: (style) "private" in wrong column, should be in column 1

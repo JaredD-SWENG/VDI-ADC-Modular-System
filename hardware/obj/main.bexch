@@ -1,0 +1,53 @@
+[GENERATED OBJECT FILE]
+b__main.o
+[PROJECT FILES]
+C:\Code\VDI-ADC-Modular-System\hardware\hw_refactor.gpr
+20250402214746 39441d66a0a4eb44bb5c3e52f90f85c4
+C:\Users\kevin\AppData\Local\alire\cache\builds\stm32_hal_0.1.0_9276ee80\578fa707396e3337e837799488d7c70c27ce3a691db6465f915ac716a8ea4c9b\stm32_hal.gpr
+20241023214546 6e693f775627c8a712e42befb0a9ef2e
+C:\Users\kevin\AppData\Local\alire\cache\builds\adl_middleware_0.2.0_623c6913\b4ec6094b58d9cc456e277cd32fca5ea0d0a72e5eafac9d58bb4557f37b435b9\config\adl_middleware_config.gpr
+20250402221408 54962ae1b3d4e05e1ef33ea0125012ab
+C:\Users\kevin\AppData\Local\alire\cache\builds\adl_middleware_0.2.0_623c6913\b4ec6094b58d9cc456e277cd32fca5ea0d0a72e5eafac9d58bb4557f37b435b9\adl_middleware.gpr
+20241023214540 4795c2ed79866c13af45174040ca18c4
+C:\Users\kevin\AppData\Local\alire\cache\builds\embedded_components_0.2.0_37c39b23\0bc6b1629f0f1e94583a71ab62faf08ad25f0bb4872a81641612ad56c49d554e\config\embedded_components_config.gpr
+20250402221408 228cc6448afdc43a4a7b42da7fbedc30
+C:\Users\kevin\AppData\Local\alire\cache\builds\embedded_components_0.2.0_37c39b23\0bc6b1629f0f1e94583a71ab62faf08ad25f0bb4872a81641612ad56c49d554e\embedded_components.gpr
+20241023214544 9beda5e674a50069924d5c553c8da8eb
+C:\Users\kevin\AppData\Local\alire\cache\builds\stm32f429disco_0.1.0_aa5fe0cb\c82c5fd28bae1b74f73b5bc408fb0d2a6c4a95b458bd5f92faf6278736579e80\config\stm32f429disco_config.gpr
+20250402221408 6f4d14f984ec80034fe06f85645f3123
+C:\Users\kevin\AppData\Local\alire\cache\builds\stm32f429disco_0.1.0_aa5fe0cb\c82c5fd28bae1b74f73b5bc408fb0d2a6c4a95b458bd5f92faf6278736579e80\stm32f429disco.gpr
+20241023214550 34b07721cb9ef19176e605f301516ce8
+C:\Code\VDI-ADC-Modular-System\hardware\config\hw_refactor_config.gpr
+20250402221408 2035abe9e700c2cb037c8a4dad15bb4e
+C:\Users\kevin\AppData\Local\alire\cache\builds\hal_0.3.1_58bb6bd7\45a7230b1521a74e4d762c42ec802710efe319e84e7227b385f535fafd1bbbac\hal.gpr
+20250109004928 c7e2cdeb68909ccb9ab05908d24e5402
+C:\Users\kevin\AppData\Local\alire\cache\builds\cortex_m_0.5.0_39667d15\476f859549ba1af1d200af7bcb2f01b3ec0faabcfe00cbc7d6402ba313b82772\config\cortex_m_config.gpr
+20250402221408 431f2654f9a56deb6e1e966a9311107a
+C:\Users\kevin\AppData\Local\alire\cache\builds\cortex_m_0.5.0_39667d15\476f859549ba1af1d200af7bcb2f01b3ec0faabcfe00cbc7d6402ba313b82772\cortex_m.gpr
+20241023214542 b4d7f4ae4e752e322d99e3ca9acaeb74
+C:\Users\kevin\AppData\Local\alire\cache\builds\stm32_hal_0.1.0_9276ee80\578fa707396e3337e837799488d7c70c27ce3a691db6465f915ac716a8ea4c9b\config\stm32_hal_config.gpr
+20250402221408 3ac994c4fd52c13a22dcd2d01107da1d
+[BOUND OBJECT FILES]
+C:\Code\VDI-ADC-Modular-System\hardware\obj\system_config.o
+C:\Code\VDI-ADC-Modular-System\hardware\obj\motor.o
+C:\Code\VDI-ADC-Modular-System\hardware\obj\uarts.o
+C:\Code\VDI-ADC-Modular-System\hardware\obj\uart.o
+C:\Code\VDI-ADC-Modular-System\hardware\obj\main.o
+[GENERATED SOURCE FILES]
+b__main.ads
+b__main.adb
+b__main.ali
+[RESULTING OPTIONS]
+-LC:\Code\VDI-ADC-Modular-System\hardware\obj\
+-LC:\Code\VDI-ADC-Modular-System\hardware\obj\
+-LC:\Users\kevin\AppData\Local\alire\cache\builds\cortex_m_0.5.0_39667d15\476f859549ba1af1d200af7bcb2f01b3ec0faabcfe00cbc7d6402ba313b82772\lib\
+-LC:\Users\kevin\AppData\Local\alire\cache\builds\hal_0.3.1_58bb6bd7\45a7230b1521a74e4d762c42ec802710efe319e84e7227b385f535fafd1bbbac\lib\
+-LC:\Users\kevin\AppData\Local\alire\cache\builds\stm32f429disco_0.1.0_aa5fe0cb\c82c5fd28bae1b74f73b5bc408fb0d2a6c4a95b458bd5f92faf6278736579e80\lib\
+-LC:\Users\kevin\AppData\Local\alire\cache\builds\embedded_components_0.2.0_37c39b23\0bc6b1629f0f1e94583a71ab62faf08ad25f0bb4872a81641612ad56c49d554e\lib\
+-LC:\Users\kevin\AppData\Local\alire\cache\builds\adl_middleware_0.2.0_623c6913\b4ec6094b58d9cc456e277cd32fca5ea0d0a72e5eafac9d58bb4557f37b435b9\lib\
+-LC:\Users\kevin\AppData\Local\alire\cache\builds\stm32_hal_0.1.0_9276ee80\578fa707396e3337e837799488d7c70c27ce3a691db6465f915ac716a8ea4c9b\lib\
+-LC:\users\kevin\appdata\local\alire\cache\toolchains\gnat_arm_elf_12.2.1_351564ba\arm-eabi\lib\gnat\embedded-stm32f429disco\adalib\
+-static
+-static-libgcc
+C:\users\kevin\appdata\local\alire\cache\toolchains\gnat_arm_elf_12.2.1_351564ba\arm-eabi\lib\gnat\embedded-stm32f429disco\adalib\libgnarl.a
+C:\users\kevin\appdata\local\alire\cache\toolchains\gnat_arm_elf_12.2.1_351564ba\arm-eabi\lib\gnat\embedded-stm32f429disco\adalib\libgnat.a

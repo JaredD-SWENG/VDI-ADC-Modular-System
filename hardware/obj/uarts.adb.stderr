@@ -1,0 +1,3 @@
+uarts.adb:100:01: (style) multiple blank lines
+uarts.adb:110:14: warning: array aggregate using () is an obsolescent syntax, use [] instead [-gnatwj]
+uarts.ads:5:12: (style) space required
