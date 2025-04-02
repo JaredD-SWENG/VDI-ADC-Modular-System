@@ -1,6 +1,6 @@
 with Uart; use Uart;
 with Motor;
---with Steering;
+with Steering;
 with STM32.Board;
 
 with Ada.Real_Time; use Ada.Real_Time;
@@ -14,11 +14,18 @@ procedure Main is
 begin
    STM32.Board.Initialize_LEDs;
    Motor.Init;
+   Steering.Init;
    loop
       C := Uart.Get_Command;
       case (C) is
-         when center | left | right => 
-            --  Steering.Set_Command(Cmd);
+         when center => 
+            Steering.Set_Angle_Steering1(7);
+            null;
+         when left =>
+            Steering.Set_Angle_Steering1(8);
+            null;
+         when right => 
+            Steering.Set_Angle_Steering1(6);
             null;
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
