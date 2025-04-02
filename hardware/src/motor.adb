@@ -5,6 +5,14 @@ package body Motor is
    Period : constant Time_Span := Milliseconds (System_Config.Motor_Period);
    Drive_Motor_Modulator : STM32.PWM.PWM_Modulator;
 
+   subtype Drive_GPIO is GPIO_Point;
+
+   Drive_Motor_Modulator : Drive_GPIO := STM32.Device.PB7;
+   Mosfet_Driver : Drive_GPIO := STM32.Device.PC8;
+
+   procedure Turn_On  (This : in out User_LED) renames STM32.GPIO.Set;
+   procedure Turn_Off (This : in out User_LED) renames STM32.GPIO.Clear;
+
    protected type Motor_Data_T is
       procedure Set_Speed (S : Integer);
       function Get_Speed return Integer;
@@ -12,11 +20,6 @@ package body Motor is
       Speed : Integer := 0;
    end Motor_Data_T;
 
-   --  PROTECTED TYPE (Motor_Data_T)
-   --  This is a protected type that encapsulates the speed of the motor.
-   --  It provides methods to set and get the speed, ensuring that access
-   --  to the speed variable is thread-safe.
-   --  The protected type is instantiated as a single object (Drive_Motor) to
    protected body Motor_Data_T is
       procedure Set_Speed (S : Integer) is
       begin
@@ -55,8 +58,8 @@ package body Motor is
       Next_Release : Time := Clock;
    begin
       Init;
-      loop
-
+      Calibrate_Esc_30A;
+   loop
          --PWM_Control.Set (Get_Speed_Drive.Get_Speed);
          Drive_Motor_Modulator.Set_Duty_Cycle (Get_Speed_Drive);
 
@@ -68,25 +71,12 @@ package body Motor is
    ---------------------------------------------------------
    --  CALIBRATE ESC-30A
    ---------------------------------------------------------
-   procedure Calibrate_Esc_30A (Min : Integer; Max : Integer) is
-      Next_Release : Time := Clock;
-      Frequency : constant STM32.PWM.Hertz := 50;
+   procedure Calibrate_Esc_30A is
    begin
-      STM32.PWM.Configure_PWM_Timer
-         (Generator => STM32.Device.Timer_4'Access,
-          Frequency => Frequency);
-
-      Drive_Motor_Modulator.Attach_PWM_Channel
-         (Generator => STM32.Device.Timer_4'Access,
-          Channel   => STM32.Timers.Channel_2,
-          Point     => STM32.Device.PB7,
-          PWM_AF    => STM32.Device.GPIO_AF_TIM4_2);
-
-      Drive_Motor_Modulator.Enable_Output;
-      Drive_Motor_Modulator.Set_Duty_Cycle(Min);
-      delay until Next_Release + Milliseconds(2000);
-      Drive_Motor_Modulator.Set_Duty_Cycle(Max);
-      delay until Next_Release + Milliseconds(2000);
+      STM32.Board.Set (STM32.Device.PC8);
+      Drive_Motor_Modulator.Set_Duty_Cycle (100);
+      delay 2.0; -- Wait for 2 seconds
+      Drive_Motor_Modulator.Set_Duty_Cycle (0);
    end Calibrate_Esc_30A;
 
    ---------------------------------------------------------
@@ -107,7 +97,7 @@ package body Motor is
           PWM_AF    => STM32.Device.GPIO_AF_TIM4_2);
 
       Drive_Motor_Modulator.Enable_Output;
-      Drive_Motor_Modulator.Set_Duty_Cycle(42);
+      Drive_Motor_Modulator.Set_Duty_Cycle(0);
 
       Next_Release := Next_Release + Period;
       delay until Next_Release;

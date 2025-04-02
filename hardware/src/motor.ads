@@ -8,12 +8,11 @@ with STM32.Device; -- Device specific constants
 package Motor is
 
    procedure Init;
+   procedure Calibrate_Esc_30A;
+
    function Get_Speed_Drive return Integer;
    procedure Set_Speed_Drive (S : Integer);
-
-   -- calibrate esc-30a
-   procedure Calibrate_Esc_30A (Min : Integer; Max : Integer);
-
+   
    private
    task Motor_Task with
       Storage_Size => 1 * 1024,

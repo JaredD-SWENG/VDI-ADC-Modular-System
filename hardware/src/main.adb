@@ -11,7 +11,6 @@ procedure Main is
    C : Uart.Cmd;
 begin
    STM32.Board.Initialize_LEDs;
-   Motor.Init;
    loop
       C := Uart.Get_Command;
       case (C) is
@@ -21,7 +20,7 @@ begin
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
             STM32.Board.Turn_On (STM32.Board.Green_LED);
-            Motor.Set_Speed_Drive (25);
+            Motor.Set_Speed_Drive (20);
          when stop =>
             STM32.Board.Turn_On (STM32.Board.Red_LED);
             STM32.Board.Turn_Off (STM32.Board.Green_LED);

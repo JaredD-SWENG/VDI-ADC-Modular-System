@@ -1,17 +1,24 @@
-motor.adb:60:12: (style) two spaces required
-motor.adb:72:07: warning: "Next_Release" is not modified, could be declared constant [-gnatwk]
-motor.adb:86:43: (style) space required
-motor.adb:87:46: (style) space required
-motor.adb:88:43: (style) space required
-motor.adb:89:46: (style) space required
-motor.adb:110:43: (style) space required
-motor.ads:2:11: warning: unit "STM32.Board" is not referenced [-gnatwu]
+motor.adb:8:26: error: "GPIO_Point" is not visible
+motor.adb:8:26: error: non-visible declaration at stm32-gpio.ads:138
+motor.adb:8:26: error: non-visible declaration at hal-gpio.ads:48
+motor.adb:10:04: error: "Drive_Motor_Modulator" conflicts with declaration at line 6
+motor.adb:13:04: error: no visible subprogram matches the specification for "Turn_On"
+motor.adb:13:38: error: "User_LED" is not visible (more references follow)
+motor.adb:13:38: error: non-visible declaration at stm32-board.ads:67
+motor.adb:14:04: error: no visible subprogram matches the specification for "Turn_Off"
+motor.adb:67:03: (style) incorrect layout
+motor.adb:68:12: (style) two spaces required
+motor.adb:73:07: (style) "end" in wrong column, should be in column 4
+motor.adb:81:18: error: "Set" not declared in "Board"
+motor.adb:105:43: (style) space required
+motor.ads:2:11: warning: unit "STM32.Board" is not referenced in spec [-gnatwu]
+motor.ads:2:11: warning: with clause might be moved to body [-gnatwu]
 motor.ads:3:11: warning: unit "STM32.PWM" is not referenced in spec [-gnatwu]
 motor.ads:3:11: warning: with clause might be moved to body [-gnatwu]
-motor.ads:4:11: warning: unit "STM32.Timers" is not referenced in spec [-gnatwu]
-motor.ads:4:11: warning: with clause might be moved to body [-gnatwu]
-motor.ads:5:11: warning: unit "STM32.GPIO" is not referenced [-gnatwu]
+motor.ads:4:11: warning: unit "STM32.Timers" is not referenced [-gnatwu]
+motor.ads:5:11: warning: unit "STM32.GPIO" is not referenced in spec [-gnatwu]
+motor.ads:5:11: warning: with clause might be moved to body [-gnatwu]
 motor.ads:6:11: warning: unit "STM32.Device" is not referenced in spec [-gnatwu]
 motor.ads:6:11: warning: with clause might be moved to body [-gnatwu]
-motor.ads:14:07: (style) space required
+motor.ads:15:01: (style) trailing spaces not permitted
 motor.ads:17:04: (style) "private" in wrong column, should be in column 1
