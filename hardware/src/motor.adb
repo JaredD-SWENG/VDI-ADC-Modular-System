@@ -5,13 +5,7 @@ package body Motor is
    Period : constant Time_Span := Milliseconds (System_Config.Motor_Period);
    Drive_Motor_Modulator : STM32.PWM.PWM_Modulator;
 
-   subtype Drive_GPIO is GPIO_Point;
-
-   Drive_Motor_Modulator : Drive_GPIO := STM32.Device.PB7;
-   Mosfet_Driver : Drive_GPIO := STM32.Device.PC8;
-
-   procedure Turn_On  (This : in out User_LED) renames STM32.GPIO.Set;
-   procedure Turn_Off (This : in out User_LED) renames STM32.GPIO.Clear;
+   Drive_GPIO : STM32.GPIO.GPIO_Point := STM32.Device.PC8;
 
    protected type Motor_Data_T is
       procedure Set_Speed (S : Integer);
@@ -72,20 +66,37 @@ package body Motor is
    --  CALIBRATE ESC-30A
    ---------------------------------------------------------
    procedure Calibrate_Esc_30A is
+      Next_Release : Time := Clock;
+      Calibrtion_Time : constant Standard.Duration := 5.0; -- seconds
    begin
-      STM32.Board.Set (STM32.Device.PC8);
+
+      -- Turn on ESC
+      STM32.GPIO.Set (Drive_GPIO);
+
+      -- Set PWM to 100%
       Drive_Motor_Modulator.Set_Duty_Cycle (100);
-      delay 2.0; -- Wait for 2 seconds
+
+      delay Calibrtion_Time;
+
+      -- Set PWM to 0%
       Drive_Motor_Modulator.Set_Duty_Cycle (0);
+      
    end Calibrate_Esc_30A;
 
    ---------------------------------------------------------
    --  INIT (called from main)
    ---------------------------------------------------------
    procedure Init is
-      Next_Release : Time := Clock;
       Frequency : constant STM32.PWM.Hertz := 50;
    begin
+      STM32.Device.Enable_Clock (Drive_GPIO);
+      STM32.GPIO.Configure_IO (Drive_GPIO,
+         (Mode        => STM32.GPIO.Mode_Out,
+          Output_Type => STM32.GPIO.Push_Pull,
+          Speed       => STM32.GPIO.Speed_100MHz,
+          Resistors   => STM32.GPIO.Floating));
+      STM32.GPIO.Clear (Drive_GPIO);
+
       STM32.PWM.Configure_PWM_Timer
          (Generator => STM32.Device.Timer_4'Access,
           Frequency => Frequency);
@@ -95,12 +106,9 @@ package body Motor is
           Channel   => STM32.Timers.Channel_2,
           Point     => STM32.Device.PB7,
           PWM_AF    => STM32.Device.GPIO_AF_TIM4_2);
-
+         
       Drive_Motor_Modulator.Enable_Output;
-      Drive_Motor_Modulator.Set_Duty_Cycle(0);
-
-      Next_Release := Next_Release + Period;
-      delay until Next_Release;
+      Drive_Motor_Modulator.Set_Duty_Cycle (0);
 
    end Init;
 
