@@ -303,9 +303,9 @@ package body CV_Ada.Hough_Transform is
    procedure Hough_Circle_Transform
      (Input          : in out Input_Data; Min_Radius : Positive := 10;
       Max_Radius     :        Positive := 100; Radius_Step : Positive := 1;
-      Vote_Threshold :        Positive := 100; Max_Circles : Positive := 5;
-      Circles        :    out Circle_Array_Access)
+      Vote_Threshold :        Positive := 100; Max_Circles : Positive := 5)
    is
+      Circles  : Circle_Array_Access;
       -- Extract necessary parameters from Input.Desc
       Width    : constant Storage_Count := Input.Desc.Width;
       Height   : constant Storage_Count := Input.Desc.Height;
@@ -327,9 +327,9 @@ package body CV_Ada.Hough_Transform is
       -- Pre-compute sine and cosine values to avoid redundant calculations
       type Angle_Lookup_Table is array (0 .. 359) of Float;
       Sin_Table, Cos_Table : Angle_Lookup_Table;
-      
+
       -- Adaptive angle step based on radius for optimization
-      function Get_Angle_Step(Radius: Integer) return Float is
+      function Get_Angle_Step (Radius : Integer) return Float is
       begin
          -- Smaller radii need more precise angles, larger can use fewer steps
          if Radius < 20 then
@@ -360,23 +360,24 @@ package body CV_Ada.Hough_Transform is
 
       -- Window size for non-maximal suppression
       Window_Size : constant Positive := 5;
-      
+
       -- Dynamically allocated arrays for optimization
       type Edge_Point_Record is record
          X, Y : Integer;
       end record;
       type Edge_Point_Array is array (Positive range <>) of Edge_Point_Record;
       type Edge_Point_Access is access Edge_Point_Array;
-      Edge_Points : Edge_Point_Access := new Edge_Point_Array(1 .. Integer(Width * Height));
-      Edge_Point_Count : Natural := 0;
+      Edge_Points      : Edge_Point_Access :=
+        new Edge_Point_Array (1 .. Integer (Width * Height));
+      Edge_Point_Count : Natural           := 0;
    begin
       -- Pre-compute sine and cosine values
       for I in Sin_Table'Range loop
          declare
-            Angle : constant Float := Float(I) * Ada.Numerics.Pi / 180.0;
+            Angle : constant Float := Float (I) * Ada.Numerics.Pi / 180.0;
          begin
-            Sin_Table(I) := Sin(Angle);
-            Cos_Table(I) := Cos(Angle);
+            Sin_Table (I) := Sin (Angle);
+            Cos_Table (I) := Cos (Angle);
          end;
       end loop;
 
@@ -389,14 +390,17 @@ package body CV_Ada.Hough_Transform is
             end loop;
          end loop;
       end loop;
-      
+
       -- First pass: Collect edge points to avoid redundant checks
       for Y in 1 .. Integer (Height) loop
          for X in 1 .. Integer (Width) loop
-            if Get_Pixel(Data.all, Storage_Count (X), Storage_Count (Y), 
-                        Width, Height, Channels) > 0 then
-               Edge_Point_Count := Edge_Point_Count + 1;
-               Edge_Points(Edge_Point_Count) := (X => X, Y => Y);
+            if Get_Pixel
+                (Data.all, Storage_Count (X), Storage_Count (Y), Width, Height,
+                 Channels) >
+              0
+            then
+               Edge_Point_Count               := Edge_Point_Count + 1;
+               Edge_Points (Edge_Point_Count) := (X => X, Y => Y);
             end if;
          end loop;
       end loop;
@@ -404,34 +408,41 @@ package body CV_Ada.Hough_Transform is
       -- Voting process: use collected edge points for more efficient processing
       for Point_Idx in 1 .. Edge_Point_Count loop
          declare
-            X : constant Integer := Edge_Points(Point_Idx).X;
-            Y : constant Integer := Edge_Points(Point_Idx).Y;
+            X : constant Integer := Edge_Points (Point_Idx).X;
+            Y : constant Integer := Edge_Points (Point_Idx).Y;
          begin
             -- For each possible radius, vote for all points that could be centers
             for R_idx in 1 .. Radius_Count loop
                declare
-                  R : constant Integer := Index_To_Radius (R_idx);
-                  Angle_Step : constant Float := Get_Angle_Step(R); -- Adaptive step
-                  Theta_Steps : constant Integer := 
-                    Integer(2.0 * Ada.Numerics.Pi / Angle_Step);
-                  
+                  R           : constant Integer := Index_To_Radius (R_idx);
+                  Angle_Step  : constant Float   :=
+                    Get_Angle_Step (R); -- Adaptive step
+                  Theta_Steps : constant Integer :=
+                    Integer (2.0 * Ada.Numerics.Pi / Angle_Step);
+
                   -- Optimized voting: vote for fewer points with larger radii
-                  Vote_Step : constant Positive := 
+                  Vote_Step : constant Positive :=
                     (if R < 30 then 1 else (if R < 60 then 2 else 3));
                begin
                   -- Optimize: For large radiuses, sample fewer points on the circle
                   for I in 0 .. Theta_Steps - 1 loop
-                     if I mod Vote_Step = 0 then -- Skip points based on radius size
+                     if I mod Vote_Step = 0
+                     then -- Skip points based on radius size
                         declare
-                           Angle_Deg : constant Integer := Integer(Float(I) * 180.0 / 
-                                                         Float(Theta_Steps)) mod 360;
+                           Angle_Deg : constant Integer :=
+                             Integer
+                               (Float (I) * 180.0 / Float (Theta_Steps)) mod
+                             360;
                            -- Use pre-computed sine/cosine values
-                           A : constant Integer := X - Integer(Float(R) * Cos_Table(Angle_Deg));
-                           B : constant Integer := Y - Integer(Float(R) * Sin_Table(Angle_Deg));
+                           A         : constant Integer :=
+                             X - Integer (Float (R) * Cos_Table (Angle_Deg));
+                           B         : constant Integer :=
+                             Y - Integer (Float (R) * Sin_Table (Angle_Deg));
                         begin
                            -- Check if the potential center is within image bounds
-                           if A >= 1 and A <= Integer (Width) and 
-                              B >= 1 and B <= Integer (Height) then
+                           if A >= 1 and A <= Integer (Width) and B >= 1 and
+                             B <= Integer (Height)
+                           then
                               -- Vote for this center and radius
                               Acc (A, B, R_idx) := Acc (A, B, R_idx) + 1;
                            end if;
@@ -451,15 +462,15 @@ package body CV_Ada.Hough_Transform is
                -- Early threshold check to skip unnecessary processing
                if Acc (X, Y, R_idx) > Vote_Threshold then
                   declare
-                     Is_Maximum : Boolean := True;
-                     R : constant Integer := Index_To_Radius(R_idx);
+                     Is_Maximum   : Boolean          := True;
+                     R : constant Integer := Index_To_Radius (R_idx);
                      -- Adjust window size based on radius
-                     Local_Window : constant Integer := 
-                       Integer'Min(Window_Size, Integer'Max(2, R / 10));
+                     Local_Window : constant Integer :=
+                       Integer'Min (Window_Size, Integer'Max (2, R / 10));
                   begin
                      -- Check surrounding cells to ensure local maximum
                      -- Early exit optimization
-                     Outer_Loop:
+                     Outer_Loop :
                      for DX in -Local_Window .. Local_Window loop
                         for DY in -Local_Window .. Local_Window loop
                            for DR in -1 .. 1 loop
@@ -470,9 +481,11 @@ package body CV_Ada.Hough_Transform is
                                     NR : constant Integer := R_idx + DR;
                                  begin
                                     if NX >= 1 and NX <= Integer (Width) and
-                                       NY >= 1 and NY <= Integer (Height) and
-                                       NR >= 1 and NR <= Radius_Count then
-                                       if Acc (NX, NY, NR) >= Acc (X, Y, R_idx) then
+                                      NY >= 1 and NY <= Integer (Height) and
+                                      NR >= 1 and NR <= Radius_Count
+                                    then
+                                       if Acc (NX, NY, NR) >= Acc (X, Y, R_idx)
+                                       then
                                           Is_Maximum := False;
                                           exit Outer_Loop;  -- Early exit
                                        end if;
@@ -491,14 +504,14 @@ package body CV_Ada.Hough_Transform is
                         begin
                            -- Add circle or replace weakest one
                            if Circle_Count < Max_Circles then
-                              Circle_Count := Circle_Count + 1;
-                              Circle_Votes (Circle_Count) := 
+                              Circle_Count                := Circle_Count + 1;
+                              Circle_Votes (Circle_Count) :=
                                 (X => X, Y => Y, Radius => R, Votes => Votes);
                            else
                               -- Find and replace the weakest circle if this one is stronger
                               declare
                                  Min_Index : Integer := 1;
-                                 Min_Votes : Natural := Circle_Votes(1).Votes;
+                                 Min_Votes : Natural := Circle_Votes (1).Votes;
                               begin
                                  for I in 2 .. Max_Circles loop
                                     if Circle_Votes (I).Votes < Min_Votes then
@@ -508,8 +521,9 @@ package body CV_Ada.Hough_Transform is
                                  end loop;
 
                                  if Votes > Min_Votes then
-                                    Circle_Votes (Min_Index) := 
-                                      (X => X, Y => Y, Radius => R, Votes => Votes);
+                                    Circle_Votes (Min_Index) :=
+                                      (X     => X, Y => Y, Radius => R,
+                                       Votes => Votes);
                                  end if;
                               end;
                            end if;
@@ -525,12 +539,12 @@ package body CV_Ada.Hough_Transform is
       -- Use insertion sort for small arrays (fast for Max_Circles typically being small)
       for I in 2 .. Circle_Count loop
          declare
-            J    : Integer := I;
+            J    : Integer           := I;
             Temp : Circle_Parameters := Circle_Votes (I);
          begin
             while J > 1 and then Circle_Votes (J - 1).Votes < Temp.Votes loop
                Circle_Votes (J) := Circle_Votes (J - 1);
-               J := J - 1;
+               J                := J - 1;
             end loop;
             Circle_Votes (J) := Temp;
          end;
@@ -542,10 +556,10 @@ package body CV_Ada.Hough_Transform is
          Circles (I) := Circle_Votes (I);
 
          -- Draw circles on the image for visualization
-         Draw_Circle(Data.all, Storage_Count(Circle_Votes (I).X),
-                    Storage_Count(Circle_Votes (I).Y),
-                    Storage_Count(Circle_Votes (I).Radius), 
-                    Width, Height, Channels);
+         Draw_Circle
+           (Data.all, Storage_Count (Circle_Votes (I).X),
+            Storage_Count (Circle_Votes (I).Y),
+            Storage_Count (Circle_Votes (I).Radius), Width, Height, Channels);
       end loop;
 
       -- Free accumulator memory to prevent leaks
@@ -557,6 +571,30 @@ package body CV_Ada.Hough_Transform is
       begin
          Free_Acc (Temp);
       end;
+
+      -- Process detected circles
+      if Circles /= null and then Circles'Length > 0 then
+         -- Log the number of circles found
+         Put_Line
+           ("Found" & Integer'Image (Circles'Length) &
+            " traffic signal circles");
+
+         -- You could also use the size or position of the circles to determine if it's a traffic signal
+         -- For example, analyze the largest detected circle:
+         Put_Line
+           ("Strongest circle at position (" & Integer'Image (Circles (1).X) &
+            "," & Integer'Image (Circles (1).Y) & ") with radius" &
+            Integer'Image (Circles (1).Radius));
+
+         -- Free the allocated memory for circles
+         declare
+            -- Define the procedure properly with the correct types
+            procedure Free_Circles is new Ada.Unchecked_Deallocation
+              (Object => Circle_Array, Name => Circle_Array_Access);
+         begin
+            Free_Circles (Circles);
+         end;
+      end if;
    end Hough_Circle_Transform;
 
 end CV_Ada.Hough_Transform;

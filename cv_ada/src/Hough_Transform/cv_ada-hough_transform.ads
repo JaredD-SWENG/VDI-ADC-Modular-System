@@ -26,8 +26,7 @@ package CV_Ada.Hough_Transform is
    procedure Hough_Circle_Transform
      (Input          : in out Input_Data; Min_Radius : Positive := 10;
       Max_Radius     :        Positive := 100; Radius_Step : Positive := 1;
-      Vote_Threshold :        Positive := 100; Max_Circles : Positive := 5;
-      Circles        :    out Circle_Array_Access);
+      Vote_Threshold :        Positive := 100; Max_Circles : Positive := 5);
 
 private
    -- Accumulator_Cell represents a single cell in the Hough Transform accumulator,
