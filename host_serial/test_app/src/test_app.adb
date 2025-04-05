@@ -5,6 +5,6 @@ begin
    Send_Command (stop);
    delay 3.0;
    Send_Command (go);
-   delay 1.0;
+   delay 3.0;
    Send_Command (stop);
 end Test_App;

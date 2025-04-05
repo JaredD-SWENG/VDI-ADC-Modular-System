@@ -8,11 +8,11 @@ package Hw_Refactor_Config is
    Crate_Version : constant String := "0.1.0-dev";
    Crate_Name : constant String := "hw_refactor";
 
-   Alire_Host_OS : constant String := "macos";
+   Alire_Host_OS : constant String := "windows";
 
    Alire_Host_Arch : constant String := "x86_64";
 
-   Alire_Host_Distro : constant String := "homebrew";
+   Alire_Host_Distro : constant String := "msys2";
 
    type Build_Profile_Kind is (release, validation, development);
    Build_Profile : constant Build_Profile_Kind := development;

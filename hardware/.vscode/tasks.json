@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "alr: Build with debug",
+            "type": "shell",
+            "command": "alr",
+            "args": [
+                "build",
+                "--",
+                "-cargs",
+                "-gnatef",
+                "-gnatwa"
+            ]
+,
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [] 
+        },
+        {
+            "label": "flash: openocd",
+            "type": "shell",
+            "command": "openocd",
+            "args": [
+              "-f",
+              "C:/xpack-openocd-0.12.0-4/openocd/scripts/board/stm32f429disc1.cfg",
+              "-c",
+              "program C:/Code/VDI-ADC-Modular-System/hw_refactor/bin/main verify reset exit"
+            ],
+            "group": {
+              "kind": "none", 
+              "isDefault": false
+            },
+            "problemMatcher": []
+          }
+    ]
+}

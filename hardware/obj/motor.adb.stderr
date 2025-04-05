@@ -1,0 +1,16 @@
+motor.adb:82:12: (style) two spaces required
+motor.adb:95:07: warning: variable "Next_Release" is not referenced [-gnatwu]
+motor.adb:98:10: (style) space required
+motor.adb:102:10: (style) space required
+motor.adb:107:10: (style) space required
+motor.ads:18:11: warning: unit "STM32.Board" is not referenced [-gnatwu]
+motor.ads:19:11: warning: unit "STM32.PWM" is not referenced in spec [-gnatwu]
+motor.ads:19:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:20:11: warning: unit "STM32.Timers" is not referenced in spec [-gnatwu]
+motor.ads:20:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:21:11: warning: unit "STM32.GPIO" is not referenced in spec [-gnatwu]
+motor.ads:21:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:22:11: warning: unit "STM32.Device" is not referenced in spec [-gnatwu]
+motor.ads:22:11: warning: with clause might be moved to body [-gnatwu]
+motor.ads:32:01: (style) trailing spaces not permitted
+motor.ads:33:04: (style) "private" in wrong column, should be in column 1
