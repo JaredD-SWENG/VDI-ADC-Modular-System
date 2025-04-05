@@ -72,6 +72,88 @@ package body CV_Ada.Graphics is
    end Draw_Line;
 
    ------------------------------------------------------------------------------
+   -- Draw_Circle
+   --
+   -- Draws a circle with specified center (Center_X, Center_Y) and radius in an image,
+   -- using the midpoint circle algorithm. Sets each pixel along the circle's perimeter
+   -- to a given color for all channels.
+   --
+   -- Parameters:
+   --   Data       - Image data array (modified in-place)
+   --   Center_X   - X-coordinate of the circle center
+   --   Center_Y   - Y-coordinate of the circle center
+   --   Radius     - Circle radius in pixels
+   --   Width      - Width of the image in pixels
+   --   Height     - Height of the image in pixels
+   --   Channels   - Number of channels per pixel (e.g., 3 for RGB, 4 for RGBA)
+   --   Color      - Circle color for all channels (default is 255)
+   ------------------------------------------------------------------------------
+   procedure Draw_Circle
+     (Data                          : in out Storage_Array;
+      Center_X, Center_Y, Radius    : Storage_Count;
+      Width, Height, Channels       : Storage_Count;
+      Color                         : Storage_Element := 255)
+   is
+      -- Midpoint circle algorithm variables
+      X      : Integer := Integer(Radius);
+      Y      : Integer := 0;
+      Error  : Integer := 1 - X;  -- Decision parameter
+      
+      -- Center coordinates converted to Integer for calculations
+      CX     : constant Integer := Integer(Center_X);
+      CY     : constant Integer := Integer(Center_Y);
+      
+      -- Helper procedure to set a pixel if it's within image bounds
+      procedure Set_Pixel(PX, PY : Integer) is
+      begin
+         if PX >= 1 and PX <= Integer(Width) and 
+            PY >= 1 and PY <= Integer(Height) then
+            -- Set the pixel color for each channel
+            for C in 0 .. Integer(Channels) - 1 loop
+               declare
+                  -- Calculate index for each channel in the Data array
+                  Index : constant Storage_Offset := 
+                    Storage_Offset(((PY - 1) * Integer(Width) + (PX - 1)) * 
+                                     Integer(Channels) + C + 1);
+               begin
+                  Data(Index) := Color;
+               end;
+            end loop;
+         end if;
+      end Set_Pixel;
+   begin
+      -- Handle special case of zero radius
+      if Radius = 0 then
+         Set_Pixel(CX, CY);  -- Just set the center pixel
+         return;
+      end if;
+      
+      -- Draw the circle using the midpoint circle algorithm
+      while X >= Y loop
+         -- Draw the 8 octants of the circle
+         Set_Pixel(CX + X, CY + Y);
+         Set_Pixel(CX - X, CY + Y);
+         Set_Pixel(CX + X, CY - Y);
+         Set_Pixel(CX - X, CY - Y);
+         Set_Pixel(CX + Y, CY + X);
+         Set_Pixel(CX - Y, CY + X);
+         Set_Pixel(CX + Y, CY - X);
+         Set_Pixel(CX - Y, CY - X);
+         
+         -- Update position
+         Y := Y + 1;
+         
+         -- Update decision parameter
+         if Error <= 0 then
+            Error := Error + 2 * Y + 1;
+         else
+            X := X - 1;
+            Error := Error + 2 * (Y - X) + 1;
+         end if;
+      end loop;
+   end Draw_Circle;
+
+   ------------------------------------------------------------------------------
    -- Get_Pixel
    --
    -- Retrieves the pixel data from an image at specified (X, Y) coordinates.
