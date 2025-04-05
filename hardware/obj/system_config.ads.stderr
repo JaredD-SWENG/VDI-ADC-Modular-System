@@ -3,6 +3,8 @@ system_config.ads:3:11: warning: no entities of "STM32.Timers" are referenced [-
 system_config.ads:3:20: warning: use clause for package "Timers" has no effect [-gnatwu]
 system_config.ads:4:11: warning: no entities of "STM32.GPIO" are referenced [-gnatwu]
 system_config.ads:4:18: warning: use clause for package "GPIO" has no effect [-gnatwu]
-system_config.ads:5:11: warning: no entities of "STM32.PWM" are referenced [-gnatwu]
 system_config.ads:5:17: warning: use clause for package "PWM" has no effect [-gnatwu]
 system_config.ads:6:20: warning: use clause for package "Device" has no effect [-gnatwu]
+system_config.ads:17:07: (style) space required
+system_config.ads:24:01: (style) multiple blank lines
+system_config.ads:25:01: (style) trailing spaces not permitted

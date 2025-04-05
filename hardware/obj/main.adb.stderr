@@ -1,3 +1,5 @@
-main.adb:3:03: (style) two spaces required
-main.adb:17:39: (style) trailing spaces not permitted
-main.adb:28:27: (style) trailing spaces not permitted
+main.adb:4:03: (style) two spaces required
+main.adb:18:39: (style) trailing spaces not permitted
+main.adb:29:27: (style) trailing spaces not permitted
+system_config.ads:9:45: error: "Motor_Priority" is undefined
+system_config.ads:10:42: error: "Uart_Priority" is undefined

@@ -1,3 +1,4 @@
+with System_Config;
 with Uart; use Uart;
 with Motor;
 --with Steering;
@@ -20,11 +21,11 @@ begin
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
             STM32.Board.Turn_On (STM32.Board.Green_LED);
-            Motor.Set_Speed_Drive (20);
+            Motor.Set_Speed_Drive (System_Config.Drive_Max_Speed);
          when stop =>
             STM32.Board.Turn_On (STM32.Board.Red_LED);
             STM32.Board.Turn_Off (STM32.Board.Green_LED);
-            Motor.Set_Speed_Drive (0);
+            Motor.Set_Speed_Drive (System_Config.Drive_Min_Speed);
          when undefined => 
             null;
       end case;
