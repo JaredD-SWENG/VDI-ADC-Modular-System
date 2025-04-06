@@ -19,13 +19,13 @@ begin
       C := Uart.Get_Command;
       case (C) is
          when center => 
-            Steering.Set_Angle_Steering1(7);
+            Steering.Set_Angle_Steering1(0);
             null;
          when left =>
-            Steering.Set_Angle_Steering1(8);
+            Steering.Set_Angle_Steering1(-60);
             null;
          when right => 
-            Steering.Set_Angle_Steering1(6);
+            Steering.Set_Angle_Steering1(60);
             null;
          when go =>
             STM32.Board.Turn_Off (STM32.Board.Red_LED);
