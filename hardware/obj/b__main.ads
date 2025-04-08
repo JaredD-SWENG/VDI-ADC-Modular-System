@@ -314,6 +314,8 @@ package ada_main is
    --  system_config%s
    --  motor%s
    --  motor%b
+   --  steering%s
+   --  steering%b
    --  uarts%s
    --  uarts%b
    --  uart%s

@@ -6,9 +6,9 @@ with STM32.PWM; use STM32.PWM;
 with STM32.Device; use STM32.Device;
 
 package System_Config is
-   Steering_Priority : constant Priority := Motor_Priority + 1;
-   Motor_Priority : constant Priority := Uart_Priority + 1;
    Uart_Priority  : constant Priority := Priority'First;
+   Motor_Priority : constant Priority := Uart_Priority + 1;
+   Steering_Priority : constant Priority := Motor_Priority + 1;
 
    Motor_Period : constant := 400;
    Steering_Period : constant := 400;

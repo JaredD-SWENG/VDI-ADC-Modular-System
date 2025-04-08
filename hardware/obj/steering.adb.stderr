@@ -1,0 +1,39 @@
+steering.adb:5:47: (style) space required
+steering.adb:7:04: warning: "Min_Angle" is not modified, could be declared constant [-gnatwk]
+steering.adb:7:13: (style) space required
+steering.adb:8:04: warning: "Max_Angle" is not modified, could be declared constant [-gnatwk]
+steering.adb:8:13: (style) space required
+steering.adb:9:04: warning: "Max_PWM" is not modified, could be declared constant [-gnatwk]
+steering.adb:9:11: (style) space required
+steering.adb:10:04: warning: "Min_PWM" is not modified, could be declared constant [-gnatwk]
+steering.adb:10:11: (style) space required
+steering.adb:20:29: (style) space required
+steering.adb:46:36: (style) space required
+steering.adb:48:26: (style) space required
+steering.adb:54:01: (style) trailing spaces not permitted
+steering.adb:55:33: (style) space required
+steering.adb:56:12: (style) space required
+steering.adb:57:07: warning: "Span" is not modified, could be declared constant [-gnatwk]
+steering.adb:57:11: (style) space required
+steering.adb:58:07: warning: "Scale" is not modified, could be declared constant [-gnatwk]
+steering.adb:58:12: (style) space required
+steering.adb:59:07: warning: "PWM_Center" is not modified, could be declared constant [-gnatwk]
+steering.adb:59:17: (style) space required
+steering.adb:69:21: (style) space required
+steering.adb:70:04: (style) "end Convert_Angle_to_PWM" required
+steering.adb:76:30: (style) trailing spaces not permitted
+steering.adb:78:12: (style) space required
+steering.adb:82:39: (style) space required
+steering.adb:90:21: (style) trailing spaces not permitted
+steering.adb:91:03: (style) incorrect layout
+steering.adb:92:03: (style) incorrect layout
+steering.adb:105:33: (style) space required
+steering.ads:2:11: warning: unit "STM32.Board" is not referenced [-gnatwu]
+steering.ads:3:11: warning: unit "STM32.PWM" is not referenced in spec [-gnatwu]
+steering.ads:3:11: warning: with clause might be moved to body [-gnatwu]
+steering.ads:4:11: warning: unit "STM32.Timers" is not referenced in spec [-gnatwu]
+steering.ads:4:11: warning: with clause might be moved to body [-gnatwu]
+steering.ads:5:11: warning: unit "STM32.GPIO" is not referenced [-gnatwu]
+steering.ads:6:11: warning: unit "STM32.Device" is not referenced in spec [-gnatwu]
+steering.ads:6:11: warning: with clause might be moved to body [-gnatwu]
+steering.ads:14:04: (style) "private" in wrong column, should be in column 1

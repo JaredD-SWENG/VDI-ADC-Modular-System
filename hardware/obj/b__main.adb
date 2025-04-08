@@ -69,10 +69,11 @@ package body ada_main is
    E285 : Short_Integer; pragma Import (Ada, E285, "touch_panel_stmpe811_E");
    E242 : Short_Integer; pragma Import (Ada, E242, "stm32__board_E");
    E130 : Short_Integer; pragma Import (Ada, E130, "motor_E");
-   E293 : Short_Integer; pragma Import (Ada, E293, "uarts_E");
-   E291 : Short_Integer; pragma Import (Ada, E291, "uart_E");
+   E291 : Short_Integer; pragma Import (Ada, E291, "steering_E");
+   E295 : Short_Integer; pragma Import (Ada, E295, "uarts_E");
+   E293 : Short_Integer; pragma Import (Ada, E293, "uart_E");
 
-   Sec_Default_Sized_Stacks : array (1 .. 3) of aliased System.Secondary_Stack.SS_Stack (System.Parameters.Runtime_Default_Sec_Stack_Size);
+   Sec_Default_Sized_Stacks : array (1 .. 4) of aliased System.Secondary_Stack.SS_Stack (System.Parameters.Runtime_Default_Sec_Stack_Size);
 
    Local_Priority_Specific_Dispatching : constant String := "";
    Local_Interrupt_States : constant String := "";
@@ -181,7 +182,7 @@ package body ada_main is
            True, True, True, False, False, False, False, False, 
            False, False, False, True, False, False, True, False, 
            True, False),
-         Count => (0, 0, 0, 1, 0, 0, 2, 0, 6, 0),
+         Count => (0, 0, 0, 1, 0, 0, 3, 0, 7, 0),
          Unknown => (False, False, False, False, False, False, False, False, True, False));
       Priority_Specific_Dispatching :=
         Local_Priority_Specific_Dispatching'Address;
@@ -197,7 +198,7 @@ package body ada_main is
 
       ada_main'Elab_Body;
       Default_Secondary_Stack_Size := System.Parameters.Runtime_Default_Sec_Stack_Size;
-      Binder_Sec_Stacks_Count := 3;
+      Binder_Sec_Stacks_Count := 4;
       Default_Sized_SS_Pool := Sec_Default_Sized_Stacks'Address;
 
       Runtime_Initialize (1);
@@ -336,11 +337,14 @@ package body ada_main is
       Motor'Elab_Spec;
       Motor'Elab_Body;
       E130 := E130 + 1;
+      Steering'Elab_Spec;
+      Steering'Elab_Body;
+      E291 := E291 + 1;
       Uarts'Elab_Body;
-      E293 := E293 + 1;
+      E295 := E295 + 1;
       Uart'Elab_Spec;
       Uart'Elab_Body;
-      E291 := E291 + 1;
+      E293 := E293 + 1;
    end adainit;
 
    procedure Ada_Main_Program;
@@ -366,20 +370,21 @@ package body ada_main is
    end;
 
 --  BEGIN Object file/option list
-   --   C:\Code\VDI-ADC-Modular-System\hardware\obj\system_config.o
-   --   C:\Code\VDI-ADC-Modular-System\hardware\obj\motor.o
-   --   C:\Code\VDI-ADC-Modular-System\hardware\obj\uarts.o
-   --   C:\Code\VDI-ADC-Modular-System\hardware\obj\uart.o
-   --   C:\Code\VDI-ADC-Modular-System\hardware\obj\main.o
-   --   -LC:\Code\VDI-ADC-Modular-System\hardware\obj\
-   --   -LC:\Code\VDI-ADC-Modular-System\hardware\obj\
-   --   -LC:\Users\kevin\AppData\Local\alire\cache\builds\cortex_m_0.5.0_39667d15\476f859549ba1af1d200af7bcb2f01b3ec0faabcfe00cbc7d6402ba313b82772\lib\
-   --   -LC:\Users\kevin\AppData\Local\alire\cache\builds\hal_0.3.1_58bb6bd7\45a7230b1521a74e4d762c42ec802710efe319e84e7227b385f535fafd1bbbac\lib\
-   --   -LC:\Users\kevin\AppData\Local\alire\cache\builds\stm32f429disco_0.1.0_aa5fe0cb\c82c5fd28bae1b74f73b5bc408fb0d2a6c4a95b458bd5f92faf6278736579e80\lib\
-   --   -LC:\Users\kevin\AppData\Local\alire\cache\builds\embedded_components_0.2.0_37c39b23\0bc6b1629f0f1e94583a71ab62faf08ad25f0bb4872a81641612ad56c49d554e\lib\
-   --   -LC:\Users\kevin\AppData\Local\alire\cache\builds\adl_middleware_0.2.0_623c6913\b4ec6094b58d9cc456e277cd32fca5ea0d0a72e5eafac9d58bb4557f37b435b9\lib\
-   --   -LC:\Users\kevin\AppData\Local\alire\cache\builds\stm32_hal_0.1.0_9276ee80\578fa707396e3337e837799488d7c70c27ce3a691db6465f915ac716a8ea4c9b\lib\
-   --   -LC:\users\kevin\appdata\local\alire\cache\toolchains\gnat_arm_elf_12.2.1_351564ba\arm-eabi\lib\gnat\embedded-stm32f429disco\adalib\
+   --   C:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\system_config.o
+   --   C:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\motor.o
+   --   C:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\steering.o
+   --   C:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\uarts.o
+   --   C:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\uart.o
+   --   C:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\main.o
+   --   -LC:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\
+   --   -LC:\Users\Truax\Desktop\Reference Capstone\VDI-ADC-Modular-System\hardware\obj\
+   --   -LC:\Users\Truax\AppData\Local\alire\cache\builds\cortex_m_0.5.0_39667d15\476f859549ba1af1d200af7bcb2f01b3ec0faabcfe00cbc7d6402ba313b82772\lib\
+   --   -LC:\Users\Truax\AppData\Local\alire\cache\builds\hal_0.3.1_58bb6bd7\45a7230b1521a74e4d762c42ec802710efe319e84e7227b385f535fafd1bbbac\lib\
+   --   -LC:\Users\Truax\AppData\Local\alire\cache\builds\stm32f429disco_0.1.0_aa5fe0cb\c82c5fd28bae1b74f73b5bc408fb0d2a6c4a95b458bd5f92faf6278736579e80\lib\
+   --   -LC:\Users\Truax\AppData\Local\alire\cache\builds\embedded_components_0.2.0_37c39b23\0bc6b1629f0f1e94583a71ab62faf08ad25f0bb4872a81641612ad56c49d554e\lib\
+   --   -LC:\Users\Truax\AppData\Local\alire\cache\builds\adl_middleware_0.2.0_623c6913\b4ec6094b58d9cc456e277cd32fca5ea0d0a72e5eafac9d58bb4557f37b435b9\lib\
+   --   -LC:\Users\Truax\AppData\Local\alire\cache\builds\stm32_hal_0.1.0_9276ee80\578fa707396e3337e837799488d7c70c27ce3a691db6465f915ac716a8ea4c9b\lib\
+   --   -LC:\users\truax\appdata\local\alire\cache\toolchains\gnat_arm_elf_12.2.1_351564ba\arm-eabi\lib\gnat\embedded-stm32f429disco\adalib\
    --   -static
    --   -lgnarl
    --   -lgnat

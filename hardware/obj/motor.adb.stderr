@@ -1,8 +1,11 @@
-motor.adb:82:12: (style) two spaces required
-motor.adb:95:07: warning: variable "Next_Release" is not referenced [-gnatwu]
-motor.adb:98:10: (style) space required
-motor.adb:102:10: (style) space required
-motor.adb:107:10: (style) space required
+motor.adb:28:07: (style) space required
+motor.adb:32:07: (style) space required
+motor.adb:36:07: (style) space required
+motor.adb:88:12: (style) two spaces required
+motor.adb:101:07: warning: variable "Next_Release" is not referenced [-gnatwu]
+motor.adb:104:10: (style) space required
+motor.adb:108:10: (style) space required
+motor.adb:113:10: (style) space required
 motor.ads:18:11: warning: unit "STM32.Board" is not referenced [-gnatwu]
 motor.ads:19:11: warning: unit "STM32.PWM" is not referenced in spec [-gnatwu]
 motor.ads:19:11: warning: with clause might be moved to body [-gnatwu]
