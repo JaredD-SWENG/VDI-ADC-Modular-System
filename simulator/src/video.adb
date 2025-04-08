@@ -12,6 +12,8 @@ with Ada.Unchecked_Conversion;
 with Ada.Containers.Indefinite_Vectors;
 
 with Acv;
+with System.Storage_Elements; use System.Storage_Elements;
+with Ada.Text_IO; use Ada.Text_IO;
 
 package body Video is
 
@@ -35,7 +37,7 @@ package body Video is
       Nbr_Frames : constant Natural := Acv.Imgs_Count_In_Dir (Dir);
       Vid : Video;
    begin
-      for I in 0 .. Nbr_Frames - 1 loop
+      for I in 0 .. 25 loop -- Nbr_Frames - 1 loop
          Vid.Append (Acv.From_Qoi (Dir, "frame_" & Zero_Pad (I, 4)));
       end loop;
       return Vid;
@@ -71,9 +73,12 @@ package body Video is
       use Frames;
       Current_Frame : constant Acv.Image_T := Frames.Element (Cursor);
       Current_BW    : constant Acv.Image_T := Acv.Black_And_White (Current_Frame, 128);
+      --  Output_Size   : Storage_Count;
+      --  Output        : Storage_Array := Acv.To_QOI (Current_BW, Output_Size);
    begin
       Set_Image_To_Object (Current_Frame, "LeftImage");
       Set_Image_To_Object (Current_BW, "RightImage");
+      --  Acv.Write_To_File ("outputTest.qoi", Output, Output_Size);
       Cursor := (if Cursor = Vid.Last then Vid.First else Frames.Next (Cursor));
       return True;
    end Frame_Callback;
