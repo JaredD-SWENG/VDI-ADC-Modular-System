@@ -1,0 +1,22 @@
+name = "simulation_gui"
+description = ""
+version = "0.1.0-dev"
+
+authors = ["Haris"]
+maintainers = ["Haris <example@example.com>"]
+maintainers-logins = ["github-username"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["simulation_gui"]
+
+[build-switches]
+"*".style_checks = "No" # I swear to god I cannot stand this on
+
+[[pins]]
+cv_ada = { path='../cv_ada' }
+
+[[depends-on]]
+gtkada = "^24.0.1"
+cv_ada = "*"

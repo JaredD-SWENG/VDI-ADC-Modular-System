@@ -3,6 +3,7 @@ with Ada.Text_IO;             use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Event_Types;             use Event_Types;
 with Event_Queue;             use Event_Queue;
+with GUI_Functions;           use GUI_Functions;
 with Interfaces;              use Interfaces;
 with QOI;
 with CV_Ada;
@@ -246,6 +247,30 @@ package body Signal_Recognition is
               (new Signal_State'
                  (Event_Kind => Signal_Event, Priority => Event_Priority,
                   Color      => Signal_Value));
+
+            case Signal_Value is
+            when Red =>
+               if GUI_Functions.Does_Exist then
+                  GUI_Functions.AddConsoleText ("Path Planning: Stop");
+                  GUI_Functions.Set_Detection_Elements (Red_Light, On);
+                  GUI_Functions.Set_Detection_Elements (Yellow_Light, Off);
+                  GUI_Functions.Set_Detection_Elements (Green_Light, Off);
+               end if;
+            when Yellow =>
+               if GUI_Functions.Does_Exist then
+                  GUI_Functions.AddConsoleText ("Path Planning: Slow");
+                  GUI_Functions.Set_Detection_Elements (Red_Light, Off);
+                  GUI_Functions.Set_Detection_Elements (Yellow_Light, On);
+                  GUI_Functions.Set_Detection_Elements (Green_Light, Off);
+               end if;
+            when Green =>
+               if GUI_Functions.Does_Exist then
+                  GUI_Functions.AddConsoleText ("Path Planning: Go");
+                  GUI_Functions.Set_Detection_Elements (Red_Light, Off);
+                  GUI_Functions.Set_Detection_Elements (Yellow_Light, Off);
+                  GUI_Functions.Set_Detection_Elements (Green_Light, On);
+               end if;
+         end case;
             --Queue_Manager.PrintQueue;
             Put_Line
               ("Signal Recognition State: " &

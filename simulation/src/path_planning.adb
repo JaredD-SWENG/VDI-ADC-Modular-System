@@ -1,6 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Event_Types; use Event_Types;
 with Event_Queue; use Event_Queue;
+with GUI_Functions;
 with Host_Serial; use Host_Serial;
 
 package body Path_Planning is
@@ -39,9 +40,7 @@ package body Path_Planning is
                   Queue_Manager.Dequeue (Current_Event);
                   if Current_Event.all in Signal_State'Class then
                      declare
-                        Signal :
-                          Signal_State renames
-                          Signal_State (Current_Event.all);
+                        Signal : Signal_State renames Signal_State (Current_Event.all);
                      begin
                         --  Put_Line
                         --    ("Processing Event: Signal State - " &
@@ -64,8 +63,7 @@ package body Path_Planning is
                      end;
                   elsif Current_Event.all in Offset'Class then
                      declare
-                        Lane_Offset :
-                          Offset renames Offset (Current_Event.all);
+                        Lane_Offset : Offset renames Offset (Current_Event.all);
                      begin
                         Put_Line
                           ("Processing Event: Offset - Value: " &

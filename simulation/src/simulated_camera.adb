@@ -20,6 +20,7 @@ package body Simulated_Camera is
          Camera.Advance_Global_Frame;
          
          if Camera.Get_Current_Global_Frame >= Camera.Get_Frame_Max_Count then
+            --  Camera.Set_Frame_Index (0);
             exit; -- No more frames
          end if;
       end loop;

@@ -15,5 +15,15 @@ executables = ["simulation"]
 "*".style_checks = "No" # I swear to god I cannot stand this on
 
 [[pins]]
-cv_ada = { path='../cv_ada' }
-camera = { path='../camera' }
+cv_ada         = { path='../cv_ada' }
+camera         = { path='../camera' }
+host_serial    = { path='../host_serial' }
+simulation_gui = { path='../simulation_gui' }
+
+[[depends-on]]
+gtkada         = "^24.0.1"
+cv_ada         = "*"
+camera         = "*"
+qoi            = "*"
+host_serial    = "*"
+simulation_gui = "*"

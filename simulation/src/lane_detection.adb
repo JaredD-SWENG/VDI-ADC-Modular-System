@@ -3,6 +3,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Event_Types; use Event_Types;
 with Event_Queue; use Event_Queue;
 
+with GUI_Functions;
 with QOI;
 with CV_Ada;
 with CV_Ada.Basic_Transformations;
@@ -63,7 +64,6 @@ package body Lane_Detection is
       Intersection_Found : Boolean := False;
       Intersection_Point : Point;
       Image_Center       : Integer;
-
    begin
       accept Start (Priority : Event_Types.Priority_Level := 1) do
          Event_Priority := Priority;
@@ -77,10 +77,14 @@ package body Lane_Detection is
          declare
             Current_Frame_Path : String            := Camera.Get_Next_Frame_Path ("Lane_Detection");
             Input              : CV_Ada.Input_Data := CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path);
+         use GUI_Functions;
          begin
             if Current_Frame_Path = "" then
                exit; -- No more frames
             end if;
+
+            GUI_Functions.Set_Raw_Image (CV_Ada.IO_Operations.Load_QOI (Current_Frame_Path));
+
             -- Apply region of interest to focus on the lower half of the image
             CV_Ada.Basic_Transformations.Region_Of_Interest
               (Input, Input.Desc.Width / 4 + 1, Input.Desc.Height / 3 + 1,
@@ -141,13 +145,33 @@ package body Lane_Detection is
               (new Offset'
                  (Event_Kind => Offset_Event, Priority => Event_Priority,
                   Value      => Offset_Value));
-            Queue_Manager.PrintQueue;
+            
+            if Offset_Value < 0.0 then
+               if GUI_Functions.Does_Exist then
+                  GUI_Functions.AddConsoleText ("Path Planning: Turn Right");
+                  GUI_Functions.Set_Detection_Elements (Left_Signal, Off);
+                  GUI_Functions.Set_Detection_Elements (Right_Signal, On);
+               end if;
+            elsif Offset_Value > 0.0 then
+               if GUI_Functions.Does_Exist then
+                  GUI_Functions.AddConsoleText ("Path Planning: Turn Left");
+                  GUI_Functions.Set_Detection_Elements (Left_Signal, On);
+                  GUI_Functions.Set_Detection_Elements (Right_Signal, Off);
+               end if;
+            else
+               if GUI_Functions.Does_Exist then
+                  GUI_Functions.AddConsoleText ("Path Planning: Center");
+                  GUI_Functions.Set_Detection_Elements (Left_Signal, Off);
+                  GUI_Functions.Set_Detection_Elements (Right_Signal, Off);
+               end if;
+            end if;
+
             -- For some reason, path planning is not receiving the offset event
             Put_Line ("Lane Detection Offset: " & Float'Image (Offset_Value));
             
             --  CV_Ada.Free_Input_Data (Input);
             CV_Ada.Free_Storage_Array (Input.Data);
-            delay 2.0;
+            delay 0.1;
          end;
       end loop;
    end Lane_Detection_Task;
