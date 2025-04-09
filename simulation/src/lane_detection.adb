@@ -147,7 +147,7 @@ package body Lane_Detection is
             
             --  CV_Ada.Free_Input_Data (Input);
             CV_Ada.Free_Storage_Array (Input.Data);
-            delay 0.1;
+            delay 2.0;
          end;
       end loop;
    end Lane_Detection_Task;

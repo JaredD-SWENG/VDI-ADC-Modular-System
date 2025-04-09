@@ -60,7 +60,7 @@ package body Path_Planning is
                               Put_Line ("Path Planning: Go");
                               Send_Command(go);
                         end case;
-                        delay 0.1;
+                        delay 0.5;
                      end;
                   elsif Current_Event.all in Offset'Class then
                      declare
@@ -80,7 +80,7 @@ package body Path_Planning is
                            Put_Line ("Path Planning: Center");
                            Send_Command(center);
                         end if;
-                        delay 0.1;
+                        delay 0.5;
                      end;
                   end if;
                end if;

@@ -6,7 +6,7 @@ package body Host_Serial is
 
    procedure Send_Command (C : Cmd) is
       COM  : aliased Serial_Port;
-      COM6 : constant Port_Name := Name (7);
+      COM6 : constant Port_Name := Name (6);
       Cmd_Data : Stream_Element_Array(1 .. 1) := [Cmd'Enum_Rep(C)];
    begin
       delay 0.01;

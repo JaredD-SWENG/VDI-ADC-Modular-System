@@ -253,7 +253,7 @@ package body Signal_Recognition is
 
             --  CV_Ada.Free_Input_Data (Input);
             CV_Ada.Free_Storage_Array (Input.Data);
-            delay 0.5;
+            delay 4.0;
          end;
       end loop;
    end Signal_Recognition_Task;
