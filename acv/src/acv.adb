@@ -3,27 +3,93 @@ with Ada.Directories;
 
 with GNAT.OS_Lib;
 with System.Storage_Elements; use System.Storage_Elements;
+with System.Multiprocessors;  use System.Multiprocessors;
 
 package body Acv is
 
    package IO renames Ada.Text_IO;
    package D renames Ada.Directories;
    package OS renames GNAT.OS_Lib;
-   function Black_And_White
-     (Img : Image_T; Threshold : Intensity_T) return Image_T
+
+   function Black_And_White_MT
+     (Img : Image_Access; Threshold : Intensity_T) return Image_Access
    is
-      Result : Image_T (Img'Range (1), Img'Range (2));
-      Gray   : Intensity_T;
+      Result : Image_Access := new Image_T (Img'Range (1), Img'Range (2));
+
+      Total_Rows    : constant Natural  := Img'Last (2) - Img'First (2) + 1;
+      Num_Tasks     : constant Positive :=
+        Positive'Min (Integer (Number_Of_CPUs), 4);  -- Limit to 4 threads
+      Rows_Per_Task : constant Natural  := Total_Rows / Num_Tasks;
+      Remainder     : constant Natural  := Total_Rows rem Num_Tasks;
    begin
-      for Y in Img'Range (2) loop
-         for X in Img'Range (1) loop
-            Gray          := (Img (X, Y).R + Img (X, Y).G + Img (X, Y).B) / 3;
-            Result (X, Y) :=
-              (if Gray < Threshold then (0, 0, 0) else (255, 255, 255));
+      declare
+         protected Completion is
+            procedure Task_Done;
+            entry Wait_Until_Done;
+         private
+            Tasks_Remaining : Natural := Num_Tasks;
+         end Completion;
+
+         protected body Completion is
+            procedure Task_Done is
+            begin
+               Tasks_Remaining := Tasks_Remaining - 1;
+            end Task_Done;
+
+            entry Wait_Until_Done when Tasks_Remaining = 0 is
+            begin
+               null;
+            end Wait_Until_Done;
+         end Completion;
+
+         task type Process_Rows (Start_Y, End_Y : Natural);
+
+         task body Process_Rows is
+         begin
+            for Y in Start_Y .. End_Y loop
+               for X in Img'Range (1) loop
+                  declare
+                     Gray : constant Intensity_T :=
+                       (Img (X, Y).R + Img (X, Y).G + Img (X, Y).B) / 3;
+                  begin
+                     Result (X, Y) :=
+                       (if Gray < Threshold then (0, 0, 0)
+                        else (255, 255, 255));
+                  end;
+               end loop;
+            end loop;
+            Completion.Task_Done;
+         end Process_Rows;
+
+         type Task_Access is access Process_Rows;
+         Tasks   : array (1 .. Num_Tasks) of Task_Access;
+         Start_Y : Natural := Img'First (2);
+      begin
+         for I in 1 .. Num_Tasks loop
+            declare
+               Adjusted_Rows : Natural := Rows_Per_Task;
+            begin
+               if I <= Remainder then
+                  Adjusted_Rows := Adjusted_Rows + 1;
+               end if;
+
+               declare
+                  End_Y : constant Natural := Start_Y + Adjusted_Rows - 1;
+               begin
+                  Tasks (I) :=
+                    new Process_Rows
+                      (Start_Y => Start_Y,
+                       End_Y   => Natural'Min (End_Y, Img'Last (2)));
+                  Start_Y   := Start_Y + Adjusted_Rows;
+               end;
+            end;
          end loop;
-      end loop;
+
+         Completion.Wait_Until_Done;
+      end;
+
       return Result;
-   end Black_And_White;
+   end Black_And_White_MT;
 
    function Gray (Img : Image_T) return Image_T is
       Result : Image_T (Img'Range (1), Img'Range (2));
@@ -106,20 +172,23 @@ package body Acv is
       end;
    end From_QOI;
 
-   function To_QOI (Img : Image_T; Output_Size : out Storage_Count) return Storage_Array is
-      Desc : QOI.QOI_Desc := (
-         Width      => Storage_Count (Img'Length (1)),
-         Height     => Storage_Count (Img'Length (2)),
-         Channels   => 3,
+   function To_QOI
+     (Img : Image_T; Output_Size : out Storage_Count) return Storage_Array
+   is
+      Desc   : QOI.QOI_Desc :=
+        (Width      => Storage_Count (Img'Length (1)),
+         Height     => Storage_Count (Img'Length (2)), Channels => 3,
          Colorspace => QOI.SRGB);
-      Input       : Storage_Array (1 .. (Img'Length (1) * Img'Length (2) * 3)) with Address => Img'Address;
-      Output      : Storage_Array (1 .. QOI.Encode_Worst_Case (Desc));
+      Input  : Storage_Array (1 .. (Img'Length (1) * Img'Length (2) * 3)) with
+        Address => Img'Address;
+      Output : Storage_Array (1 .. QOI.Encode_Worst_Case (Desc));
    begin
       QOI.Encode (Input, Desc, Output, Output_Size);
       return Output;
-   end To_Qoi;
+   end To_QOI;
 
-   procedure Write_To_File (Filename : String; D : Storage_Array; Size : Storage_Count)
+   procedure Write_To_File
+     (Filename : String; D : Storage_Array; Size : Storage_Count)
    is
       use GNAT.OS_Lib;
 
