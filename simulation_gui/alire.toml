@@ -16,7 +16,9 @@ executables = ["simulation_gui"]
 
 [[pins]]
 cv_ada = { path='../cv_ada' }
+camera = { path='../camera' }
 
 [[depends-on]]
 gtkada = "^24.0.1"
 cv_ada = "*"
+camera = "*"

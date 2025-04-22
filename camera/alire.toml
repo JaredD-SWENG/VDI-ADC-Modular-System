@@ -8,3 +8,12 @@ maintainers-logins = ["github-username"]
 licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
 website = ""
 tags = []
+
+[build-switches]
+"*".style_checks = "No" # I swear to god I cannot stand this on
+
+[[pins]]
+cv_ada = { path='../cv_ada' }
+
+[[depends-on]]
+cv_ada = "*"

@@ -1,6 +1,10 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;       use Ada.Directories;
 
+with CV_Ada;
+with System; use System;
+with Ada.Containers.Indefinite_Vectors;
+
 package Camera is
    -- Functions to get camera state
    function Get_Folder_Path return String;
@@ -20,6 +24,17 @@ package Camera is
    -- Get the path to the current frame
    function Get_Next_Frame_Path (Module_Name : String := ""; Prefix : String := "frame_"; Log : Boolean := False) return String;
    
+   function "=" (Left, Right : CV_Ada.Input_Data) return Boolean is
+     (Left'Address = Right'Address);
+   
+   package Frames is new Ada.Containers.Indefinite_Vectors
+     (Index_Type   => Natural,
+      Element_Type => CV_Ada.Input_Data,
+      "="          => "=");
+
+   subtype Video is Frames.Vector;
+
+   Vid : Video;
 private
    -- Private variables for internal state
    Folder_Path_Unbounded : Unbounded_String;
@@ -29,4 +44,5 @@ private
    
    -- Helper procedure for counting frames
    procedure Update_Frame_Count (Search_Item : Directory_Entry_Type);
+   function Load_Video (Dir : String) return Video;
 end Camera;

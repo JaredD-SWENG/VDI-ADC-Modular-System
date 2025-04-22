@@ -1,4 +1,5 @@
 with Gtk.Main;
+with Gdk.Threads;
 with Glib.Main;         use Glib.Main;
 with Gtk.Enums;         use Gtk.Enums;
 with Gdk.Types;         use Gdk.Types;
@@ -18,12 +19,16 @@ with GNAT.OS_Lib;
 with CV_Ada.IO_Operations;
 use CV_Ada;
 
+with Camera;
+
 package body GUI_Functions is
    function GO (N : String) return GObject is (Get_Object(Builder, Name => N));
 
    procedure Initialize (FilePath : String := "glade_source\CarSimulator.glade") is
       Timeout : G_Source_Id;
    begin
+      Gdk.Threads.G_Init;
+      Gdk.Threads.Init;
       Gtk.Main.Init;
       Gtk_New (Builder);
 
@@ -55,12 +60,16 @@ package body GUI_Functions is
       Exists := True;
 
       Timeout := Timeout_Add (50, Timeout_Check'Access);
+      --  Timeout := Idle_Add (Timeout_Check'Access);
 
+      Gdk.Threads.Enter;
       Gtk.Main.Main;
+      Gdk.Threads.Leave;
 
       Unref (Builder); -- Free memory because I was told to do so
    exception
       when Error : others =>
+         Put_Line ("Error: Initialization failed");
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
          GNAT.OS_Lib.OS_Exit (1);
    end Initialize;
@@ -91,16 +100,26 @@ package body GUI_Functions is
    end InitializeConsole;
 
    procedure AddConsoleText (Text : String) is
-      ConsoleObject : constant GObject := Get_Object (Builder, Name => "listStore");
+      ConsoleObject : GObject;
    begin
+      if Does_Exist = False then
+         return;
+      end if;
+      Gdk.Threads.Enter;
+      ConsoleObject := Get_Object (Builder, Name => "listStore");
       Append (Gtk_List_Store(ConsoleObject), Console_Iterator);
       Set (Gtk_List_Store(ConsoleObject), Console_Iterator, 0, Text);
+      Gdk.Threads.Leave;
    end AddConsoleText;
 
    procedure MainQuitClicked (Builder : access Gtkada_Builder_Record'Class) is
       pragma Unreferenced (Builder);
    begin
+      Exists := False;
+      --  Gdk.Threads.Enter;
       Gtk.Main.Main_Quit;
+      --  Gdk.Threads.Leave;
+      delay 1.0;
    end MainQuitClicked;
 
    function KeyPressed (Widget : access Gtk_Widget_Record'Class; Event : Gdk.Event.Gdk_Event_Key) return Boolean is
@@ -111,23 +130,52 @@ package body GUI_Functions is
       return True;
    end;
 
-   procedure Set_Raw_Image (Input_Data : CV_Ada.Input_Data) is
-   begin
-      Raw_Image_Data := Input_Data;
-   end Set_Raw_Image;
+   protected body Update_GUI is
+      procedure Set_Raw_Image (Input_Data : CV_Ada.Input_Data) is
+      begin
+         Raw_Image_Data := Input_Data;
+         Is_Set := True;
+      end Set_Raw_Image;
+
+      entry Get_Raw_Image (Input_Data : out CV_Ada.Input_Data)
+         when Is_Set is
+      begin
+         Input_Data := Raw_Image_Data;
+         --  Is_Set := False;
+      end Get_Raw_Image;
+   end Update_GUI;
 
    procedure Update_Raw_Image is
-      Object : constant GObject := Get_Object (Builder, Name => "RawImage");
+      Object    : constant GObject := Get_Object (Builder, Name => "RawImage");
+      Raw_Image : CV_Ada.Input_Data;
    begin
-      if Raw_Image_Data.Data /= null then
-         Scale_QOI_Image_To_Window_Size (Gtk_Image (Object), Raw_Image_Data, Gtk_Widget (Object));
+      --  Gdk.Threads.Enter;
+      Raw_Image := Camera.Vid (Camera.Get_Current_Global_Frame);
+      --  Raw_Image := CV_Ada.IO_Operations.Load_QOI (Camera.Get_Next_Frame_Path ("Lane_Detection"));
+      --  Update_GUI.Get_Raw_Image (Raw_Image);
+      if Raw_Image.Data /= null then
+         --  Put_Line (Camera.Get_Current_Global_Frame'Image);
+         --  Put_Line (Raw_Image.Data.all'Length'Image);
+         Scale_QOI_Image_To_Window_Size (Gtk_Image (Object), Raw_Image, Gtk_Widget (Object));
       end if;
+      --  Gdk.Threads.Leave;
+   exception
+      when E : others =>
+         Put_Line ("Error: Update_Raw_Image failed");
+         Put_Line ("Error: " & Ada.Exceptions.Exception_Information (E));
+         GNAT.OS_Lib.OS_Exit (1);
    end Update_Raw_Image;
 
    procedure Set_Detection_Elements (Element : Detection_Elements; State : States) is
-      Object : constant GObject := Get_Object (Builder, Name => Element'Image);
+      Object : GObject;
    begin
+      if Does_Exist = False then
+         return;
+      end if;
+      --  Gdk.Threads.Enter;
+      Object := Get_Object (Builder, Name => Element'Image);
       Scale_QOI_Image_To_Window_Size (Gtk_Image (Object), Detection_Images (Element, State), Gtk_Widget (Object));
+      --  Gdk.Threads.Leave;
    end Set_Detection_Elements;
 
    procedure Scale_QOI_Image_To_Window_Size(Image : Gtk_Image; Input_Data : CV_Ada.Input_Data; Widget : Gtk_Widget) is
@@ -140,12 +188,12 @@ package body GUI_Functions is
                                                         Height    => Gint(Input_Data.Desc.Height),
                                                         Rowstride => Gint(Input_Data.Desc.Channels * Input_Data.Desc.Width));
    begin
+      Gdk.Threads.Enter;
       Set (Image, Scale_Simple(Pixbuf, Get_Allocated_Width(Widget), Get_Allocated_Height(Widget), Interp_Nearest));
+      Gdk.Threads.Leave;
    exception
       when E : others =>
-         Put_Line ("");
-         Put_Line ("");
-         Put_Line ("ERROR HERE --");
+         Put_Line ("Error: Scale_QOI_Image_To_Window_Size failed");
          Put_Line (Ada.Exceptions.Exception_Information (E));
          GNAT.OS_Lib.OS_Exit (1);
    end;
@@ -156,6 +204,7 @@ package body GUI_Functions is
       return True;
    exception
       when E : others => 
+      Put_Line ("Error: Timeout_Check failed");
       Put_Line (Ada.Exceptions.Exception_Information (E));
       GNAT.OS_Lib.OS_Exit (1);
    end Timeout_Check;

@@ -175,6 +175,7 @@
             <property name="width-request">400</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="vscrollbar-policy">external</property>
             <property name="window-placement">bottom-right</property>
             <property name="shadow-type">in</property>
             <child>

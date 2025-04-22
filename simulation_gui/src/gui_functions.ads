@@ -29,15 +29,21 @@ package GUI_Functions is
 
    procedure Set_Detection_Elements (Element : Detection_Elements; State : States);
 
-   procedure Set_Raw_Image (Input_Data : CV_Ada.Input_Data);
+   protected Update_GUI is
+      procedure Set_Raw_Image (Input_Data : CV_Ada.Input_Data);
+      entry Get_Raw_Image (Input_Data : out CV_Ada.Input_Data);
+   private
+      Is_Set         : Boolean := False;
+      Raw_Image_Data : CV_Ada.Input_Data;
+   end Update_GUI;
 private
    type Detection_Images_Array is array (Detection_Elements, States) of CV_Ada.Input_Data;
 
+   Raw_Image         : CV_Ada.Input_Data;
    Exists            : Boolean                  := False;
    Quit_GUI          : Boolean                  := False;
    Error             : aliased GError;
    Detection_Images  : Detection_Images_Array;
-   Raw_Image_Data    : CV_Ada.Input_Data;
    Console_Iterator  : Gtk_Tree_Iter            := Null_Iter;
 
    -- Function Stubs for Body

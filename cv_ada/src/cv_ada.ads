@@ -9,6 +9,8 @@ package CV_Ada is
       Data : Storage_Array_Access;
       Desc : QOI.QOI_Desc;
    end record;
+
+   Null_Data : constant Input_Data := (Data => null, Desc => (0, 0, 0, QOI.SRGB));
    
    procedure Free_Storage_Array is new Ada.Unchecked_Deallocation (Storage_Array, Storage_Array_Access);
    procedure Free_Input_Data (Object : in out Input_Data);

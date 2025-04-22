@@ -10,13 +10,13 @@ package body Path_Planning is
       Processing    : Boolean := False;
    begin
       accept Start;
-      Put_Line ("Path Planning Started");
+      GUI_Functions.AddConsoleText ("Path Planning Started");
 
       loop
          select
             accept Kill do
                Processing := False;
-               Put_Line
+               GUI_Functions.AddConsoleText
                  ("Path Planning: Processing killed for higher priority event");
             end Kill;
          or
@@ -29,12 +29,12 @@ package body Path_Planning is
             select
                accept Kill do
                   Processing := False;
-                  Put_Line
+                  GUI_Functions.AddConsoleText
                     ("Path Planning: Processing killed for higher priority event");
                end Kill;
             else
                if Queue_Manager.Is_Empty then
-                  Put_Line ("Path Planning: No events to process");
+                  GUI_Functions.AddConsoleText ("Path Planning: No events to process");
                   Processing := False;
                else
                   Queue_Manager.Dequeue (Current_Event);
@@ -48,37 +48,35 @@ package body Path_Planning is
                         case Signal.Color is
                            when Red =>
                               null;
-                              Put_Line ("Path Planning: Stop");
+                              GUI_Functions.AddConsoleText ("Path Planning: Stop");
                               Send_Command(stop);
                            when Yellow =>
                               null;
-                              Put_Line ("Path Planning: Slow");
+                              GUI_Functions.AddConsoleText ("Path Planning: Slow");
                               Send_Command(stop);
                            when Green =>
                               null;
-                              Put_Line ("Path Planning: Go");
+                              GUI_Functions.AddConsoleText ("Path Planning: Go");
                               Send_Command(go);
                         end case;
-                        delay 0.5;
+                        delay 0.05;
                      end;
                   elsif Current_Event.all in Offset'Class then
                      declare
                         Lane_Offset : Offset renames Offset (Current_Event.all);
                      begin
-                        Put_Line
-                          ("Processing Event: Offset - Value: " &
-                           Float'Image (Lane_Offset.Value));
+                        GUI_Functions.AddConsoleText ("Processing Event: Offset - Value: " & Float'Image (Lane_Offset.Value));
                         if Lane_Offset.Value < 0.0 then
-                           Put_Line ("Path Planning: Turn Right");
+                           GUI_Functions.AddConsoleText ("Path Planning: Turn Right");
                            Send_Command(right);
                         elsif Lane_Offset.Value > 0.0 then
-                           Put_Line ("Path Planning: Turn Left");
+                           GUI_Functions.AddConsoleText ("Path Planning: Turn Left");
                            Send_Command(left);
                         else
-                           Put_Line ("Path Planning: Center");
+                           GUI_Functions.AddConsoleText ("Path Planning: Center");
                            Send_Command(center);
                         end if;
-                        delay 0.5;
+                        delay 0.05;
                      end;
                   end if;
                end if;
