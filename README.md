@@ -13,7 +13,6 @@ A modular autonomous driving system developed for the VDI Challenge Project. The
 - **Event-Driven Architecture**: Prioritized handling of different event types
 - **Computer Vision Library**: Ada implementation with comprehensive image processing capabilities
 - **Modular Design**: Easily replaceable and testable components
-- **Real-Time Processing**: Efficient handling of sensor data with time constraints
 - **Simulation Environment**: Test autonomous driving algorithms in a safe environment
 
 ## Repository Structure
