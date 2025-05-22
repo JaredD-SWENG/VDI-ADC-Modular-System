@@ -4,7 +4,7 @@ Capstone Project: Modular Autonomous Driving System for VDI Challenge Project
 **[Project Website](https://sites.psu.edu/behrendseniordesign/2025/04/28/vdi-autonomous-driving-challenge/)**
 
 ## Demo Video
-[![VDI-ADC-Modular-System Demo](https://github.com/user-attachments/assets/a2d15290-aac0-46cb-83b5-398e4d8e0d32)](https://www.youtube.com/watch?v=VIDEO_ID)
+[![VDI-ADC-Modular-System Demo](https://github.com/user-attachments/assets/a2d15290-aac0-46cb-83b5-398e4d8e0d32)](https://www.youtube.com/watch?v=pCQ_vPEtTcA)
 
 ## Overview
 A modular autonomous driving system developed for the VDI Challenge Project. The system provides a flexible, robust framework for implementing and testing various autonomous driving components using Ada programming language.
